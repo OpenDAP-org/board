@@ -25,7 +25,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-019 | The SoC shall boot without the RP coprocessor firmware. | must | Confirmed |
 | BRD-020 | The PMIC shall be the Rockchip RK809, the companion PMIC of the RK3566. | must | Draft |
 | BRD-021 | Memory: 4 GB LPDDR4X and 32 GB eMMC. | should | Withdrawn |
-| BRD-022 | The audio stage shall use two Cirrus Logic CS43198 DACs in dual mono, followed by four OPA1622 headphone amplifiers. | must | Draft |
+| BRD-022 | The audio stage shall use two Cirrus Logic CS43198 DACs in dual mono, followed by six OPA1622 headphone amplifiers (both halves of one package in parallel on each balanced leg), sized to meet the mid-range segment's output into low-impedance headphones (ADR 0012). | must | Draft |
 | BRD-023 | The audio stage shall have two master clocks, 22.5792 MHz and 24.576 MHz (44.1 kHz and 48 kHz families) at the CS43198's 1.8 V clock input, with the DAC as clock master, so every sample rate plays bit-perfect without resampling. | must | Confirmed |
 | BRD-024 | The 3.5 mm output shall be single-ended and the 4.4 mm output balanced (Pentaconn). | must | Draft |
 | BRD-025 | Every radio (Wi-Fi, Bluetooth and any other) shall prioritize certified or pre-certified modules. | must | Confirmed |

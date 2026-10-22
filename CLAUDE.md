@@ -1,6 +1,6 @@
 # Board
 
-OpenDAP main board (SBC): the SoC-based single board computer, its auxiliary MCUs and simulations.
+Main board of the OpenDAP T1: the SoC-based single board computer, its auxiliary MCUs and simulations.
 
 Part of [OpenDAP](https://github.com/opendap-project). This repository is open source.
 

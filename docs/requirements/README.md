@@ -67,6 +67,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 
 ## Context
 
+- BRD-004 and BRD-005 govern the T1 main board. HAT hardware follows the HAT standard's HCS-013 (every programmable HAT chip flashable and debuggable from OpenDAP OS, natively over SWD or through the HAT management port), hat-standard ADR 0002 (2026-10-22).
 - Priorities revised on 2026-10-22 under the maintainers' delegation ([priority audit](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-requirement-priorities.md)): BRD-014 (RP2354A coprocessor), BRD-031 (ambient-noise microphone) and BRD-032 (IMU) are should and become population options (BRD-053). BRD-014 holds as should only while no must function depends on the coprocessor; the pin plan currently routes wake lines to it, so those move to the SoC or the expander before the coprocessor can be left unpopulated. BRD-036 split into BRD-036 (must) and BRD-056 (should).
 - BRD-054, BRD-055 (maintainers, 2026-10-22): HDI and advanced build-ups are welcome as long as PCBWay can prototype them with its own services. The fab rules live in kicad-lib (KLIB-002), one rule set per PCBWay process.
 - BRD-053 (maintainers, 2026-10-22): prototypes may exceed the production cost limits to validate everything; production simply omits parts. Value engineering therefore targets the production variant, and optional parts are designed in as population options from the start.

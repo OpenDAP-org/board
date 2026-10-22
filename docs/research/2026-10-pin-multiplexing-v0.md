@@ -272,7 +272,7 @@ The needs are the dual-mono DAC (with DSD later), HAT multichannel, the speaker,
 
 **Bluetooth trade-off.** LE Audio carries audio over HCI ISO channels, and classic SCO can also run over HCI. v0 therefore routes Bluetooth audio over the UART. Whether `btnxpuart` supports SCO over HCI with the IW612 at useful quality is **UNVERIFIED**. If PCM is needed later, there are two choices: (a) populate the DNP 0 Ω links to I2S2 M0 and give up HAT I2S-A, or (b) wire the IW612 PCM to the RP2350 for diagnostics only.
 
-**Native DSD (ADR 0006).** Two SDO lines are reserved (SDO1 → DSDA of DAC L, SDO2 → DSDA of DAC R), with the DSD clock on its own net to each DAC's DSDCLK pin. The CS43198 takes DSD on dedicated DSDCLK/DSDA/DSDB pins (DS1156F2 pin table; [BOM v1 cross-validation](2026-10-bom-v1-cross-validation.md) F28). Two things are **UNVERIFIED**:
+**Native DSD (ADR 0006).** Two SDO lines are reserved (SDO1 → DSDA of DAC L, SDO2 → DSDA of DAC R), with the DSD clock on the SCLKTX net, routed to each DAC's DSDCLK pin: the I2S-TDM block clocks every SDO line from SCLKTX, so the DSD clock is that net, not a separate one (DSD research §5.2, 2026-10-22). The CS43198 takes DSD on dedicated DSDCLK/DSDA/DSDB pins (DS1156F2 pin table; [BOM v1 cross-validation](2026-10-bom-v1-cross-validation.md) F28). Two things are **UNVERIFIED**:
 
 1. whether the Rockchip I2S-TDM block can stream raw bits at 64 × fs per line without framing gaps;
 2. whether the DAC can master the DSD clock.

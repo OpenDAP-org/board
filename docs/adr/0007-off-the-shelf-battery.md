@@ -1,6 +1,6 @@
 # ADR 0007: Off-the-shelf battery
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR 0011](0011-battery-path-rated-for-the-full-output-budget.md). The Adafruit 328 remains the interim prototype pack.
 - **Date:** 2026-10-22
 - **Decided by:** Claude, under the maintainers' delegation, following the product rules
 

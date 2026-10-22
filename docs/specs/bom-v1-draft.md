@@ -1,6 +1,6 @@
 # BOM v1 (draft)
 
-- **Status:** Draft. Only lines marked *Decided* are decisions (copied unchanged from [BOM v0](bom-v0.md)). Every *Proposed* line needs the maintainers' confirmation; *Open* lines have no pick yet.
+- **Status:** Superseded by [BOM v1](bom-v1.md). Kept as history.
 - **Date:** 2026-10-22
 - **Scope:** the T1 main board and the touch faceplate, by subsystem, including the support parts around the main ICs (regulators, switches, protection, clocks, magnetics, connectors, test access).
 - **Companion:** [power tree v0](power-tree-v0.md) holds the rails, currents, gating map, sequencing and the calculations behind the power, audio, backlight and HAT picks.

@@ -3,7 +3,7 @@
 - **Date:** 2026-10-22
 - **Status:** Desk research. **Everything here is a proposal (v0), not a decision.** The maintainers must confirm each allocation, and the schematic must re-check every pin against the full RK3566 datasheet before layout.
 - **Scope:** check the T1 signal set (board, faceplate connector, HAT connector) against the RK3566 IOMUX and IO voltage domains. Produce a first pin map, list the conflicts and how to resolve them, and count the faceplate and HAT contacts that result.
-- **Inputs:** [`../requirements/README.md`](../requirements/README.md) (BRD-001 to BRD-048), [`../specs/bom-v0.md`](../specs/bom-v0.md), [`2026-10-high-speed-io-topology.md`](2026-10-high-speed-io-topology.md), `t1/docs/specs/faceplate-interface.md` (HID over I2C), `hat-standard/docs/requirements/README.md` and the HAT interconnect benchmark (pin budget §3), `dap-os` ADR 0006 (native DSD through upstream work) and the system architecture research (finding 8: no DSD formats in the Rockchip I2S driver).
+- **Inputs:** [`../requirements/README.md`](../requirements/README.md) (BRD-001 to BRD-048), [`../specs/bom-v1.md`](../specs/bom-v0.md), [`2026-10-high-speed-io-topology.md`](2026-10-high-speed-io-topology.md), `t1/docs/specs/faceplate-interface.md` (HID over I2C), `hat-standard/docs/requirements/README.md` and the HAT interconnect benchmark (pin budget §3), `dap-os` ADR 0006 (native DSD through upstream work) and the system architecture research (finding 8: no DSD formats in the Rockchip I2S driver).
 - **Method:** mainline Linux read on 2026-10-22 from `torvalds/linux` `master` (the same tree the topology report calls 7.3). The pin-function map below was generated mechanically from `rk3568-pinctrl.dtsi`. The mux-route constraints come from `pinctrl-rockchip.c`. The IO voltage domains come from the RK3568 datasheet (Table 2-3, "Die Power Domain" column). The RK3566 ball set was checked against two real RK3566 schematics (Radxa CM3 and Radxa ZERO 3W). Anything not confirmed by a primary source is marked **UNVERIFIED**.
 - **Load note:** no builds were run. Only downloads, `pdftotext` and `grep`.
 
@@ -129,8 +129,8 @@ Domains and voltages follow §5. "Board" means it stays on the main PCB, "FP" me
 | DAC BCLK in (DAC master) | I2S1 TX | M1 | SCLKTX 3_C7 | VCCIO6 / 1.8 V | Board: CS43198 L (master) and R | SoC is clock consumer (`SND_SOC_DAIFMT_BC_FC`, supported by `rockchip_i2s_tdm.c`). Test pad |
 | DAC LRCK in | I2S1 TX | M1 | LRCKTX 3_D0 | VCCIO6 / 1.8 V | Board: both DACs | Test pad |
 | PCM data to both DACs | I2S1 TX | M1 | SDO0 3_D1 | VCCIO6 / 1.8 V | Board: ASP data in of DAC L and DAC R | Dual mono: DAC L takes the left slot, DAC R the right slot. Test pad |
-| Future native DSD, left | I2S1 TX | M1 | SDO1 4_B0 | VCCIO6 / 1.8 V | Board: DSD data input of DAC L | Reserved for the ADR 0006 driver work: BCLK becomes DSD_CLK and both slots of SDO1 carry left DSD bits. Feasibility on the I2S-TDM block and the CS43198 DSD pin names are **UNVERIFIED**. Test pad |
-| Future native DSD, right | I2S1 TX | M1 | SDO2 4_B1 | VCCIO6 / 1.8 V | Board: DSD data input of DAC R | As above. Test pad |
+| Future native DSD, left | I2S1 TX | M1 | SDO1 4_B0 | VCCIO6 / 1.8 V | Board: DSDA of DAC L | Reserved for the ADR 0006 driver work. The CS43198 takes DSD on dedicated DSDCLK/DSDA/DSDB pins (DS1156F2 pin table), so the DSD clock is its own net to DSDCLK. Feasibility on the I2S-TDM block and the CS43198 DSD pin names are **UNVERIFIED**. Test pad |
+| Future native DSD, right | I2S1 TX | M1 | SDO2 4_B1 | VCCIO6 / 1.8 V | Board: DSDA of DAC R | As above. Test pad |
 | HAT multichannel out (optional) | I2S1 TX | M1 | SDO3 4_B5 | VCCIO6 → 3.3 V translator | HAT `I2S_TDM_DOUT` | Runs on the **DAC clock**. Usable while the DAC clocks run. Buffered so the HAT stub does not load the audio nets |
 | I2S1 MCLK pin | I2S1 | M1 | 3_C6 | VCCIO6 / 1.8 V | Test pad only | The DACs take MCLK straight from the oscillators. The SoC does not need it in consumer mode |
 | HAT multichannel in | I2S1 RX | M1 | SCLKRX 4_A6, LRCKRX 4_A7, SDI0–3 3_D2–3_D5 | VCCIO6 → 3.3 V translator | HAT `TDM_BCLK_IN`, `TDM_FS_IN`, `DIN0–3` | Its own RX clock domain (no `trcm-sync`). 4 lines × 2 ch, or TDM on DIN0 (8 ch, driver `channels_max = 8`) |
@@ -139,12 +139,12 @@ Domains and voltages follow §5. "Board" means it stays on the main PCB, "FP" me
 | Speaker SD_MODE | GPIO | — | 1_D1 | VCCIO2 / 1.8 V | Board: MAX98357A SD_MODE | 1.8 V logic high is above the SD_MODE threshold (**UNVERIFIED** exact value) |
 | PDM main mic (faceplate) | PDM | M1 | CLK0 3_D6, SDI0 3_D7 | VCCIO6 / 1.8 V | FP | Second channel of SDI0 is unused, or both mics share one line (L/R select) |
 | PDM ambient mic (body, top right) | PDM | M1 | CLK1 4_A0, SDI1 4_A1 | VCCIO6 / 1.8 V | Board | Separate clock pin keeps the faceplate clock stub off the body mic |
-| MCLK 44.1k family enable | GPIO | — | 4_B4 | VCCIO6 / 1.8 V | Board: 45.1584 MHz oscillator OE | One oscillator at a time; the DAC is clock master |
-| MCLK 48k family enable | GPIO | — | 4_C0 | VCCIO6 / 1.8 V | Board: 49.152 MHz oscillator OE | |
+| MCLK 44.1k family enable | GPIO | — | 4_B4 | VCCIO6 / 1.8 V | Board: 22.5792 MHz oscillator ST (tri-state) | One oscillator at a time; the DAC is clock master |
+| MCLK 48k family enable | GPIO | — | 4_C0 | VCCIO6 / 1.8 V | Board: 24.576 MHz oscillator ST (tri-state) | |
 | DAC reset | GPIO | — | 4_A2 | VCCIO6 / 1.8 V | Board: both CS43198 RESET | Free because UART7 M2 is unused |
 | DAC interrupt | GPIO | — | 4_A3 | VCCIO6 / 1.8 V | Board: both CS43198 INT (open-drain, wired-OR) | |
 | DAC control | I2C2 | M0 | 0_B5/0_B6 | PMUIO2 / 1.8 V | Board | CS43198 at 0x30 and 0x31 (ADR pin; range by analogy with CS43130, **UNVERIFIED**) |
-| Headphone amp enable / mute | GPIO | — | 1_D0 | VCCIO2 / 1.8 V | Board: OPA1622 EN (all four) | Pull-down; the BootROM FSPI probe may toggle this ball (**UNVERIFIED**). Audio rails are off during boot |
+| Headphone amp enable / mute | GPIO | — | 1_D0 | VCCIO2 / 1.8 V | Board: OPA1622 EN, 4.4 mm pair (the 3.5 mm pair enable is on the TCA6416A expander, BOM v1 line 93, because only the selected output's two packages are enabled) | Pull-down; the BootROM FSPI probe may toggle this ball (**UNVERIFIED**). Audio rails are off during boot |
 | Headphone detect 3.5 / 4.4 mm | Expander | — | TCA6416A P-port | 3.3 V port | Board | Interrupt through the expander INT. Millisecond latency is acceptable |
 | I2S/DSD capture taps (BRD-040/041) | — | — | SCLKTX, LRCKTX, SDO0, SDO1, SDO2 nets | 1.8 V | Board: test pads + RP2350 inputs | RP2350 IOVDD at 1.8 V (§5) gives a direct, buffer-free tap |
 
@@ -272,11 +272,10 @@ The needs are the dual-mono DAC (with DSD later), HAT multichannel, the speaker,
 
 **Bluetooth trade-off.** LE Audio carries audio over HCI ISO channels, and classic SCO can also run over HCI. v0 therefore routes Bluetooth audio over the UART. Whether `btnxpuart` supports SCO over HCI with the IW612 at useful quality is **UNVERIFIED**. If PCM is needed later, there are two choices: (a) populate the DNP 0 Ω links to I2S2 M0 and give up HAT I2S-A, or (b) wire the IW612 PCM to the RP2350 for diagnostics only.
 
-**Native DSD (ADR 0006).** Two SDO lines plus BCLK used as DSD clock are reserved (SDO1 → DAC L, SDO2 → DAC R). Three things are **UNVERIFIED**:
+**Native DSD (ADR 0006).** Two SDO lines are reserved (SDO1 → DSDA of DAC L, SDO2 → DSDA of DAC R), with the DSD clock on its own net to each DAC's DSDCLK pin. The CS43198 takes DSD on dedicated DSDCLK/DSDA/DSDB pins (DS1156F2 pin table; [BOM v1 cross-validation](2026-10-bom-v1-cross-validation.md) F28). Two things are **UNVERIFIED**:
 
-1. whether the CS43198 takes DSD on dedicated pins or on its second serial port (XSP);
-2. whether the Rockchip I2S-TDM block can stream raw bits at 64 × fs per line without framing gaps;
-3. whether the DAC can master the DSD clock.
+1. whether the Rockchip I2S-TDM block can stream raw bits at 64 × fs per line without framing gaps;
+2. whether the DAC can master the DSD clock.
 
 The board cost of keeping the option open is two traces and two test pads.
 

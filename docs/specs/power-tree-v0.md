@@ -1,9 +1,9 @@
 # Power tree v0
 
-- **Status:** Draft. Desk design only: nothing here has been built, simulated or measured. Every part is *Proposed* unless [BOM v1 draft](bom-v1-draft.md) says *Decided*.
+- **Status:** Draft. Desk design only: nothing here has been built, simulated or measured. Every part is *Proposed* unless [BOM v1](bom-v1.md) says *Decided*. Updated 2026-10-22 by the [BOM v1 cross-validation](../research/2026-10-bom-v1-cross-validation.md) (battery, HAT/USB 5 V source, TPS2121 isolation, faceplate rails, IO voltages, vdd_cpu part).
 - **Date:** 2026-10-22
-- **Companion:** [BOM v1 draft](bom-v1-draft.md) (parts, stock, datasheet links and hashes).
-- **Inputs:** [BOM v0](bom-v0.md), [board requirements](../requirements/README.md) (BRD-001 to BRD-048), board ADRs 0001–0004, [component selection](../research/2026-10-component-selection.md), [sourcing alternatives](../research/2026-10-sourcing-alternatives.md), [high-speed I/O topology](../research/2026-10-high-speed-io-topology.md), [battery selection](../research/2026-10-battery-selection.md), touch-faceplate ADR 0001 (Focus E35GH), T1 and HAT Case Standard requirements, dap-os ADRs 0006–0008. `2026-10-pin-multiplexing-v0.md` does not exist yet, so GPIO names below are logical names, not balls.
+- **Companion:** [BOM v1](bom-v1.md) (parts, stock, datasheet links and hashes).
+- **Inputs:** [BOM v0](bom-v0.md), [board requirements](../requirements/README.md) (BRD-001 to BRD-048), board ADRs 0001–0004, [component selection](../research/2026-10-component-selection.md), [sourcing alternatives](../research/2026-10-sourcing-alternatives.md), [high-speed I/O topology](../research/2026-10-high-speed-io-topology.md), [battery selection](../research/2026-10-battery-selection.md), touch-faceplate ADR 0001 (Focus E35GH), T1 and HAT Case Standard requirements, dap-os ADRs 0006–0008. [pin multiplexing v0](../research/2026-10-pin-multiplexing-v0.md) gives the balls; GPIO names below are logical names.
 - **Method:** datasheets were downloaded and read (revision and sha256 in the BOM's Datasheets table); the RK809 rail mapping follows mainline device trees of shipping RK3566 boards (Orange Pi 3B with RK809, Anbernic RG353 with RK817, Radxa ZERO 3W schematic v1.12). Calculations are shown inline.
 - **Conventions:** **UNVERIFIED** = no primary source found in this session. "Est." = engineering estimate, to be replaced by measurement (T1-026).
 
@@ -16,7 +16,12 @@
 5. **The TPS7A94 is unsuitable for a battery device here:** 15 mA typical ground current at 5.1 V out (SBVS336C, Electrical Characteristics), that is about 80 mW wasted.
 6. **The RK809-5 must be used with the reference rail mapping.** Its regulators come up at OTP default voltages before Linux runs. The mapping below copies the mainline Orange Pi 3B device tree (RK3566 + RK809), including an external 3.3 V buck that feeds the RK809 switch input, so no rail starts at a wrong voltage.
 7. **LPDDR4X needs a separate 0.6 V VDDQ rail.** The Radxa ZERO 3W schematic table gives VDDQ 1.10 V and VDDQL 0.60 V for LPDDR4X, with a 0 Ω option (R122) that ties VCC0V6_DDR to VCC_DDR only for plain LPDDR4.
-8. **Debian already enables the INA236 current monitor** through the IIO `ina2xx-adc` driver (`CONFIG_INA2XX_ADC=m`, compatible `ti,ina236`), while the hwmon INA2xx/INA238 drivers are off. The instrumentation uses INA236.
+8. **The battery path is limited to 2.0 A continuous** (cross-validation). The pack is the Adafruit 328 (ADR 0007): its sheet allows ≤ 2C discharge, but its 2-pin JST PH lead and the board's S2B-PH header are rated 2 A per contact. VSYS on battery is therefore budgeted at 2.0 A (≈ 7 W at 3.5 V), not 3.5 A.
+9. **The BQ25895 cannot supply OTG while it charges.** The draft fed HAT_5V and the USB-C source from the OTG boost, so a class A/B HAT lost 5 V whenever USB-C power was plugged in. HAT_5V and USB-C VBUS out now come from a **TPS61088 boost from VSYS** (5.1 V) behind eFuses #A and #C.
+10. **The T1's own 5 V must not re-enter the charger.** When the T1 sources USB-C VBUS, that VBUS is also TPS2121 IN1; when it sources HAT_5V, that net is IN2. Both OV inputs are forced high by hardware OR of the source enables (`USB_SRC_ON`, `HAT_SRC_ON`), not by software order.
+11. **IO voltages follow the pin plan:** I2C0/1/2 on PMUIO2 at 1.8 V (the CS43198 control port shares the bank and is 1.8 V-only); the faceplate bank VCCIO5 at 3.3 V.
+12. **No stocked 1.8 V audio-grade MCLK oscillator exists today** (BOM lines 20–21, blocker). The MCLK_1V8 rail and its LDO stay; the oscillator current below is the NZ2520SDA figure.
+13. **Debian already enables the INA236 current monitor** through the IIO `ina2xx-adc` driver (`CONFIG_INA2XX_ADC=m`, compatible `ti,ina236`), while the hwmon INA2xx/INA238 drivers are off. The instrumentation uses INA236.
 
 ## 2. Power tree (text diagram)
 
@@ -27,13 +32,12 @@ USB-C VBUS 5-12 V (PD sink, FUSB302B) --[TVS2200]--+
                                                    +--> TPS2121 IN1 (priority) --+
 HAT_5V pins (powerbank HAT, class F) --[TVS0500]---+--> TPS2121 IN2 (OV2 gate) --+--> VBUS_CHG
                                                                                   |
-VBUS_CHG --> BQ25895 (buck charger 1.5 MHz, OTG boost on VBUS/PMID up to 3.1 A)   |
-   |   OTG out (5.0 V) --> TPS259470 #A (ILIM 1.5 A) --> HAT_5V   (max 1.5 A)    |
-   |   OTG out (5.0 V) --> TPS259470 #C (ILIM 1.5 A) --> USB-C VBUS source        |
+VBUS_CHG --> BQ25895 (buck charger 1.5 MHz; OTG boost NOT used)                   |
+   |   TPS2121 OV1 forced by USB_SRC_ON, OV2 forced by HAT_SRC_ON (hardware OR)    |
    |                                                                              |
-   +--> BAT  <--> 1S Li-ion pack (105060 class target; Adafruit 328 prototypes)
+   +--> BAT  <--> Adafruit 328, 1S 2,500 mAh, JST PH 2-pin (2 A per contact)
    |            MAX17055 gauge, 10 mohm sense, board NTC on TS
-   +--> VSYS 3.5-4.4 V (VSYSMIN 3.5 V)          max 3.5 A, play 0.20-0.30 A (est.)
+   +--> VSYS 3.5-4.4 V (VSYSMIN 3.5 V)   on battery max 2.0 A; on adapter max 3.5 A; play 0.20-0.30 A (est.)
           |
           +--> RK809-5 PMIC (VCC1-8 from VSYS)
           |      BUCK1 vdd_logic   0.90 V  2.5 A max   play ~0.30 A (est.)
@@ -43,14 +47,14 @@ VBUS_CHG --> BQ25895 (buck charger 1.5 MHz, OTG boost on VBUS/PMID up to 3.1 A) 
           |      BUCK4 vdd_npu     0.90 V  1.5 A max   OFF unless NPU used
           |      BUCK5 vcc_1v8     1.80 V  2.5 A max   play ~0.10 A (est.)
           |         +--> TPS22919 DAC_DIG_1V8  (2x VD+VL+VCP)       13 mA
-          |         +--> TPS22919 FP_IOVCC_1V8 (panel IOVCC, CTP IO) ~5 mA
+          |         +--> TPS22919 FP_1V8 (panel IOVCC, faceplate translator low side) ~5 mA
           |         +--> TPS22919 MIC_1V8 (2x IM73D122 + privacy LED gate) ~2 mA
           |         +--> TPS22919 RP_IOVDD_1V8 (RP2354A IOVDD)
           |         +--> IMU, eMMC VCCQ, IW612 VIO, LPDDR4X VDD1, SoC VCCIO 1.8 V banks
           |      LDO1 vdda0v9_image 0.9 V (CSI D-PHY, camera HAT only)
           |      LDO2 vdda_0v9      0.9 V (USB/PCIe/DSI PHY)
           |      LDO3 vdda0v9_pmu   0.9 V (always on)
-          |      LDO4 vcc_fp_2v8    2.8 V 100 mA (panel VCI, CTP VDD, ALS) [codec IO rail on OPi3B; codec unused]
+          |      LDO4 FP_VCI        2.8 V (panel VCI; adjustable per faceplate in DT) [codec IO rail on OPi3B; codec unused]
           |      LDO5 vccio_sd      1.8/3.3 V (microSD signalling)
           |      LDO6 vcc3v3_pmu    3.3 V (always on: PMUIO2, FUSB302B)
           |      LDO7 vcca_1v8      1.8 V (PLL, PHY analog)
@@ -62,8 +66,9 @@ VBUS_CHG --> BQ25895 (buck charger 1.5 MHz, OTG boost on VBUS/PMID up to 3.1 A) 
           |      SWOUT2 vcc3v3_sd  (microSD VDD)    |   max 0.2 A
           |      RTC + 32.768 kHz crystal           |
           +--> TLV62569 vcc3v3_sys 3.3 V 2 A <------+ (EN = RK809 EXT_EN)  play ~0.05 A
-          |         +--> eMMC VCC, RK809 VCC9, TPS22919 RP_3V3 (RP2354A), INA236 x4
-          +--> RK860-2 vdd_cpu 0.80-1.15 V (I2C DVS)   max 3 A (est.), play ~0.15 A (est.)
+          |         +--> eMMC VCC, RK809 VCC9, TPS22919 RP_3V3 (RP2354A), TCA6416A VCCP, PCA9306 / AXC B side
+          |         +--> TPS22919 FP_3V3 (CTP VDD, ALS, faceplate logic, status/privacy LEDs) ~80 mA
+          +--> RK860-0 vdd_cpu 0.80-1.15 V (I2C DVS)   max 3 A (est.), play ~0.15 A (est.)
           +--> TPS22919 DAC_VP (CS43198 VP x2)           0.1 mA play, VP first/last
           +--> TPS62840 AUDIO_2V2 2.2 V 750 mA max        play 31 mA
           |         +--> TPS7A2018 DAC1_VA 1.8 V    7.8 mA
@@ -76,6 +81,9 @@ VBUS_CHG --> BQ25895 (buck charger 1.5 MHz, OTG boost on VBUS/PMID up to 3.1 A) 
           +--> MAX98357A speaker amp (VDD = VSYS, SD_MODE shutdown)
           +--> TPS61169 backlight boost, LEDA up to 16.5 V, ILED 60 mA max (5S2P, 10 LEDs)
           +--> TLV62569 HAT_3V3 3.3 V 2 A --> TPS259470 #B (ILIM 1.0 A) --> HAT_3V3
+          +--> TPS61088 boost 5.1 V (EN = HAT5V_EN OR USB_SRC_ON)
+          |         +--> TPS259470 #A (ILIM 1.5 A) --> HAT_5V out   (on battery: budgeted, §4.6)
+          |         +--> TPS259470 #C (ILIM 1.5 A) --> USB-C VBUS source (0.5 A default on battery)
           +--> MAX17055 gauge (powered from BAT)
 ```
 
@@ -84,18 +92,20 @@ VBUS_CHG --> BQ25895 (buck charger 1.5 MHz, OTG boost on VBUS/PMID up to 3.1 A) 
 | Rail | Source | Voltage | Max current (design) | Screen-off playback (est.) | Gated by | Loads |
 |---|---|---|---|---|---|---|
 | VBUS_CHG | TPS2121 OUT | 5–12 V | 3.25 A input limit | 0 (battery) | TPS2121 priority, OV pins | BQ25895 VBUS |
-| VSYS | BQ25895 SYS | 3.5–4.4 V | 3.5 A | 0.20–0.30 A | BATFET ship mode | everything below |
-| vdd_cpu | RK860-2 | 0.80–1.15 V | 3 A (est.) | 0.15 A (est.) | RK860 EN + DVS | RK3566 CPU |
+| VSYS | BQ25895 SYS | 3.5–4.4 V | 2.0 A on battery (JST PH contact rating); 3.5 A on adapter | 0.20–0.30 A | BATFET ship mode | everything below |
+| vdd_cpu | RK860-0 | 0.80–1.15 V | 3 A (est.) | 0.15 A (est.) | RK860 EN + DVS | RK3566 CPU |
 | vdd_logic | RK809 BUCK1 | 0.90 V | 2.5 A | 0.30 A (est.) | off in suspend | RK3566 logic |
 | vdd_gpu | RK809 BUCK2 | 0.90 V | 2.5 A | ~0 (GPU idle) | DT regulator | GPU (and NPU if tied) |
 | vcc_ddr | RK809 BUCK3 | 1.10 V | 1.5 A | 0.10 A (est.) | on in suspend | LPDDR4X VDD2, SoC DDR VDDQ |
 | vdd_npu | RK809 BUCK4 | 0.90 V | 1.5 A | 0 | DT, off by default | NPU |
 | vcc_1v8 | RK809 BUCK5 | 1.80 V | 2.5 A | 0.10 A (est.) | off in suspend | IO banks, eMMC VCCQ, VDD1, sub-switches |
 | vcc0v6_ddr | TPS7A1006 (from vcc_ddr) | 0.60 V | 0.3 A | 0.03 A (est.) | follows vcc_ddr | LPDDR4X VDDQ, SoC VDDQL |
-| vcc3v3_sys | TLV62569 | 3.30 V | 2 A | 0.05 A | RK809 EXT_EN | eMMC VCC, RK809 VCC9, RP2354A |
+| vcc3v3_sys | TLV62569 | 3.30 V | 2 A | 0.05 A | RK809 EXT_EN | eMMC VCC, RK809 VCC9 (SWOUT1/2), RP2354A, FP_3V3, expander and translators (peak ≈ 1.3 A est.) |
 | vcc3v3_wl | RK809 SWOUT1 | 3.30 V | 3 A switch | 0 (radio off) | RK809 I2C | IW612 module VBAT (UNVERIFIED 3.3 V) |
 | vcc3v3_sd | RK809 SWOUT2 | 3.30 V | 1.5 A switch | 0–0.1 A | RK809 I2C | microSD VDD |
-| vcc_fp_2v8 | RK809 LDO4 | 2.80 V | 0.1 A | 0 (screen off) | RK809 I2C | panel VCI, CTP VDD, ALS |
+| FP_VCI | RK809 LDO4 | 2.80 V (DT-adjustable) | RK809 LDO4 rating (**UNVERIFIED**) | 0 (screen off) | RK809 I2C | panel VCI |
+| FP_3V3 | TPS22919 (vcc3v3_sys) | 3.30 V | 1.5 A switch | 0 (screen off) | `FP_IO_EN` | CTP VDD, ALS, faceplate logic, LEDs |
+| FP_1V8 | TPS22919 (vcc_1v8) | 1.80 V | 1.5 A switch | 0 (screen off) | `FP_IO_EN` | panel IOVCC, faceplate translators |
 | DAC_VP | TPS22919 (VSYS) | 3.5–4.4 V | 1.5 A switch | 0.06 mA | `DAC_VP_EN` | 2× CS43198 VP |
 | DAC_DIG_1V8 | TPS22919 (vcc_1v8) | 1.80 V | 1.5 A switch | 13.2 mA | `DAC_DIG_EN` | 2× CS43198 VD, VL, VCP |
 | AUDIO_2V2 | TPS62840 | 2.20 V | 0.75 A | 31 mA | `AUDIO_LN_EN` | three TPS7A2018 |
@@ -106,8 +116,8 @@ VBUS_CHG --> BQ25895 (buck charger 1.5 MHz, OTG boost on VBUS/PMID up to 3.1 A) 
 | HPA_N5V0 | TPS7A3001 | −5.0 V | 0.2 A | 10–40 mA | `HPA_RAIL_EN` | OPA1622 V− |
 | BL_LEDA | TPS61169 | 13–16.5 V | 60 mA | 0 (screen off) | `BL_PWM` (CTRL, 1 µA off) | panel LED string |
 | HAT_3V3 | TLV62569 → TPS259470 #B | 3.30 V | 1.0 A (ILIM) | 0 | `HAT3V3_EN` | HAT |
-| HAT_5V (out) | BQ25895 OTG → TPS259470 #A | 5.0 V | 1.5 A (ILIM) | 0 | `HAT5V_EN` + OTG | HAT class A/B |
-| USB-C VBUS (out) | BQ25895 OTG → TPS259470 #C | 5.0 V | 1.5 A (ILIM) | 0 | TCPM source role | USB host mode |
+| HAT_5V (out) | TPS61088 → TPS259470 #A | 5.1 V | 1.5 A (ILIM); on battery per §4.6 budget | 0 | `HAT5V_EN` (also forces TPS2121 OV2) | HAT class A/B |
+| USB-C VBUS (out) | TPS61088 → TPS259470 #C | 5.1 V | 1.5 A (ILIM); 0.5 A advertised on battery | 0 | TCPM source role → `USB_SRC_ON` (also forces OV1) | USB host mode |
 
 ## 4. Calculations
 
@@ -212,19 +222,22 @@ TPS259470 (SLVSFC9C): 2.7–23 V, RON 28.3 mΩ, ILIM set by RILM (1.65 kΩ → 2
 
 | eFuse | Path | ILIM target | RILM (E96) | Conduction loss at ILIM |
 |---|---|---|---|---|
-| #A | BQ25895 OTG → HAT_5V | 1.5 A | 2.21 kΩ (1.52 A) | 28.3 mΩ × 1.5² = 64 mW |
+| #A | TPS61088 → HAT_5V | 1.5 A | 2.21 kΩ (1.52 A) | 28.3 mΩ × 1.5² = 64 mW |
 | #B | TLV62569 → HAT_3V3 | 1.0 A | 3.32 kΩ (1.007 A) | 28 mW |
-| #C | BQ25895 OTG → USB-C VBUS | 1.5 A | 2.21 kΩ | 64 mW |
+| #C | TPS61088 → USB-C VBUS | 1.5 A | 2.21 kΩ | 64 mW |
 
-- **OTG budget:** BQ25895 boost is rated up to 3.1 A (SLUSC88C). #A + #C = 3.0 A ≤ 3.1 A, so both can run at once. A larger HAT budget needs the BQ25798 upgrade (component selection §2.1).
+- **Source:** a TPS61088 boost from VSYS feeds #A and #C (the BQ25895 OTG boost cannot run while charging, finding 10). On adapter power only HAT_5V can be sourced (the USB-C port is then the input), so #A at 1.5 A (≈ 8.5 W from VSYS at η ≈ 0.9) fits inside the 3.5 A VSYS rating with the system load. The boost also covers the case the draft missed: a class A/B HAT keeps 5 V while the T1 charges.
+- **Battery budget:** on battery the JST PH contact caps the pack at 2.0 A ≈ 7 W at 3.5 V. With the base system at 1–3 W (screen off to screen on with CPU load, **est.**), about 4 W remains: ≈ 0.7 A at 5.1 V for HAT_5V **plus** USB-C source together. DAP OS enforces it with the VSYS INA236 and the eFuse IMON; USB-C advertises Default (0.5 A) on battery. HAT power classes A/B must be written against this number (hat-standard).
+- **Hardware ceilings stay** at ILIM 1.5 / 1.0 / 1.5 A so a fault is still bounded if software fails.
 - **Inrush:** with CdVdt = 1.8 nF the rising slew is 0.87 V/ms at 2.7 V and 1.09 V/ms at 12 V; take 0.92 V/ms at 5 V. A HAT with 100 µF bulk draws I = C·dV/dt = 100 µF × 920 V/s = **92 mA** for 5.4 ms; 470 µF draws 0.43 A, still under ILIM. The HAT standard should cap HAT bulk capacitance at 470 µF per rail.
-- **Powerbank HAT input (class F):** HAT_5V → TPS2121 IN2. When the T1 sources HAT_5V through #A, `HAT_SRC_DIS` drives TPS2121 OV2 high so IN2 cannot connect (interlock, see §6). The TPS2121 also blocks reverse current from OUT, so the boost cannot back-feed the USB-C connector through it.
+- **Powerbank HAT input (class F):** HAT_5V → TPS2121 IN2. When the T1 sources HAT_5V, `HAT_SRC_ON` (the same net that enables #A) drives TPS2121 OV2 high so IN2 cannot connect; when it sources USB-C VBUS, `USB_SRC_ON` drives OV1 high. The interlock is wired, not a software ordering rule.
 
 ### 4.7 Charger, battery and input path
 
-- BQ25895: 3.9–14 V input, 5 A charge, 1.5 MHz, 1 µH inductor and ≥ 20 µF on SYS recommended (SLUSC88C §9). PMID needs 40 µF for 2.4 A OTG, 60 µF for 3.1 A.
+- BQ25895: 3.9–14 V input, 5 A charge, 1.5 MHz, 1 µH inductor and ≥ 20 µF on SYS recommended (SLUSC88C §9). PMID capacitance per the datasheet for charge-only use (OTG is not used).
 - Battery-only quiescent: 32 µA typ with BATFET on and monitor off (12 µA with BATFET off, ship mode).
-- Charge current: 1.5 A for a 3,000 mAh 105060 pack (0.5 C); 1.2 A for the Adafruit 328 (Adafruit's advice). Charge voltage per pack (4.20/4.35/4.40 V), from the device tree (battery selection §6).
+- Pack: Adafruit 328 (ADR 0007), spec sheet Q/WAPL785060-1011: charge ≤ 1C (2.5 A) at 0–40 °C and ≤ 4.25 V, discharge ≤ 2C. Charge current 1.2 A (Adafruit's advice), VREG 4.20 V; LiHV packs later at 4.35/4.40 V from the device tree (ADR 0008). The TS thresholds must stop charging above 40 °C (the BQ25895 default hot limit is higher, **UNVERIFIED** exact value).
+- Battery current: 2.0 A continuous through the JST PH contact (finding 9).
 - Input: PD sink at 9 V, 2 A requested by TCPM → 18 W available against about 7.3 W needed (1.5 A × 4.2 V charge + 1 W system). TPS2121 conduction loss at 2 A input: 56 mΩ × 4 = 0.22 W.
 - USB-C VBUS surge: TVS2200 (22 V flat clamp, 28.4 V max at 40 A 8/20 µs). The TPS2121 (24 V absolute maximum, OV1 set at about 14.5 V) sits between the connector and the BQ25895 (22 V absolute maximum). A 40 A surge clamp of 28.4 V exceeds both ratings, so the TVS is sized for ESD and hot-plug ringing, not for an IEC 61000-4-5 surge (**risk**, §9).
 
@@ -246,7 +259,7 @@ TPS259470 (SLVSFC9C): 2.7–23 V, RON 28.3 mΩ, ILIM set by RILM (1.65 kΩ → 2
 | IMU, gauge, TCPC, charger | — | 3 mW | datasheets |
 | **Total** | — | **0.74–1.09 W** | — |
 
-- Runtime, 90 % usable energy: Adafruit 328 (9.4 Wh) → **7.8–11.4 h**; 105060 at 4.2 V (≈ 12 Wh) → **9.9–14.6 h**; 105060 LiHV (≈ 13.5 Wh) → 11.1–16.4 h.
+- Runtime, 90 % usable energy: Adafruit 328 (9.4 Wh, the only adopted pack, ADR 0007) → **7.8–11.4 h**: above the 6 h red line and mostly above the 8 h warning, below the 12 h ideal (T1-039). The SoC estimate dominates (risk 1). Larger packs are not adopted (T1-038).
 - The OPA1622 quiescent current (180 mW from the battery) is the largest audio term. Enabling only the selected output's two packages already halves it; a "single package per output" build option would halve it again at the cost of 16 Ω drive.
 - Screen on at 200 nit adds about 0.25 W backlight + 0.05 W panel and touch + GPU/VOP (**UNVERIFIED**, est. 0.2 W).
 
@@ -264,7 +277,7 @@ Default state is the state with no software running (pull resistors). "SoC GPIO"
 | HP amp outputs | per package | OPA1622 EN (×4) | SoC GPIO `HPA_SE_EN`, `HPA_BAL_EN` | low (shutdown, 5 µA/ch) | — | EN low during rail ramps |
 | Speaker amp | VSYS | MAX98357A SD_MODE | SoC GPIO `SPK_SD` | shutdown | — | Device shutdown, no extra switch |
 | Microphones + privacy LED | MIC_1V8 | TPS22919 | SoC GPIO `MIC_EN` | off | QOD | LED gate driven by MIC_1V8 itself (BRD-027) |
-| Faceplate logic | vcc_fp_2v8, FP_IOVCC_1V8 | RK809 LDO4, TPS22919 | RK809 I2C, SoC GPIO `FP_IO_EN` | off | QOD | Panel and touch reset low first |
+| Faceplate logic | FP_VCI, FP_3V3, FP_1V8 | RK809 LDO4, TPS22919 ×2 | RK809 I2C, expander `FP_IO_EN` | off | QOD | Panel and touch reset low first |
 | Backlight | BL_LEDA | TPS61169 CTRL | SoC PWM `BL_PWM` | off (1 µA) | — | ALS-driven |
 | Wi-Fi/BT | vcc3v3_wl | RK809 SWOUT1 | RK809 I2C | off | **UNVERIFIED** | Plus module PDn |
 | microSD | vcc3v3_sd, vccio_sd | RK809 SWOUT2, LDO5 | RK809 I2C | per DT | **UNVERIFIED** | UHS-I voltage switch |
@@ -274,9 +287,9 @@ Default state is the state with no software running (pull resistors). "SoC GPIO"
 | Camera PHY (HAT) | LDO1, LDO9 | RK809 I2C | HAT overlay | off | — | Only with a camera HAT |
 | PCIe/USB3 PHY (HAT) | SoC `PD_PIPE` | SoC power domain | HAT overlay | off | — | Topology report §1.3 |
 | HAT 3.3 V | HAT_3V3 | TLV62569 EN + TPS259470 #B | SoC GPIO `HAT3V3_EN` | off | eFuse | HAT EEPROM read needs 3.3 V first |
-| HAT 5 V out | HAT_5V | BQ25895 OTG + TPS259470 #A | SoC GPIO `HAT5V_EN` | off | eFuse | Interlock with `HAT_SRC_DIS` |
-| HAT 5 V in (powerbank) | HAT_5V → VBUS_CHG | TPS2121 IN2 | SoC GPIO `HAT_SRC_DIS` → OV2 | enabled (pull-down) | — | Dead-battery boot from a powerbank HAT |
-| USB-C VBUS out | VBUS | BQ25895 OTG + TPS259470 #C | TCPM source role | off | eFuse | Type-C 1.5 A advertisement |
+| HAT 5 V out | HAT_5V | TPS61088 + TPS259470 #A | expander `HAT5V_EN` (= `HAT_SRC_ON`) | off | eFuse | Same net forces TPS2121 OV2 |
+| HAT 5 V in (powerbank) | HAT_5V → VBUS_CHG | TPS2121 IN2 | OV2 (released when `HAT_SRC_ON` is low) | enabled | — | Dead-battery boot from a powerbank HAT |
+| USB-C VBUS out | VBUS | TPS61088 + TPS259470 #C | TCPM source role → `USB_SRC_ON` | off | eFuse | Forces TPS2121 OV1; Default (0.5 A) advertisement on battery |
 | Instrumentation | vcc3v3_sys | INA236 power-down mode (I2C) | DAP OS | power-down | — | Shunts stay in circuit |
 
 ## 6. Sequencing
@@ -286,7 +299,7 @@ Default state is the state with no software running (pull resistors). "SoC GPIO"
 1. A battery is present (or VBUS / powerbank HAT on TPS2121) → BQ25895 regulates VSYS (≥ 3.5 V VSYSMIN).
 2. Power button → RK809 PWRON. RK809-5 runs its OTP sequence. RK809-1 defaults (datasheet Table 4-1) step every 2 ms: BUCK5 (1) → BUCK1, BUCK2, LDO3 (2) → LDO1, LDO2 (3) → BUCK3 (4) → BUCK4, LDO4–6 (5). **The RK809-5 OTP table is UNVERIFIED** and must be read from Rockchip's RK3566 hardware design guide before the rail mapping is frozen.
 3. EXT_EN enables the TLV62569 vcc3v3_sys inside the sequence, so eMMC VCC is up before the BootROM reads it.
-4. RK860-2 vdd_cpu powers up (EN tied per reference design), RESETB releases the SoC.
+4. RK860-0 vdd_cpu powers up (EN tied per reference design), RESETB releases the SoC.
 5. Everything behind a load switch or EN pin stays off until Linux (or U-Boot, for the display) turns it on.
 
 ### 6.2 Audio power-up (pop-free)
@@ -305,7 +318,7 @@ Reverse order: soft-mute → OPA1622 EN low → rails off → CS43198 RESET low 
 ### 6.4 HAT
 
 1. Presence detect → `HAT3V3_EN` (TLV62569 then eFuse #B) → read the HAT EEPROM (HCS-007).
-2. Apply the overlay. Class A/B: assert `HAT_SRC_DIS`, then enable OTG and `HAT5V_EN`. Class F (powerbank): keep `HAT_SRC_DIS` low and let TPS2121 select it when USB-C is absent.
+2. Apply the overlay. Class A/B: assert `HAT5V_EN` (boost + eFuse #A; the same net forces TPS2121 OV2), within the battery budget of §4.6. Class F (powerbank): keep `HAT5V_EN` low and let TPS2121 select IN2 when USB-C is absent.
 3. PCIe PERST# = SoC PERST# AND HAT power-good, released ≥ 100 ms after power-good (topology report §2.3).
 
 ### 6.5 Suspend
@@ -315,7 +328,7 @@ Reverse order: soft-mute → OPA1622 EN low → rails off → CS43198 RESET low 
 
 ## 7. References
 
-Datasheets with revision, date and sha256 are listed once, in the [BOM v1 draft Datasheets table](bom-v1-draft.md#datasheets). The ones used for calculations here:
+Datasheets with revision, date and sha256 are listed once, in the [BOM v1 Datasheets table](bom-v1.md#datasheets). The ones used for calculations here:
 
 - TI OPA1622, SBOS727B (May 2016): <https://www.ti.com/lit/ds/symlink/opa1622.pdf>
 - Cirrus Logic CS43198, DS1156F2 (Dec 2022): <https://www.cirrus.com/docs/ds/cs43198-datasheet.pdf>
@@ -341,14 +354,14 @@ Datasheets with revision, date and sha256 are listed once, in the [BOM v1 draft 
 
 ## 8. Open questions
 
-1. **BRD-023 frequencies:** accept 22.5792 MHz and 24.576 MHz (the only external MCLK rates the CS43198 takes), or keep 45.1584/49.152 MHz with a divider?
+1. **BRD-023 frequencies:** closed (22.5792/24.576 MHz, BRD-023 corrected).
 2. **Output targets:** is 4 Vrms balanced / 2 Vrms single-ended the right target, and must the 3.5 mm output drive 16 Ω at full level (parallel halves) or is the low-power single-half build preferred?
-3. **NZ2520SDA at 1.8 V (NSC5083A):** quote NDK for 22.5792 and 24.576 MHz, or accept a translator after the stocked 3.3 V parts?
+3. **MCLK at 1.8 V (blocker):** no stocked audio-grade part; ADR 0009 forbids the translator option. See the cross-validation §4.
 4. **RK809-5 OTP sequence and VCC9:** confirm with Rockchip (or the RK3566 hardware design guide) the OTP defaults and that VCC9 may be fed from the external vcc3v3_sys, as on the Orange Pi 3B.
 5. **Is the NPU supply separate on the RK3566 (BUCK4) or shared with the GPU** as on RK817 handhelds? This decides whether BUCK4 is free.
 6. **RP2354A power default:** on at boot (always-available orchestrator) or off until DAP OS enables it (lowest standby)?
 7. **Backlight driver location:** main board (proposed, keeps faceplates passive) or on each faceplate?
-8. **HAT power classes:** are 1.5 A at 5 V and 1.0 A at 3.3 V enough for class A/B? More needs the BQ25798.
+8. **HAT power classes:** on battery about 0.7 A at 5.1 V is left for HAT_5V and USB-C source together (§4.6). Accept, or require external power for heavier HATs?
 9. **eMMC power in suspend:** keep vcc3v3_sys on, or power the eMMC down in suspend?
 
 ## 9. Risks
@@ -358,7 +371,8 @@ Datasheets with revision, date and sha256 are listed once, in the [BOM v1 draft 
 3. **TPS65131 output current at low battery** is read from a curve, not a table. *Mitigation:* SPICE/WEBENCH at VIN = 3.4 V, ±6 V, 150 mA; the LM27762 + boost option stays as a fallback.
 4. **OPA1622 parallel halves** for 16 Ω drive are not validated. *Mitigation:* simulate; fall back to one half per channel.
 5. **VBUS surge coordination:** TVS2200 clamp at 40 A (28.4 V) is above the TPS2121 (24 V) and BQ25895 (22 V) absolute maxima. *Mitigation:* decide whether IEC 61000-4-5 applies to the USB-C port; if it does, add series OVP or choose a lower-clamp TVS with a 14 V standoff and accept the 20 V fault case.
-6. **Powerbank HAT interlock** (`HAT_SRC_DIS` before `HAT5V_EN`) is a software ordering rule. A bug could connect the boost output to the TPS2121 input. *Mitigation:* the TPS2121 reverse-current blocking and the eFuse ILIM bound the damage; add a hardware interlock (eFuse #A EN gated by OV2) if the maintainers prefers.
-7. **MCLK at 1.8 V not stocked.** *Mitigation:* NDK quote now; fallback to a stocked 3.3 V NZ2520SDA plus a single-gate translator, measured for added jitter.
-8. **0.6 V LPDDR4X rail sizing** is an estimate. *Mitigation:* Rockchip guide, Radxa/Firefly LPDDR4X schematics.
-9. **Thermal:** RK3566 + RK809 + RK860 + charger in a 25 mm sealed body; not modelled. *Mitigation:* thermal simulation once the board outline exists.
+6. **Self-feeding loops** through TPS2121 IN1/IN2 when the T1 sources 5 V. *Mitigation:* hardware OR of `USB_SRC_ON`/`HAT_SRC_ON` into OV1/OV2 (finding 11); verify the OV pin drive levels against SLVSEA3F.
+7. **MCLK at 1.8 V not stocked** (blocker). The translator fallback is ruled out by ADR 0009. *Mitigation:* cross-validation §4 options.
+8. **Battery current limit** (2 A JST PH contact). *Mitigation:* software power budget on the VSYS INA236; screen-on + CPU peak + HAT load must be measured.
+9. **0.6 V LPDDR4X rail sizing** is an estimate. *Mitigation:* Rockchip guide, Radxa/Firefly LPDDR4X schematics.
+10. **Thermal:** RK3566 + RK809 + RK860 + charger in a 25 mm sealed body; not modelled. *Mitigation:* thermal simulation once the board outline exists.

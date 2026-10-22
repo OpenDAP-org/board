@@ -1,6 +1,6 @@
 # BOM v0
 
-- **Status:** Draft. Only the lines marked *Decided* are decisions; every *Proposed* line needs the maintainers' confirmation.
+- **Status:** Superseded by [BOM v1](bom-v1.md). Kept as history.
 - **Date:** 2026-10-22
 - **Sources:** [component selection](../research/2026-10-component-selection.md), [sourcing alternatives](../research/2026-10-sourcing-alternatives.md), [high-speed I/O topology](../research/2026-10-high-speed-io-topology.md). Stock figures and prices are in those reports, with dates.
 - **Driver path:** *mainline + Debian* (enabled in Debian's kernel), *DKMS* (mainline driver Debian does not enable, or not in 7.2 yet; [dap-os ADR 0007](https://github.com/opendap-project/dap-os/blob/main/docs/adr/0007-kernel-modules-through-dkms.md)), *none* (no driver needed).

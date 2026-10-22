@@ -57,6 +57,8 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-051 | The microSD/TF slot shall run in the fastest mode the SoC supports, for performance: UHS-I SDR104 on the RK3566 (SD 3.0), with 1.8 V signalling. | must | Confirmed |
 | BRD-052 | Both headphone jacks shall detect plug insertion and removal, so playback can pause when headphones are unplugged and never move to the speaker unasked. | must | Confirmed |
 | BRD-053 | The board shall support assembly variants: prototypes populate every option to validate the full functionality, and production variants may leave optional parts unpopulated (DNP) or fit lower-cost equivalents on the same footprint, without a board respin. Every optional part is marked as such in the BOM, with its variant. | must | Confirmed |
+| BRD-054 | The main board may use every technique that gets the most from the device: HDI (laser microvias, via-in-pad), both sides populated, as many inner layers as the routing and signal integrity need, and shielding cans. | must | Confirmed |
+| BRD-055 | Every board, flex and assembly shall be producible as a prototype through PCBWay, using its services as far as possible (fabrication, HDI, flex, stencils, SMT and BGA assembly, parts sourcing), within the processes PCBWay publishes. | must | Confirmed |
 
 ## Open questions
 
@@ -64,9 +66,9 @@ Electrical and system requirements for the OpenDAP T1 main board.
 
 ## Context
 
+- BRD-054, BRD-055 (maintainers, 2026-10-22): HDI and advanced build-ups are welcome as long as PCBWay can prototype them with its own services. The fab rules live in kicad-lib (KLIB-002), one rule set per PCBWay process.
 - BRD-053 (maintainers, 2026-10-22): prototypes may exceed the production cost limits to validate everything; production simply omits parts. Value engineering therefore targets the production variant, and optional parts are designed in as population options from the start.
 - BRD-051: UHS-II (SD 4.0) needs a second row of contacts and SoC support the RK3566 does not have (RK3568 datasheet Rev 1.0, p. 8: SD 3.0, 4-bit). The board already provides the switchable 1.8/3.3 V VCCIO3 and 1.8 V-rated ESD for SDR104 (BOM lines 11, 73).
-- The main board is likely to benefit from HDI, and the flat cables (FPC) possibly from an equivalent level. Not decided.
 - BRD-020 to BRD-027: Adopted from the earlier experiments on 2026-10-21 as **Draft**: consistent with the decisions already taken and with the product philosophy, pending the maintainers' confirmation. Part availability still has to be checked against the sourcing rule (T1-010).
 - Experiment parts worth evaluating: charger BQ25895 (or BQ25792 from the desk research, which can also source power to a powerbank HAT), fuel gauge BQ27Z561, power-path TPS2121, USB-PD FUSB302B, HAT eFuse TPS25947, radio module Murata Type 2EL (NXP IW612; its mainline driver status must be verified), coprocessor variant RP2354B (RP2350 with in-package flash).
 - The experiments split the electronics into a compute module (8-layer HDI), an audio module and a base board. Not adopted: the first intention is a single PCB (see the last requirement).

@@ -4,12 +4,12 @@
 - **Date:** 2026-10-22
 - **Scope:** the T1 main board and the touch faceplate, by subsystem, including the support parts around the main ICs (regulators, switches, protection, clocks, magnetics, connectors, test access).
 - **Companion:** [power tree v0](power-tree-v0.md) holds the rails, currents, gating map, sequencing and the calculations behind the power, audio, backlight and HAT picks.
-- **Sources:** [BOM v0](bom-v0.md), [component selection](../research/2026-10-component-selection.md), [sourcing alternatives](../research/2026-10-sourcing-alternatives.md), [high-speed I/O topology](../research/2026-10-high-speed-io-topology.md), [battery selection](../research/2026-10-battery-selection.md), touch-faceplate ADR 0001, board ADRs 0001–0004, dap-os ADRs 0006–0008. `2026-10-pin-multiplexing-v0.md` does not exist yet.
+- **Sources:** [BOM v0](bom-v0.md), [component selection](../research/2026-10-component-selection.md), [sourcing alternatives](../research/2026-10-sourcing-alternatives.md), [high-speed I/O topology](../research/2026-10-high-speed-io-topology.md), [battery selection](../research/2026-10-battery-selection.md), touch-faceplate ADR 0001, board ADRs 0001–0004, opendap-os ADRs 0006–0008. `2026-10-pin-multiplexing-v0.md` does not exist yet.
 - **Owner rules applied:** availability first and validated; newest compatible generation; mainline Linux drivers (DKMS or validated vendor drivers acceptable); no unusual switches or tricks (BRD-042); helper MCUs never in a data path (BRD-005); audio quality and battery life first; every block power-gated when unused (BRD-008); every bus and interface protected (BRD-007); the SoC reaches every chip directly (BRD-004).
 
 ## Conventions
 
-- **Driver path:** *mainline + Debian* (module enabled in Debian's trixie-backports `linux-config-7.2_7.2.9-1~bpo13+1` arm64 config, re-checked 2026-10-22), *DKMS* (mainline driver Debian does not enable; dap-os ADR 0007), *none* (no driver needed).
+- **Driver path:** *mainline + Debian* (module enabled in Debian's trixie-backports `linux-config-7.2_7.2.9-1~bpo13+1` arm64 config, re-checked 2026-10-22), *DKMS* (mainline driver Debian does not enable; opendap-os ADR 0007), *none* (no driver needed).
 - **Availability:** stock and qty-1 price captured **2026-10-22**. LCSC figures come from the JLCPCB parts API; Mouser, Newark, Arrow, Verical and TME figures from [FindChips](https://www.findchips.com/) (brokers excluded); Digi-Key figures from Digi-Key pages. Figures dated 2026-10-21 are carried over from the component-selection report.
 - **UNVERIFIED** = no primary source found in this session.
 - Datasheets (URL, revision, date, sha256) are in the [Datasheets](#datasheets) table at the end. No PDF is stored in the repository.
@@ -39,7 +39,7 @@
 | 9 | Core | LPDDR4X VDDQ 0.6 V LDO | TI TPS7A1006PDSER | 1 | Proposed | none | LCSC C2863706: 1,030 @ $0.48; Mouser 5,135 (DSE) / 11,485 (PDQNR) (2026-10-22) | TI TPS7A1006PDQNR (X2SON) | VIN = vcc_ddr 1.1 V, BIAS = vcc_1v8. Need from Radxa ZERO 3W v1.12 DDR table (LPDDR4X VDDQL 0.60 V); current **UNVERIFIED** |
 | 10 | Core | eMMC 32 GB | Samsung KLMBG2JETD-B041 | 1 | Proposed | none | LCSC C5821038: 270 @ $40.33; C2803245: 490 @ $45.04 (2026-10-22) | Micron, Kioxia, Longsys FORESEE. **Risk:** one stocked brand | v0 #4 |
 | 11 | Core | microSD socket | Hirose DM3AT-SF-PEJM5 | 1 | Proposed | none | LCSC C114218: 15,961 @ $1.39; Digi-Key 77,167 (2026-10-21) | Molex 104031-0811 | v0 #5. VDD from RK809 SWOUT2, signalling from LDO5 (1.8/3.3 V) |
-| 12 | Core | Coprocessor | Raspberry Pi RP2354A (RP2350 with flash) | 1 | Decided family (ADR 0004); part Proposed | none (flashed from DAP OS) | LCSC C41378174: 8,021 @ $1.26 (2026-10-22) | RP2350A + QSPI flash | v0 #6. IOVDD at 1.8 V so it can tap the 1.8 V I2S lines without translators (RP2350 datasheet §"IOVDD") |
+| 12 | Core | Coprocessor | Raspberry Pi RP2354A (RP2350 with flash) | 1 | Decided family (ADR 0004); part Proposed | none (flashed from OpenDAP OS) | LCSC C41378174: 8,021 @ $1.26 (2026-10-22) | RP2350A + QSPI flash | v0 #6. IOVDD at 1.8 V so it can tap the 1.8 V I2S lines without translators (RP2350 datasheet §"IOVDD") |
 | 13 | Core | RP2350 core-regulator inductor | Abracon AOTA-B201610S3R3-101-T (3.3 µH) | 1 | Proposed | none | LCSC C42411119: 634; Newark 17,400; Verical 87,000 (2026-10-22) | none (Raspberry Pi requires this polarity-marked part) | Hardware design with RP2350, §"Core voltage regulator" |
 | 14 | Core | RP2350 12 MHz crystal | Abracon ABM8-272-T3 | 1 | Proposed | none | LCSC C20625731: 4,605; Mouser 11,140 (2026-10-22) | none recommended by Raspberry Pi | Same crystal as Pico 2; 10 pF load |
 | 15 | Core | SoC 24 MHz crystal | YXC X322524MOB4SI (3225, 24 MHz) | 1 | Proposed | none | LCSC C70590: 45,538 @ $0.09 (2026-10-22) | YXC XL2EL89COI-111YLC-24M (LCSC 14,700) | Load capacitance per the RK3566 hardware design guide (**UNVERIFIED**, guide not retrieved) |
@@ -50,7 +50,7 @@
 
 | # | Subsystem | Function | Part (MPN) | Qty | Status | Driver path | Availability (best source, stock, date) | Second source | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| 18 | Audio | DAC ×2 (dual mono) | Cirrus Logic CS43198-CNZR | 2 | Decided family (ADR 0001); part Proposed | DKMS (`SND_SOC_CS43130` off in Debian) | LCSC C1554755: 346 @ $5.38 (2026-10-22); Digi-Key 471 @ $18.19 (2026-10-21) | None. DSD128 cap in the driver (dap-os ADR 0006) | v0 #7. Rails: VA, VCP, VD, VL 1.8 V; VP 3.0–5.25 V; 26.1 mW each in playback |
+| 18 | Audio | DAC ×2 (dual mono) | Cirrus Logic CS43198-CNZR | 2 | Decided family (ADR 0001); part Proposed | DKMS (`SND_SOC_CS43130` off in Debian) | LCSC C1554755: 346 @ $5.38 (2026-10-22); Digi-Key 471 @ $18.19 (2026-10-21) | None. DSD128 cap in the driver (opendap-os ADR 0006) | v0 #7. Rails: VA, VCP, VD, VL 1.8 V; VP 3.0–5.25 V; 26.1 mW each in playback |
 | 19 | Audio | Headphone amp ×4 | TI OPA1622IDRCR | 4 | Proposed | none | LCSC C2876559: 666 @ $3.03 (2026-10-22); Digi-Key 4,558 (2026-10-21) | None | v0 #8. 2 packages for 4.4 mm (L±, R±), 2 for 3.5 mm (halves paralleled for 16 Ω, **UNVERIFIED**). EN per output for gating |
 | 20 | Audio | MCLK 44.1 kHz family (1.8 V) | NDK NSC5083A-22.5792M (NZ2520SDA) | 1 | Proposed | none | NSC5083A not listed at Digi-Key (quote, **UNVERIFIED**); 3.3 V NSC5083D-22.5792M: Digi-Key 2,239 @ $2.30 (2026-10-22) | Crystek CCHD-957 for reference measurements | Replaces v0 #9 (45.1584 MHz). Tri-state standby lets both XOs share one MCLK net |
 | 21 | Audio | MCLK 48 kHz family (1.8 V) | NDK NSC5083A-24.576M (NZ2520SDA) | 1 | Proposed | none | as line 20; 3.3 V NSC5083D-24.576M: Digi-Key 3,083 @ $2.94 (2026-10-22) | Crystek CCHD-957 | Replaces v0 #10 (49.152 MHz) |
@@ -141,7 +141,7 @@
 | 86 | Misc | Test points (rails, I2C, PG, enables) | bare pads, Ø 0.8–1.0 mm | ~40 | Proposed | none | — | — | One per rail in the power tree + every enable and PG |
 | 87 | Misc | Early-boot UART pads (TX, RX, GND) | bare pads | 3 | Proposed | none | — | — | BRD-047; 1.8 V or 3.3 V per the UART2 bank |
 | 88 | Misc | I2S/DSD test pads (MCLK, SCLK, LRCK, SDO0, SDO1, DSD lines, GND) | bare pads | ~8 | Proposed | none | — | — | BRD-040; RP2354A taps the same nets passively (BRD-041) |
-| 89 | Misc | RP2354A SWD pads | bare pads | 3 | Proposed | none | — | — | DAP OS can also flash over USB (BRD-015) |
+| 89 | Misc | RP2354A SWD pads | bare pads | 3 | Proposed | none | — | — | OpenDAP OS can also flash over USB (BRD-015) |
 | 90 | Misc | Shielding cans (SoC + DDR + PMIC; audio stage) | Open (Würth / Laird two-piece frame + cover) | 2 | Open | none | **UNVERIFIED** | — | DNP footprints first; fit only if EMC or audio measurements require |
 
 ## 3. Debian driver status of the new lines

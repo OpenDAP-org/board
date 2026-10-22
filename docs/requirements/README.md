@@ -4,7 +4,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 
 | ID | Requirement | Priority | Status |
 |---|---|---|---|
-| BRD-001 | Every component shall work with mainline Linux drivers. DAP OS builds no custom kernel; a board device tree and overlays are acceptable. | must | Confirmed |
+| BRD-001 | Every component shall work with mainline Linux drivers. OpenDAP OS builds no custom kernel; a board device tree and overlays are acceptable. | must | Confirmed |
 | BRD-002 | The SoC shall meet the project requirements without raising the product price significantly. | must | Confirmed |
 | BRD-003 | The board shall be a general-purpose Linux platform, not a DAP-only design, able to serve the HAT ecosystem and on-board AI uses. | must | Confirmed |
 | BRD-004 | The SoC shall reach every chip on the board and on attached HATs directly, for debugging, flashing and operation. | must | Confirmed |
@@ -18,7 +18,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-012 | The integrated mono speaker shall be driven independently of the DAC. | must | Confirmed |
 | BRD-013 | The board repository shall own the specification of the flat cable from the board to the device-side piece of the HAT case. | must | Confirmed |
 | BRD-014 | The board shall include a Raspberry Pi RP-series microcontroller as an orchestration coprocessor. The exact part is not fixed yet. | must | Confirmed |
-| BRD-015 | DAP OS shall be able to flash and update the RP coprocessor. | must | Confirmed |
+| BRD-015 | OpenDAP OS shall be able to flash and update the RP coprocessor. | must | Confirmed |
 | BRD-016 | The board shall provide a MaskROM button for recovery flashing. | must | Confirmed |
 | BRD-017 | The board shall provide a recovery key. | must | Confirmed |
 | BRD-018 | The board shall provide USB-C OTG, so it can be flashed over USB. | must | Confirmed |
@@ -65,7 +65,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 - The experiments split the electronics into a compute module (8-layer HDI), an audio module and a base board. Not adopted: the first intention is a single PCB (see the last requirement).
 - Withdrawn on 2026-10-21 after the [experiment review](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-experiment-review.md): BRD-021.
 - BRD-016 (MaskROM button) is met by the main / power button (BRD-035).
-- Pending: deep suspend on the RK3566 (see `dap-os`).
+- Pending: deep suspend on the RK3566 (see `opendap-os`).
 - Topology research: [`../research/2026-10-high-speed-io-topology.md`](../research/2026-10-high-speed-io-topology.md). Its USB 3 switch to the main USB-C and its debug USB hub were set aside by the "no unusual switches or tricks" rule. Early serial console: USB serial (CDC-ACM) on the main USB-C from U-Boot onward, plus UART test pads for the earliest stages.
 - Candidate signal set for the faceplate connector, to validate against the RK3566 pin multiplexing (some display interfaces share pins with audio and other peripherals): MIPI DSI 4-lane, parallel RGB, SPI/DBI, I2C and interrupt/reset lines for touch, PWM backlight control and enable, and the usual panel supply rails.
 - BRD-023 corrected on 2026-10-22: the CS43198 datasheet only accepts a 22.5792 or 24.576 MHz external master clock at 1.8 V; the earlier 45.1584 / 49.152 MHz figures came from the experiments and were wrong.

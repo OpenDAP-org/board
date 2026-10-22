@@ -3,7 +3,7 @@
 - **Status:** Superseded by [BOM v1](bom-v1.md). Kept as history.
 - **Date:** 2026-10-22
 - **Sources:** [component selection](../research/2026-10-component-selection.md), [sourcing alternatives](../research/2026-10-sourcing-alternatives.md), [high-speed I/O topology](../research/2026-10-high-speed-io-topology.md). Stock figures and prices are in those reports, with dates.
-- **Driver path:** *mainline + Debian* (enabled in Debian's kernel), *DKMS* (mainline driver Debian does not enable, or not in 7.2 yet; [dap-os ADR 0007](https://github.com/opendap-project/dap-os/blob/main/docs/adr/0007-kernel-modules-through-dkms.md)), *none* (no driver needed).
+- **Driver path:** *mainline + Debian* (enabled in Debian's kernel), *DKMS* (mainline driver Debian does not enable, or not in 7.2 yet; [opendap-os ADR 0007](https://github.com/opendap-project/opendap-os/blob/main/docs/adr/0007-kernel-modules-through-dkms.md)), *none* (no driver needed).
 
 ## Core
 
@@ -14,13 +14,13 @@
 | 3 | LPDDR4X 4 GB | Samsung K4UBE3D4AB-MGCL | Proposed | none (rkbin DDR blob ≥ v1.26) | SK hynix H9HCNNNCPMMLXR-NEE. **Risk:** broker prices, low stock |
 | 4 | eMMC 32 GB | Samsung KLMBG2JETD-B041 | Proposed | none | Micron, Kioxia, Longsys FORESEE. **Risk:** one stocked brand |
 | 5 | microSD socket | Hirose DM3AT-SF-PEJM5 | Proposed | none | Molex 104031-0811 |
-| 6 | Coprocessor | Raspberry Pi RP2354A (RP2350 with flash) | Decided family (ADR 0004); part Proposed | none (flashed from DAP OS) | RP2350A + QSPI flash |
+| 6 | Coprocessor | Raspberry Pi RP2354A (RP2350 with flash) | Decided family (ADR 0004); part Proposed | none (flashed from OpenDAP OS) | RP2350A + QSPI flash |
 
 ## Audio
 
 | # | Function | Part | Status | Driver path | Second source / note |
 |---|---|---|---|---|---|
-| 7 | DAC ×2 (dual mono) | Cirrus Logic CS43198-CNZR | Decided family (ADR 0001); part Proposed | DKMS (`SND_SOC_CS43130` off in Debian) | None. DSD128 cap in the driver (dap-os ADR 0006) |
+| 7 | DAC ×2 (dual mono) | Cirrus Logic CS43198-CNZR | Decided family (ADR 0001); part Proposed | DKMS (`SND_SOC_CS43130` off in Debian) | None. DSD128 cap in the driver (opendap-os ADR 0006) |
 | 8 | Headphone amp ×4 | TI OPA1622IDRCR | Proposed | none | None |
 | 9 | MCLK 44.1 kHz family | NDK NZ2520SDA, 45.1584 MHz | Proposed | none | Crystek CCHD-957 for prototypes. Confirm the catalog "45.158" label is 45.1584 MHz |
 | 10 | MCLK 48 kHz family | NDK NZ2520SDA, 49.152 MHz | Proposed | none | Crystek CCHD-957 |

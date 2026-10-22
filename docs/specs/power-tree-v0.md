@@ -3,7 +3,7 @@
 - **Status:** Draft. Desk design only: nothing here has been built, simulated or measured. Every part is *Proposed* unless [BOM v1](bom-v1.md) says *Decided*. Updated 2026-10-22 by the [BOM v1 cross-validation](../research/2026-10-bom-v1-cross-validation.md) (battery, HAT/USB 5 V source, TPS2121 isolation, faceplate rails, IO voltages, vdd_cpu part).
 - **Date:** 2026-10-22
 - **Companion:** [BOM v1](bom-v1.md) (parts, stock, datasheet links and hashes).
-- **Inputs:** [BOM v0](bom-v0.md), [board requirements](../requirements/README.md) (BRD-001 to BRD-048), board ADRs 0001–0004, [component selection](../research/2026-10-component-selection.md), [sourcing alternatives](../research/2026-10-sourcing-alternatives.md), [high-speed I/O topology](../research/2026-10-high-speed-io-topology.md), [battery selection](../research/2026-10-battery-selection.md), touch-faceplate ADR 0001 (Focus E35GH), T1 and HAT Case Standard requirements, dap-os ADRs 0006–0008. [pin multiplexing v0](../research/2026-10-pin-multiplexing-v0.md) gives the balls; GPIO names below are logical names.
+- **Inputs:** [BOM v0](bom-v0.md), [board requirements](../requirements/README.md) (BRD-001 to BRD-048), board ADRs 0001–0004, [component selection](../research/2026-10-component-selection.md), [sourcing alternatives](../research/2026-10-sourcing-alternatives.md), [high-speed I/O topology](../research/2026-10-high-speed-io-topology.md), [battery selection](../research/2026-10-battery-selection.md), touch-faceplate ADR 0001 (Focus E35GH), T1 and HAT Case Standard requirements, opendap-os ADRs 0006–0008. [pin multiplexing v0](../research/2026-10-pin-multiplexing-v0.md) gives the balls; GPIO names below are logical names.
 - **Method:** datasheets were downloaded and read (revision and sha256 in the BOM's Datasheets table); the RK809 rail mapping follows mainline device trees of shipping RK3566 boards (Orange Pi 3B with RK809, Anbernic RG353 with RK817, Radxa ZERO 3W schematic v1.12). Calculations are shown inline.
 - **Conventions:** **UNVERIFIED** = no primary source found in this session. "Est." = engineering estimate, to be replaced by measurement (T1-026).
 
@@ -213,7 +213,7 @@ TPS61169 (SNVSA40B): 2.7–5.5 V in, 1.2 MHz, 1.2 A minimum switch limit, 204 mV
 - Duty cycle: D = 1 − VIN·η / VOUT = 1 − 3.5 × 0.85 / 16.5 = 0.82.
 - Ripple with L = 10 µH, f = 1.2 MHz: ΔIL = VIN·D / (L·f) = 3.5 × 0.82 / (10 µH × 1.2 MHz) = 0.24 A → peak 0.33 + 0.12 = **0.45 A < 1.2 A**. A 10 µH, ≥ 0.6 A saturation inductor (Murata LQH3NPN100MJRL class) and a 40 V, 1 A Schottky (Nexperia PMEG4010CEH) suffice.
 - Indoor 200 nit: about 15 mA if luminance is linear in current (**UNVERIFIED**), VF about 13.5 V (est.) → 0.20 W out, about 0.25 W from the battery. Full 800 nit outdoors: about 1.1 W.
-- Dimming: PWM on CTRL scales the internal reference (analog dimming of the LED current, flicker-free), driven by the ALS through DAP OS (`pwm-backlight`, Debian `=m`).
+- Dimming: PWM on CTRL scales the internal reference (analog dimming of the LED current, flicker-free), driven by the ALS through OpenDAP OS (`pwm-backlight`, Debian `=m`).
 - Placement: on the main board, so the faceplate FPC carries LEDA/LEDK. 37.5 V OVP covers strings up to about 10 series LEDs, so other faceplates need no board change (BRD-048).
 
 ### 4.6 HAT power: eFuse current limits and inrush
@@ -227,7 +227,7 @@ TPS259470 (SLVSFC9C): 2.7–23 V, RON 28.3 mΩ, ILIM set by RILM (1.65 kΩ → 2
 | #C | TPS61088 → USB-C VBUS | 1.5 A | 2.21 kΩ | 64 mW |
 
 - **Source:** a TPS61088 boost from VSYS feeds #A and #C (the BQ25895 OTG boost cannot run while charging, finding 10). On adapter power only HAT_5V can be sourced (the USB-C port is then the input), so #A at 1.5 A (≈ 8.5 W from VSYS at η ≈ 0.9) fits inside the 3.5 A VSYS rating with the system load. The boost also covers the case the draft missed: a class A/B HAT keeps 5 V while the T1 charges.
-- **Battery budget:** on battery the JST PH contact caps the pack at 2.0 A ≈ 7 W at 3.5 V. With the base system at 1–3 W (screen off to screen on with CPU load, **est.**), about 4 W remains: ≈ 0.7 A at 5.1 V for HAT_5V **plus** USB-C source together. DAP OS enforces it with the VSYS INA236 and the eFuse IMON; USB-C advertises Default (0.5 A) on battery. HAT power classes A/B must be written against this number (hat-standard).
+- **Battery budget:** on battery the JST PH contact caps the pack at 2.0 A ≈ 7 W at 3.5 V. With the base system at 1–3 W (screen off to screen on with CPU load, **est.**), about 4 W remains: ≈ 0.7 A at 5.1 V for HAT_5V **plus** USB-C source together. OpenDAP OS enforces it with the VSYS INA236 and the eFuse IMON; USB-C advertises Default (0.5 A) on battery. HAT power classes A/B must be written against this number (hat-standard).
 - **Hardware ceilings stay** at ILIM 1.5 / 1.0 / 1.5 A so a fault is still bounded if software fails.
 - **Inrush:** with CdVdt = 1.8 nF the rising slew is 0.87 V/ms at 2.7 V and 1.09 V/ms at 12 V; take 0.92 V/ms at 5 V. A HAT with 100 µF bulk draws I = C·dV/dt = 100 µF × 920 V/s = **92 mA** for 5.4 ms; 470 µF draws 0.43 A, still under ILIM. The HAT standard should cap HAT bulk capacitance at 470 µF per rail.
 - **Powerbank HAT input (class F):** HAT_5V → TPS2121 IN2. When the T1 sources HAT_5V, `HAT_SRC_ON` (the same net that enables #A) drives TPS2121 OV2 high so IN2 cannot connect; when it sources USB-C VBUS, `USB_SRC_ON` drives OV1 high. The interlock is wired, not a software ordering rule.
@@ -290,7 +290,7 @@ Default state is the state with no software running (pull resistors). "SoC GPIO"
 | HAT 5 V out | HAT_5V | TPS61088 + TPS259470 #A | expander `HAT5V_EN` (= `HAT_SRC_ON`) | off | eFuse | Same net forces TPS2121 OV2 |
 | HAT 5 V in (powerbank) | HAT_5V → VBUS_CHG | TPS2121 IN2 | OV2 (released when `HAT_SRC_ON` is low) | enabled | — | Dead-battery boot from a powerbank HAT |
 | USB-C VBUS out | VBUS | TPS61088 + TPS259470 #C | TCPM source role → `USB_SRC_ON` | off | eFuse | Forces TPS2121 OV1; Default (0.5 A) advertisement on battery |
-| Instrumentation | vcc3v3_sys | INA236 power-down mode (I2C) | DAP OS | power-down | — | Shunts stay in circuit |
+| Instrumentation | vcc3v3_sys | INA236 power-down mode (I2C) | OpenDAP OS | power-down | — | Shunts stay in circuit |
 
 ## 6. Sequencing
 
@@ -359,7 +359,7 @@ Datasheets with revision, date and sha256 are listed once, in the [BOM v1 Datash
 3. **MCLK at 1.8 V (blocker):** no stocked audio-grade part; ADR 0009 forbids the translator option. See the cross-validation §4.
 4. **RK809-5 OTP sequence and VCC9:** confirm with Rockchip (or the RK3566 hardware design guide) the OTP defaults and that VCC9 may be fed from the external vcc3v3_sys, as on the Orange Pi 3B.
 5. **Is the NPU supply separate on the RK3566 (BUCK4) or shared with the GPU** as on RK817 handhelds? This decides whether BUCK4 is free.
-6. **RP2354A power default:** on at boot (always-available orchestrator) or off until DAP OS enables it (lowest standby)?
+6. **RP2354A power default:** on at boot (always-available orchestrator) or off until OpenDAP OS enables it (lowest standby)?
 7. **Backlight driver location:** main board (proposed, keeps faceplates passive) or on each faceplate?
 8. **HAT power classes:** on battery about 0.7 A at 5.1 V is left for HAT_5V and USB-C source together (§4.6). Accept, or require external power for heavier HATs?
 9. **eMMC power in suspend:** keep vcc3v3_sys on, or power the eMMC down in suspend?

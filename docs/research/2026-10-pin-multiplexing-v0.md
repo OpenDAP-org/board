@@ -3,7 +3,7 @@
 - **Date:** 2026-10-22
 - **Status:** Desk research. **Everything here is a proposal (v0), not a decision.** The maintainers must confirm each allocation, and the schematic must re-check every pin against the full RK3566 datasheet before layout.
 - **Scope:** check the T1 signal set (board, faceplate connector, HAT connector) against the RK3566 IOMUX and IO voltage domains. Produce a first pin map, list the conflicts and how to resolve them, and count the faceplate and HAT contacts that result.
-- **Inputs:** [`../requirements/README.md`](../requirements/README.md) (BRD-001 to BRD-048), [`../specs/bom-v1.md`](../specs/bom-v0.md), [`2026-10-high-speed-io-topology.md`](2026-10-high-speed-io-topology.md), `t1/docs/specs/faceplate-interface.md` (HID over I2C), `hat-standard/docs/requirements/README.md` and the HAT interconnect benchmark (pin budget §3), `dap-os` ADR 0006 (native DSD through upstream work) and the system architecture research (finding 8: no DSD formats in the Rockchip I2S driver).
+- **Inputs:** [`../requirements/README.md`](../requirements/README.md) (BRD-001 to BRD-048), [`../specs/bom-v1.md`](../specs/bom-v0.md), [`2026-10-high-speed-io-topology.md`](2026-10-high-speed-io-topology.md), `t1/docs/specs/faceplate-interface.md` (HID over I2C), `hat-standard/docs/requirements/README.md` and the HAT interconnect benchmark (pin budget §3), `opendap-os` ADR 0006 (native DSD through upstream work) and the system architecture research (finding 8: no DSD formats in the Rockchip I2S driver).
 - **Method:** mainline Linux read on 2026-10-22 from `torvalds/linux` `master` (the same tree the topology report calls 7.3). The pin-function map below was generated mechanically from `rk3568-pinctrl.dtsi`. The mux-route constraints come from `pinctrl-rockchip.c`. The IO voltage domains come from the RK3568 datasheet (Table 2-3, "Die Power Domain" column). The RK3566 ball set was checked against two real RK3566 schematics (Radxa CM3 and Radxa ZERO 3W). Anything not confirmed by a primary source is marked **UNVERIFIED**.
 - **Load note:** no builds were run. Only downloads, `pdftotext` and `grep`.
 
@@ -352,7 +352,7 @@ After the peripheral muxes, the free 3.3 V GPIOs are exhausted, and so are the f
 
 ### 3.12 Wake sources outside GPIO0 (BRD-009)
 
-The wake-critical lines are on GPIO0: PMIC, charger, USB-C controller, IMU, Action button, faceplate HID, ALS, RP2350, HAT detect and HAT interrupt. The IW612 host-wake lines are on GPIO2. Whether GPIO1–4 can wake the RK3566 from the deep suspend `dap-os` is studying is **UNVERIFIED**. If they cannot, Wi-Fi wake-on-WLAN uses the SDIO in-band interrupt, or the RP2350 relays the wake to 0_C7.
+The wake-critical lines are on GPIO0: PMIC, charger, USB-C controller, IMU, Action button, faceplate HID, ALS, RP2350, HAT detect and HAT interrupt. The IW612 host-wake lines are on GPIO2. Whether GPIO1–4 can wake the RK3566 from the deep suspend `opendap-os` is studying is **UNVERIFIED**. If they cannot, Wi-Fi wake-on-WLAN uses the SDIO in-band interrupt, or the RP2350 relays the wake to 0_C7.
 
 ---
 

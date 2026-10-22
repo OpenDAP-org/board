@@ -1,7 +1,7 @@
 # RK3566 pin multiplexing and pin allocation v0 for the T1 main board
 
 - **Date:** 2026-10-22
-- **Status:** Desk research. **Everything here is a proposal (v0), not a decision.** The maintainers must confirm each allocation, and the schematic must re-check every pin against the full RK3566 datasheet before layout. Updated by BOM v1.2 (2026-10-22): the HAT contact list moves to the hat-standard HAT interface v0 and §4.3 maps the RK3566 onto it; the status LED leaves PWM9 for an I2C driver.
+- **Status:** Desk research. **Everything here is a proposal (v0), not a decision.** The maintainers must confirm each allocation, and the schematic must re-check every pin against the full RK3566 datasheet before layout. Updated by BOM v1.2 (2026-10-22): the HAT contact list moves to the hat-standard HAT interface v0 and §4.3 maps the RK3566 onto it; the status LED leaves PWM9 for an I2C driver. Updated by BOM v1.4 (2026-10-22): §4.3 maps the RK3566 onto the hat-standard HAT interface v1 (levels L1–L3, the T1 implements L3) and lists the SoC balls v1 frees; where §0, §2.1, §2.5, §3 and §4.2 describe the v0 HAT signals, §4.3 prevails.
 - **Scope:** check the T1 signal set (board, faceplate connector, HAT connector) against the RK3566 IOMUX and IO voltage domains. Produce a first pin map, list the conflicts and how to resolve them, and count the faceplate and HAT contacts that result.
 - **Inputs:** [`../requirements/README.md`](../requirements/README.md) (BRD-001 to BRD-048), [`../specs/bom-v1.md`](../specs/bom-v0.md), [`2026-10-high-speed-io-topology.md`](2026-10-high-speed-io-topology.md), `t1/docs/specs/faceplate-interface.md` (HID over I2C), `hat-standard/docs/requirements/README.md` and the HAT interconnect benchmark (pin budget §3), `opendap-os` ADR 0006 (native DSD through upstream work) and the system architecture research (finding 8: no DSD formats in the Rockchip I2S driver).
 - **Method:** mainline Linux read on 2026-10-22 from `torvalds/linux` `master` (the same tree the topology report calls 7.3). The pin-function map below was generated mechanically from `rk3568-pinctrl.dtsi`. The mux-route constraints come from `pinctrl-rockchip.c`. The IO voltage domains come from the RK3568 datasheet (Table 2-3, "Die Power Domain" column). The RK3566 ball set was checked against two real RK3566 schematics (Radxa CM3 and Radxa ZERO 3W). Anything not confirmed by a primary source is marked **UNVERIFIED**.
@@ -124,6 +124,8 @@ Domains and voltages follow §5. "Board" means it stays on the main PCB, "FP" me
 
 ### 2.1 Audio
 
+> **HAT rows superseded by §4.3 (BOM v1.4).** Under the HAT interface v1 the HAT audio port runs on the DAC's clock domain: I2S1 SDO3 carries `I2S_DOUT`, I2S1 RX takes the DAC clocks, and I2S2 M1 is freed.
+
 | Function | Instance | Mux | Pins | Domain / V | Destination | Notes |
 |---|---|---|---|---|---|---|
 | DAC BCLK in (DAC master) | I2S1 TX | M1 | SCLKTX 3_C7 | VCCIO6 / 1.8 V | Board: CS43198 L (master) and R | SoC is clock consumer (`SND_SOC_DAIFMT_BC_FC`, supported by `rockchip_i2s_tdm.c`). Test pad |
@@ -210,6 +212,8 @@ Domains and voltages follow §5. "Board" means it stays on the main PCB, "FP" me
 | Panel / backlight / mic rails | Board load switches | — | Enables on the expander | — | `VSYS_FP`, `3V3_FP`, `1V8_FP`, `MIC_VDD` (BRD-027: privacy LED on `MIC_VDD`) |
 
 ### 2.5 HAT
+
+> **Superseded by §4.3 (BOM v1.4).** HAT interface v1 drops the second USB 2 port, SPI, UART, JTAG TDI/TDO, the slow GPIO, the camera reset and clock, and the HAT's own-clock audio domain. The table below is the v0 allocation, kept for traceability.
 
 | Function | Instance | Mux | Pins | Domain / V | Notes |
 |---|---|---|---|---|---|
@@ -392,7 +396,7 @@ Notes:
 
 ### 4.2 HAT connector
 
-> **Superseded for the contact list (BOM v1.2, 2026-10-22).** The HAT signal set and contact positions are now owned by the hat-standard [HAT interface v0](https://github.com/opendap-project/hat-standard/blob/main/docs/specs/interface-v0.md) (Draft), which defines them by function (HCS-021). `CAM_PWDN` and the DOUT on the DAC clock are dropped there to give reserved contacts (HCS-022). The RK3566 mapping is in §4.3. The table below is the v0 derivation, kept for traceability.
+> **Superseded for the contact list (BOM v1.2, 2026-10-22; v1 in BOM v1.4).** The HAT signal set and contact positions are now owned by the hat-standard [HAT interface v1](https://github.com/opendap-project/hat-standard/blob/main/docs/specs/interface-v1.md) (Draft), which superseded [v0](https://github.com/opendap-project/hat-standard/blob/main/docs/specs/interface-v0.md), which defines them by function (HCS-021). `CAM_PWDN` and the DOUT on the DAC clock are dropped there to give reserved contacts (HCS-022). The RK3566 mapping is in §4.3. The table below is the v0 derivation, kept for traceability.
 
 Cross-check against the hat-standard benchmark's ~120–128 contacts:
 
@@ -424,35 +428,49 @@ Cross-check against the hat-standard benchmark's ~120–128 contacts:
 - **SDIO, Ethernet, HDMI:** none on the HAT. SDIO because of §3.5. Ethernet per the benchmark's HCS-005 justification. HDMI because its DDC balls are I2C5 M1 here and it is not in the HAT list.
 - **Logic level at the pogo field: 3.3 V** for all low-speed lines (Raspberry Pi HAT-compatible thinking). Audio and ID lines are translated (§5).
 
-### 4.3 Mapping to the HAT interface v0
+### 4.3 Mapping to the HAT interface v1
 
-The hat-standard [HAT interface v0](https://github.com/opendap-project/hat-standard/blob/main/docs/specs/interface-v0.md) defines the HAT signals by function and fixes their contact positions on the DF40 signal (100) and power (50) connectors. This table maps each functional signal onto the RK3566 and the T1 board parts (BOM v1.2). It is the only place where SoC names appear for the HAT.
+The hat-standard [HAT interface v1](https://github.com/opendap-project/hat-standard/blob/main/docs/specs/interface-v1.md) (Draft, [ADR 0002](https://github.com/opendap-project/hat-standard/blob/main/docs/adr/0002-interface-v1-native-high-speed-management-over-usb.md), [ADR 0003](https://github.com/opendap-project/hat-standard/blob/main/docs/adr/0003-compatibility-levels.md)) supersedes v0. It defines the HAT signals by compatibility level (L1 Core, L2 Control and audio, L3 High speed) and by function, and fixes their positions on the pogo field and on the DF40 signal (100) and power (50) connectors. The T1 implements **L3**. This table maps each functional signal onto the RK3566 and the T1 board parts (BOM v1.4). It is the only place where SoC names appear for the HAT. The v0 mapping (BOM v1.2–v1.3) is in the repository history.
 
-| Interface signal(s) | RK3566 instance / PHY | Balls (pin plan) | Bank / level at the SoC | Board path to the connector |
+| Level | Interface signal(s) | RK3566 instance / PHY | Balls (pin plan) | Bank / level at the SoC | Board path to the connector |
+|---|---|---|---|---|---|
+| L1 | `USB3_SSTX±`, `USB3_SSRX±`, `USB3_D±` | USB3 HOST1 (xHCI), `combphy1`; USB 2 half on `usb2phy0_host` | `USB3_HOST1_SSTX/SSRX` (topology report §1.3); USB 2 half on the `usb2phy0_host` balls (§1.4) | PHY | Direct (BRD-044); SSTX AC caps on the board (BOM line 70); ESD at the pogo field (line 68). The only HAT USB port: management bridges use `USB3_D±`. The SuperSpeed lanes keep MUX-A to the main USB-C; `USB3_D±` stays with the HAT (topology §3) |
+| L1 | `ID_SCL`, `ID_SDA` | I2C4 M1 | SCL 2_B2, SDA 2_B1 | VCCIO4, 1.8 V | PCA9306 to 3.3 V, enabled after `HAT_DET#` (line 94) |
+| L1 | `I2C_SCL`, `I2C_SDA` | I2C5 M1 | SCL 4_C7, SDA 4_D0 | VCCIO7, 3.3 V | Direct |
+| L1 | `HAT_DET#`, `HAT_INT#` | GPIO0 (wake-capable) | 0_A5, 0_A6 | PMUIO1, 3.3 V | Direct; `HAT_DET#` on the power connector |
+| L1 | `HAT_5V` | — | — | — | TPS61089 → eFuse #A out; TPS2121 IN2 in (power tree §4.6) |
+| L1 | `HAT_3V3` | — | — | — | TLV62569 → eFuse #B |
+| L2 | `I2S_BCLK`, `I2S_FS` (out) | I2S1 TX clocks, driven by the DAC (CS43198 L is the clock master, the SoC is consumer, §2.1) | SCLKTX 3_C7, LRCKTX 3_D0 nets | VCCIO6, 1.8 V | Tapped from the DAC clock nets and buffered by the SN74AXC4T774 to 3.3 V (line 95), so the HAT stub does not load the DAC nets |
+| L2 | `I2S_DOUT` (out) | I2S1 SDO3 | 4_B5 | VCCIO6, 1.8 V | SN74AXC4T774 (line 95). Same TX block and clocks as the DAC data (SDO0) |
+| L2 | `I2S_DIN0`–`I2S_DIN3` (in) | I2S1 SDI0–SDI3, RX clocked from the TX clocks | 3_D2–3_D5 | VCCIO6, 1.8 V | SN74AXC8T245 from 3.3 V (line 95, 4 of 8 bits) |
+| L2 | `I2S_MCLK` (out) | none: the active MCLK oscillator (lines 20–21), not a SoC ball | — | 3.1 V oscillator output | 3.3 V buffer with output enable (BOM line 112, **Open**). Tap point chosen so the DAC MCLK path is not loaded |
+| L2 | `LINE_OUT_L/R`, `AGND` | analog (source is a board decision, hat-standard interface v1 §10) | — | — | TPD1E10B06 at the pogo field (line 69) |
+| L2 | `DBG_SWCLK`, `DBG_SWDIO`, `HAT_RST#` | GPIO (bit-banged SWD, §3.9) | 1_A0, 1_A1, 1_B3 | VCCIO1, 3.3 V | Direct; `HAT_RST#` driven open drain |
+| L2 | `GPIO0`–`GPIO3` | PWM12–15 M0 | 3_B7, 3_C0, 3_C4, 3_C5 | VCCIO5, 3.3 V | Direct. Interrupts through the GPIO controller (every RK3566 GPIO line is interrupt-capable in `gpio-rockchip`: **UNVERIFIED**, not re-read this session) |
+| L2 | Alternate functions on `GPIO0`–`GPIO3` (interface v1 §4.3, should) | UART3 M1 on `GPIO0`/`GPIO1`; UART7 M1 on `GPIO2`/`GPIO3` | TX 3_B7, RX 3_C0; TX 3_C4, RX 3_C5 | VCCIO5, 3.3 V | Pinmux only. TX/RX order taken from the generated pin map (§1.4 lists RX first); **UNVERIFIED** against `rk3568-pinctrl.dtsi` until re-read. UART3 M0 is not in use (1_A0/1_A1 are GPIO for SWD) and UART7 M2 is not in use (4_A2/4_A3 are DAC GPIO), so M1 is free for both. No SPI option exists on these balls |
+| L3 | `PCIE_TX±`, `PCIE_RX±`, `PCIE_REFCLK±` | PCIe 2.1 x1 (`pcie2x1`), `combphy2`; REFCLK from the SoC | `PCIE20_TX/RX`, `PCIE20_REFCLKP/N` | PHY | Direct (BRD-045); TX AC caps on the board |
+| L3 | `PCIE_PERST#`, `PCIE_CLKREQ#`, `PCIE_WAKE#` | PCIe20 M2 sidebands (PERST# as GPIO) | 1_B2, 1_B0, 1_B1 | VCCIO1, 3.3 V | Direct; PERST# gated with HAT power-good (power tree §6.4) |
+| L3 | `CSI_CLK±`, `CSI_D0±`–`CSI_D3±` | MIPI CSI-2 RX D-PHY (4 lanes) | dedicated D-PHY balls | PHY | Direct |
+| — | `RSVD_S0`–`RSVD_S4`, `RSVD_P0`–`RSVD_P4` | none | — | — | Not connected; TPD4E05U06 channels kept for `RSVD_S0`–`RSVD_S4` (line 69) |
+
+**Audio clock domain (ADR 0002 item 6, test on the first prototype).** The HAT port runs on the DAC's clock domain. I2S1 TX already clocks SDO0 (DAC) and SDO3 (HAT) from the same SCLKTX/LRCKTX, with the SoC as consumer. I2S1 RX must take the same clocks: either internally from TX (the `rockchip_i2s_tdm` TX/RX clock-sync option, `rockchip,trcm-sync-tx-only`; **UNVERIFIED**, binding not re-read this session) or, as the fallback, on its own pins SCLKRX 4_A6 and LRCKRX 4_A7 wired to the same DAC clock nets. Fit DNP 0 Ω links from the DAC clock nets to 4_A6/4_A7 so the fallback needs no respin. Consequences: the DAC's clock master must run while a HAT captures or plays, and the rate follows the DAC's 44.1 kHz or 48 kHz family (MCLK enable lines, §2.1). If neither works, the second domain returns on reserved contacts (hat-standard ADR 0002).
+
+**Freed by interface v1.** v1 frees 15 SoC balls, the second HAT USB 2 port and four expander lines. The 3.3 V GPIO budget was the bottleneck (§3.11), so these are the first spares for pinout v1. The reuse column lists options; none is a decision.
+
+| Freed | Balls / resource | Bank / level | Was (interface v0) | Reuse options |
 |---|---|---|---|---|
-| `USB3_SSTX±`, `USB3_SSRX±`, `USB3_D±` | USB3 HOST1 (xHCI), `combphy1`; USB 2 half on `usb2phy0_host` | `USB3_HOST1_SSTX/SSRX` (topology report §1.3); USB 2 half on the `usb2phy0_host` balls (§1.4) | PHY | Direct (BRD-044); SSTX AC caps on the board (line 70); ESD at the pogo field (line 68) |
-| `USB2B_D±` | EHCI/OHCI host 1, `usb2phy1_host` | dedicated PHY balls (topology report §1.4) | PHY | Direct |
-| `PCIE_TX±`, `PCIE_RX±`, `PCIE_REFCLK±` | PCIe 2.1 x1 (`pcie2x1`), `combphy2`; REFCLK from the SoC | `PCIE20_TX/RX`, `PCIE20_REFCLKP/N` | PHY | Direct (BRD-045); TX AC caps on the board |
-| `PCIE_PERST#`, `PCIE_CLKREQ#`, `PCIE_WAKE#` | PCIe20 M2 sidebands (PERST# as GPIO) | 1_B2, 1_B0, 1_B1 | VCCIO1, 3.3 V | Direct; PERST# gated with HAT power-good (power tree §6.4) |
-| `CSI_CLK±`, `CSI_D0±`–`CSI_D3±` | MIPI CSI-2 RX D-PHY (4 lanes) | dedicated D-PHY balls | PHY | Direct |
-| `CAM_RST#` | TCA6416A port | expander | 3.3 V port | Direct from the expander |
-| `CAM_MCLK` | REFCLK_OUT | 0_A0 | PMUIO1, 3.3 V | Direct (optional) |
-| `ID_SCL`, `ID_SDA` | I2C4 M1 | SCL 2_B2, SDA 2_B1 | VCCIO4, 1.8 V | PCA9306 to 3.3 V, enabled after `HAT_DET#` (line 94) |
-| `I2C_SCL`, `I2C_SDA` | I2C5 M1 | SCL 4_C7, SDA 4_D0 | VCCIO7, 3.3 V | Direct |
-| `SPI_SCLK`, `SPI_MOSI`, `SPI_MISO`, `SPI_CS0#`, `SPI_CS1#` | SPI3 M1 | 4_C2, 4_C3, 4_C5, 4_C6, 4_D1 | VCCIO7, 3.3 V (4_D1 **UNVERIFIED**) | Direct |
-| `UART_TX`, `UART_RX`, `UART_RTS#`, `UART_CTS#` | UART4 M0 | 1_A6, 1_A4, 1_A5, 1_A7 | VCCIO1, 3.3 V | Direct |
-| `I2S_MCLK`, `I2S_BCLK`, `I2S_FS`, `I2S_DOUT`, `I2S_DIN` | I2S2 M1 | 4_B6, 4_B7, 4_A4, 4_B3, 4_B2 | VCCIO6, 1.8 V | SN74AXC4T774 + SN74AXC2T245 to 3.3 V (line 95) |
-| `TDM_BCLK_IN`, `TDM_FS_IN`, `TDM_DIN0`–`TDM_DIN3` | I2S1 RX M1 | 4_A6, 4_A7, 3_D2–3_D5 | VCCIO6, 1.8 V | SN74AXC8T245 to 3.3 V (line 95) |
-| `LINE_OUT_L/R`, `LINE_IN_L/R`, `AGND` | analog (source and sink are board decisions, hat-standard interface v0 §7) | — | — | TPD1E10B06 at the pogo field (line 69) |
-| `DBG_TCK`, `DBG_TMS`, `DBG_TDI`, `DBG_TDO`, `DBG_RESET#` | GPIO (bit-banged SWD/JTAG) | 1_A0, 1_A1, 1_A2, 1_A3, 1_B3 | VCCIO1, 3.3 V | Direct |
-| `GPIO0`–`GPIO3` (PWM-capable) | PWM12–15 M0 | 3_B7, 3_C0, 3_C4, 3_C5 | VCCIO5, 3.3 V | Direct |
-| `GPIO4`–`GPIO7` | GPIO 4_C4 + 3 TCA6416A lines | 4_C4, expander | 3.3 V | Direct (`GPIO5`–`GPIO7` are expander-slow) |
-| `HAT_DET#`, `HAT_INT#` | GPIO0 (wake-capable) | 0_A5, 0_A6 | PMUIO1, 3.3 V | Direct; `HAT_DET#` on the power connector |
-| `HAT_5V` | — | — | — | TPS61089 → eFuse #A out; TPS2121 IN2 in (power tree §4.6) |
-| `HAT_3V3` | — | — | — | TLV62569 → eFuse #B |
-| `RSVD_S0`, `RSVD_S1`, `RSVD_P0`–`RSVD_P4` | none | — | — | Not connected (TPD4E05U06 channels kept for `RSVD_S0`/`S1`) |
+| EHCI/OHCI host 1 on `usb2phy1_host` | dedicated PHY balls | PHY | `USB2B_D±`, second HAT USB 2 port | A spare USB 2 host port with a direct SoC path; no board consumer needs it today |
+| UART4 M0 | RX 1_A4, RTS 1_A5, TX 1_A6, CTS 1_A7 | VCCIO1, 3.3 V | HAT UART | Four native 3.3 V GPIO with interrupts, or a board UART with flow control |
+| JTAG TDI, TDO | 1_A2, 1_A3 | VCCIO1, 3.3 V | HAT JTAG | Two native 3.3 V GPIO |
+| SPI3 M1 | CLK 4_C2, MOSI 4_C3, MISO 4_C5, CS0 4_C6, CS1 4_D1 | VCCIO7, 3.3 V (4_D1 **UNVERIFIED**) | HAT SPI | A board SPI controller, or five native 3.3 V GPIO; also reopens I2S3 M1 and PWM12–15 M1 (§3.3) |
+| GPIO 4_C4 | 4_C4 | VCCIO7, 3.3 V | `GPIO4` | Native 3.3 V GPIO |
+| REFCLK_OUT | 0_A0 | PMUIO1, 3.3 V, GPIO0 (wake-capable) | `CAM_MCLK` | A wake-capable GPIO0 line, of which none was left (§3.11): for example the TCA6416A INT as a direct wake source instead of the wired-OR with the RP2350 IRQ on 0_C7 (§2.3, owner choice). Its boot-time state is **UNVERIFIED** |
+| I2S2 M1 | MCLK 4_B6, SCLKTX 4_B7, LRCKTX 4_A4, SDO 4_B3, SDI 4_B2 | VCCIO6, 1.8 V | HAT stereo I2S with its own clocks (second audio clock domain) | The whole I2S2 controller is free: I2S2 M0 for an IW612 PCM link is no longer exclusive with the HAT (§3.4, board ADR 0006 keeps HCI; M0 balls not re-checked). Otherwise 1.8 V audio-bank GPIO, kept quiet next to the DAC nets |
+| I2S1 RX clock pins | SCLKRX 4_A6, LRCKRX 4_A7 | VCCIO6, 1.8 V | `TDM_BCLK_IN`, `TDM_FS_IN` (HAT-provided capture clock) | Reserved for the audio-clock fallback above |
+| TCA6416A lines | 3 lines (`GPIO5`–`GPIO7`) + 1 (`CAM_RST#`) | 3.3 V port | Slow HAT GPIO, camera reset | With the `CAM_PWDN` line freed in v1.2, five expander lines are spare for board controls |
+| Line in | — | — | `LINE_IN_L/R` | No SoC or board resource: the T1 never had a line-input sink |
 
-Freed by the v1.2 interface: one TCA6416A line (`CAM_PWDN`) and I2S1 SDO3 (4_B5, the DOUT on the DAC clock). Both are spares for pinout v1.
+Re-used: I2S1 SDO3 (4_B5), freed in v1.2, now carries `I2S_DOUT`.
 
 ---
 
@@ -462,21 +480,21 @@ Freed by the v1.2 interface: one TCA6416A line (`CAM_PWDN`) and I2S1 SDO3 (4_B5,
 |---|---|---|---|---|
 | PMUIO1 | 3.3 V | RK809 always-on 3.3 V (`vcc3v3_pmu`) | PMIC control, HAT_DET#/HAT_INT#, SD detect, strap | Fixed 3.3 V by the datasheet (2.97–3.63 V) |
 | PMUIO2 | **1.8 V** | RK809 always-on 1.8 V (`vcca1v8_pmu`) | I2C0/1/2, UART0 (RP2350), UART2 debug, wake interrupts | Precedent: Quartz64-B and Radxa ZERO 3. Matches the CS43198 control port and an RP2350 at 1.8 V |
-| VCCIO1 | 3.3 V | `vcc_3v3` | HAT UART, HAT JTAG, PCIe sidebands | HAT low-speed bank |
+| VCCIO1 | 3.3 V | `vcc_3v3` | HAT SWD and `HAT_RST#`, PCIe sidebands (v1.4: HAT UART and JTAG TDI/TDO freed, §4.3) | HAT low-speed bank |
 | VCCIO2 | 1.8 V | `vcc_1v8` | eMMC HS200, RP2350 SWD, audio GPIOs | FLASH_VOL_SEL high; the CM3 note says high means 1.8 V |
 | VCCIO3 | 3.3 ↔ 1.8 V | RK809 LDO (`vccio_sd`) | microSD UHS | As on every RK3566 board |
 | VCCIO4 | 1.8 V | `vcc_1v8` | Wi-Fi SDIO 3.0 (UHS requires 1.8 V), Bluetooth UART, HAT ID I2C (host side), RP2350 RUN/BOOTSEL | Every SDIO-Wi-Fi board does this |
 | VCCIO5 | 3.3 V | `vcc_3v3` | Faceplate logic, speaker I2S, HAT PWM | One fixed 3.3 V faceplate logic level |
-| VCCIO6 | 1.8 V | Dedicated low-noise 1.8 V (audio digital) | I2S1 (DAC), I2S2 (HAT), PDM, DAC control lines | CS43198 digital I/O is referenced to VL. 1.8 V VL is assumed (**UNVERIFIED** range). Keeping the DAC clocks free of translators avoids added jitter |
-| VCCIO7 | 3.3 V | `vcc_3v3` | HAT SPI, HAT I2C, HAT GPIO | HAT low-speed bank |
+| VCCIO6 | 1.8 V | Dedicated low-noise 1.8 V (audio digital) | I2S1 (DAC and, from v1.4, the HAT audio port), PDM, DAC control lines (v1.4: I2S2 freed, §4.3) | CS43198 digital I/O is referenced to VL. 1.8 V VL is assumed (**UNVERIFIED** range). Keeping the DAC clocks free of translators avoids added jitter |
+| VCCIO7 | 3.3 V | `vcc_3v3` | HAT I2C (v1.4: HAT SPI and 4_C4 freed, §4.3) | HAT low-speed bank |
 
 ### 5.1 Level shifting needed
 
 | Path | From → to | Part class (proposal) | Notes |
 |---|---|---|---|
-| HAT audio (12 lines) | VCCIO6 1.8 V → HAT 3.3 V | Fixed-direction dual-supply buffers (SN74AXC4T774 / SN74AXC8T245 class) | Direction is known per line. BCLK up to 24.576 MHz is well within AXC limits. The on-board DAC nets are **not** translated; the HAT branch is buffered |
+| HAT audio (7 lines; v1.4) | VCCIO6 1.8 V ↔ HAT 3.3 V | Fixed-direction dual-supply buffers (SN74AXC4T774 for `I2S_BCLK`, `I2S_FS`, `I2S_DOUT`; SN74AXC8T245 for `I2S_DIN0`–`DIN3`) | Direction is fixed per line: the device always provides the clocks (§4.3). BCLK up to 24.576 MHz is well within AXC limits. The on-board DAC nets are **not** translated; the HAT branch is buffered. `I2S_MCLK` comes from the MCLK oscillator through its own 3.3 V buffer, not through these parts |
 | HAT ID I2C | VCCIO4 1.8 V → 3V3_AUX | PCA9306 / TCA9406 class | The EN pin isolates the bus until the HAT is detected, which helps hot-plug (HCS-014 power-down swap) |
-| HAT camera reset/power-down, HAT spare GPIO, faceplate detect and spares | — | TCA6416A port side at 3.3 V | The translation is built into the expander |
+| Faceplate detect and spares (v1.4: no HAT lines left on the expander) | — | TCA6416A port side at 3.3 V | The translation is built into the expander |
 | Faceplate panels with 1.8 V IOVCC | 3.3 V → 1.8 V | On the faceplate | The faceplate's own concern; `1V8_FP` is provided |
 | Debug UART | 1.8 V pads | None | Use a 1.8 V-capable USB-UART adapter. Document this in the bring-up guide |
 | RP2350 | 1.8 V IOVDD | None | RP2350 datasheet: IOVDD 1.8–3.3 V, with `VOLTAGE_SELECT = 1` for 1.8 V input thresholds ([RP2350 datasheet](https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf)). The RP2350 then taps the 1.8 V I2S/DSD nets directly (BRD-041) |

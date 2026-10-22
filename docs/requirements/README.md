@@ -55,6 +55,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-049 | Power safety comes first: every rail, converter, connector and cable shall run with margin below its rating and shall be protected. A safer power design is preferred over a smaller or cheaper one. | must | Confirmed |
 | BRD-050 | The battery path shall carry enough current for the full HAT and USB-C output budget on battery, with a more robust battery connection if the off-the-shelf lead or connector cannot. | must | Confirmed |
 | BRD-051 | The microSD/TF slot shall run in the fastest mode the SoC supports, for performance: UHS-I SDR104 on the RK3566 (SD 3.0), with 1.8 V signalling. | must | Confirmed |
+| BRD-052 | Both headphone jacks shall detect plug insertion and removal, so playback can pause when headphones are unplugged and never move to the speaker unasked. | must | Confirmed |
 
 ## Open questions
 

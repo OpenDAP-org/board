@@ -24,5 +24,5 @@ The [headphone output power research](../research/2026-10-headphone-output-power
 ## Consequences
 
 - BRD-022 is amended (four → six OPA1622). BOM v1.3 carries the parts, rails and passives.
-- Autonomy: the core single-ended session drops about 11 % (12.8 → 11.4 h on the Adafruit 328; 16.3 → 14.6 h on a 105060-class pack), above the T1-039 warning threshold.
+- Autonomy: the core single-ended session drops about 11 % in the battery-life model (12.8 → 11.4 h on the Adafruit 328; 16.3 → 14.6 h on a 105060-class pack). The more conservative power-tree budget gives 7.1–10.1 h on the Adafruit 328 (v1.2: 7.6–11.1 h): its pessimistic end is below the T1-039 8 h warning, above the 6 h red line. The OPA1622 quiescent current is the largest audio term; powering the amplifier stage down when playback is paused, and measuring the SoC (the largest uncertainty), are the levers (power tree §4.9).
 - Board area: about +80–110 mm².

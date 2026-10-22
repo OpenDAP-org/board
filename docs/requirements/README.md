@@ -56,6 +56,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-050 | The battery path shall carry enough current for the full HAT and USB-C output budget on battery, with a more robust battery connection if the off-the-shelf lead or connector cannot. | must | Confirmed |
 | BRD-051 | The microSD/TF slot shall run in the fastest mode the SoC supports, for performance: UHS-I SDR104 on the RK3566 (SD 3.0), with 1.8 V signalling. | must | Confirmed |
 | BRD-052 | Both headphone jacks shall detect plug insertion and removal, so playback can pause when headphones are unplugged and never move to the speaker unasked. | must | Confirmed |
+| BRD-053 | The board shall support assembly variants: prototypes populate every option to validate the full functionality, and production variants may leave optional parts unpopulated (DNP) or fit lower-cost equivalents on the same footprint, without a board respin. Every optional part is marked as such in the BOM, with its variant. | must | Confirmed |
 
 ## Open questions
 
@@ -63,6 +64,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 
 ## Context
 
+- BRD-053 (maintainers, 2026-10-22): prototypes may exceed the production cost limits to validate everything; production simply omits parts. Value engineering therefore targets the production variant, and optional parts are designed in as population options from the start.
 - BRD-051: UHS-II (SD 4.0) needs a second row of contacts and SoC support the RK3566 does not have (RK3568 datasheet Rev 1.0, p. 8: SD 3.0, 4-bit). The board already provides the switchable 1.8/3.3 V VCCIO3 and 1.8 V-rated ESD for SDR104 (BOM lines 11, 73).
 - The main board is likely to benefit from HDI, and the flat cables (FPC) possibly from an equivalent level. Not decided.
 - BRD-020 to BRD-027: Adopted from the earlier experiments on 2026-10-21 as **Draft**: consistent with the decisions already taken and with the product philosophy, pending the maintainers' confirmation. Part availability still has to be checked against the sourcing rule (T1-010).

@@ -1,0 +1,15 @@
+# ADR 0007: Off-the-shelf battery
+
+- **Status:** Accepted
+- **Date:** 2026-10-22
+- **Decided by:** Claude, under the maintainers' delegation, following the product rules
+
+## Context
+
+ADR 0005 relied on a 105060 pack quoted from a maker. The maintainers rules out custom or made-to-order components (T1-038). The battery must still be standard and commercial, at least 2,000 mAh, as large as fits (T1-035), certified and user-replaceable. Research: [battery selection](../research/2026-10-battery-selection.md), [battery life](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-battery-life-analysis.md).
+
+## Decision
+
+- Use **off-the-shelf, stocked catalog packs only**. The primary is the **Adafruit 328** (2,500 mAh, 9.4 Wh, protection circuit and JST connector), estimated at about 88 % of the category's average audiophile runtime, within the "slightly below average" allowed by T1-037. The **Adafruit 2011** (2,000 mAh) is the second source.
+- The battery bay is sized for the Adafruit 328; an NTC sits on the board, because the stocked packs have none.
+- Larger stocked packs are re-checked before the design freezes; any pack adopted must have its safety reports (UN 38.3 at least, IEC 62133-2 for the Commercial edition) and real stock.

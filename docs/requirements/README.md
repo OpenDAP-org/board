@@ -40,7 +40,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-034 | The main USB-C port shall support as much as possible: OTG, flashing, debugging, working with the device, file transfer, charging, and acting as a host when needed. | must | Confirmed |
 | BRD-035 | The main / power button shall also be the boot-mode (MaskROM) button. | must | Confirmed |
 | BRD-036 | The Action button shall be accessible to developers. | must | Confirmed |
-| BRD-037 | Memory: most likely 4 GB of RAM and 32 GB of storage. | should | Draft |
+| BRD-037 | Memory: 4 GB of RAM; storage 16 GB eMMC in production with 32 GB as a population option, prototypes 32 GB (ADR 0013). | must | Draft |
 | BRD-038 | The T1 shall have an SD/TF card slot; the more storage, the better. | must | Confirmed |
 | BRD-039 | The early serial console shall follow the same path as the main USB-C port. | must | Confirmed |
 | BRD-040 | The board shall expose test pads on the I2S/DSD lines to the DAC, so the digital audio stream can be captured passively. | must | Confirmed |

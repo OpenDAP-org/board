@@ -14,6 +14,7 @@ fab/
 __pycache__/
 .venv/
 sim/**/results/
+sim/**/models/
 
 # Rust
 target/

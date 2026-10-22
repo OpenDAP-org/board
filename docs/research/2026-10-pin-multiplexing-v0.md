@@ -1,7 +1,7 @@
 # RK3566 pin multiplexing and pin allocation v0 for the T1 main board
 
 - **Date:** 2026-10-22
-- **Status:** Desk research. **Everything here is a proposal (v0), not a decision.** The maintainers must confirm each allocation, and the schematic must re-check every pin against the full RK3566 datasheet before layout. Updated by BOM v1.2 (2026-10-22): the HAT contact list moves to the hat-standard HAT interface v0 and §4.3 maps the RK3566 onto it; the status LED leaves PWM9 for an I2C driver. Updated by BOM v1.4 (2026-10-22): §4.3 maps the RK3566 onto the hat-standard HAT interface v1 (levels L1–L3, the T1 implements L3) and lists the SoC balls v1 frees; where §0, §2.1, §2.5, §3 and §4.2 describe the v0 HAT signals, §4.3 prevails.
+- **Status:** Desk research. **Everything here is a proposal (v0), not a decision.** The maintainers must confirm each allocation, and the schematic must re-check every pin against the full RK3566 datasheet before layout. Updated by BOM v1.2 (2026-10-22): the HAT contact list moves to the hat-standard HAT interface v0 and §4.3 maps the RK3566 onto it; the status LED leaves PWM9 for an I2C driver. Updated by BOM v1.4 (2026-10-22): §4.3 maps the RK3566 onto the hat-standard HAT interface v1 (levels L1–L3, the T1 implements L3) and lists the SoC balls v1 frees; where §0, §2.1, §2.5, §3 and §4.2 describe the v0 HAT signals, §4.3 prevails. Updated by BOM v1.5 (board [ADR 0014](../adr/0014-two-cell-battery.md), two-cell battery, 2026-10-22): I2C1 addresses (BQ25798 0x6B, BQ28Z610-R1 0x55) and the HAT rail sources (TPS62903 bucks).
 - **Scope:** check the T1 signal set (board, faceplate connector, HAT connector) against the RK3566 IOMUX and IO voltage domains. Produce a first pin map, list the conflicts and how to resolve them, and count the faceplate and HAT contacts that result.
 - **Inputs:** [`../requirements/README.md`](../requirements/README.md) (BRD-001 to BRD-048), [`../specs/bom-v1.md`](../specs/bom-v0.md), [`2026-10-high-speed-io-topology.md`](2026-10-high-speed-io-topology.md), `t1/docs/specs/faceplate-interface.md` (HID over I2C), `hat-standard/docs/requirements/README.md` and the HAT interconnect benchmark (pin budget §3), `opendap-os` ADR 0006 (native DSD through upstream work) and the system architecture research (finding 8: no DSD formats in the Rockchip I2S driver).
 - **Method:** mainline Linux read on 2026-10-22 from `torvalds/linux` `master` (the same tree the topology report calls 7.3). The pin-function map below was generated mechanically from `rk3568-pinctrl.dtsi`. The mux-route constraints come from `pinctrl-rockchip.c`. The IO voltage domains come from the RK3568 datasheet (Table 2-3, "Die Power Domain" column). The RK3566 ball set was checked against two real RK3566 schematics (Radxa CM3 and Radxa ZERO 3W). Anything not confirmed by a primary source is marked **UNVERIFIED**.
@@ -180,10 +180,10 @@ Domains and voltages follow §5. "Board" means it stays on the main PCB, "FP" me
 | PMIC sleep | PMIC_SLEEP | — | 0_A2 | PMUIO1 / 3.3 V | Board | |
 | Thermal shutdown to PMIC | TSADC_SHUT | M0 | 0_A1 | PMUIO1 / 3.3 V | Board: RK809 reset input | BRD-007/010 |
 | 32 kHz from PMIC | CLK32K_IN | — | 0_B0 | PMUIO2 / 1.8 V | Board | |
-| Charger, fuel gauge | I2C1 | — | 0_B3/0_B4 | PMUIO2 / 1.8 V | Board | BQ25895 0x6A, MAX17055 0x36, FUSB302B 0x22 |
+| Charger, fuel gauge | I2C1 | — | 0_B3/0_B4 | PMUIO2 / 1.8 V | Board | BQ25798 0x6B, BQ28Z610-R1 0x55, FUSB302B 0x22 (BOM v1.5, board ADR 0014; was BQ25895 0x6A, MAX17055 0x36) |
 | Charger INT | GPIO | — | 0_C3 | PMUIO2 | Board | Wake source |
 | Fuel-gauge ALRT | Expander | — | TCA6416A | — | Board | Not latency-critical |
-| IMU | I2C2 | M0 | 0_B5/0_B6 | PMUIO2 / 1.8 V | Board | LSM6DSV16X at 0x6A/0x6B. No clash, because the BQ25895 0x6A is on I2C1 |
+| IMU | I2C2 | M0 | 0_B5/0_B6 | PMUIO2 / 1.8 V | Board | LSM6DSV16X at 0x6A/0x6B. No clash, because the charger (BQ25798 0x6B from BOM v1.5) is on I2C1 |
 | IMU INT1 (wake on motion, BRD-030) | GPIO | — | 0_C5 | PMUIO2 | Board | INT2 goes to the expander or is left unconnected |
 | GPIO expander | I2C2 + GPIO | M0 | I2C 0_B5/0_B6, INT 1_D4 | PMUIO2 / 1.8 V host side; INT on VCCIO2 / 1.8 V; 3.3 V port side | Board | TCA6416A class at 0x21. 1_D4 is the last free FSPI ball. If the expander must wake the SoC, its INT can instead be wired-OR'd with the RP2350 IRQ on 0_C7 (**owner choice**) |
 | Action button | GPIO | — | 0_C2 | PMUIO2 | Board | Wake source; `gpio-keys` (BRD-036) |
@@ -311,8 +311,8 @@ There are six controllers and seven logical needs. Resolution: **HAT general I2C
 | Bus | Mux / domain | Devices (7-bit address) | Clash check |
 |---|---|---|---|
 | I2C0 | PMUIO2 1.8 V | RK809 0x20 | — |
-| I2C1 | PMUIO2 1.8 V | FUSB302B 0x22, MAX17055 0x36, BQ25895 0x6A | None |
-| I2C2 M0 | PMUIO2 1.8 V | TCA6416A 0x21, CS43198 0x30 + 0x31, LSM6DSV16X 0x6A (or 0x6B), RP2350 (to be assigned) | None. The IMU's 0x6A would clash with the BQ25895 if both were on one bus, so they are not |
+| I2C1 | PMUIO2 1.8 V | FUSB302B 0x22, BQ28Z610-R1 0x55, BQ25798 0x6B (BOM v1.5) | None |
+| I2C2 M0 | PMUIO2 1.8 V | TCA6416A 0x21, CS43198 0x30 + 0x31, LSM6DSV16X 0x6A (or 0x6B), RP2350 (to be assigned) | None. The IMU's 0x6A/0x6B would clash with the charger (BQ25798 0x6B from BOM v1.5) if both were on one bus, so they are not |
 | I2C3 M1 | VCCIO5 3.3 V | GT911 0x5D (or 0x14), VEML6030 0x10 (or 0x48), HID controller (to be assigned, avoid 0x10/0x14/0x48/0x5D), optional backlight driver | The faceplate spec must reserve these addresses |
 | I2C4 M1 | VCCIO4 1.8 V → translator | HAT ID EEPROM 0x50 (HAT+ style) | Dedicated bus |
 | I2C5 M1 | VCCIO7 3.3 V | HAT devices + camera sensor | Responsibility of the HAT designer; the HAT standard should list the addresses already taken by OpenDAP reference HATs |
@@ -438,8 +438,8 @@ The hat-standard [HAT interface v1](https://github.com/opendap-project/hat-stand
 | L1 | `ID_SCL`, `ID_SDA` | I2C4 M1 | SCL 2_B2, SDA 2_B1 | VCCIO4, 1.8 V | PCA9306 to 3.3 V, enabled after `HAT_DET#` (line 94) |
 | L1 | `I2C_SCL`, `I2C_SDA` | I2C5 M1 | SCL 4_C7, SDA 4_D0 | VCCIO7, 3.3 V | Direct |
 | L1 | `HAT_DET#`, `HAT_INT#` | GPIO0 (wake-capable) | 0_A5, 0_A6 | PMUIO1, 3.3 V | Direct; `HAT_DET#` on the power connector |
-| L1 | `HAT_5V` | — | — | — | TPS61089 → eFuse #A out; TPS2121 IN2 in (power tree §4.6) |
-| L1 | `HAT_3V3` | — | — | — | TLV62569 → eFuse #B |
+| L1 | `HAT_5V` | — | — | — | TPS62903 5.1 V buck from VSYS → eFuse #A out (BOM v1.5; was TPS61089); TPS2121 IN2 in (power tree §4.6) |
+| L1 | `HAT_3V3` | — | — | — | TPS62903 3.3 V buck from VSYS → eFuse #B (BOM v1.5; was TLV62569) |
 | L2 | `I2S_BCLK`, `I2S_FS` (out) | I2S1 TX clocks, driven by the DAC (CS43198 L is the clock master, the SoC is consumer, §2.1) | SCLKTX 3_C7, LRCKTX 3_D0 nets | VCCIO6, 1.8 V | Tapped from the DAC clock nets and buffered by the SN74AXC4T774 to 3.3 V (line 95), so the HAT stub does not load the DAC nets |
 | L2 | `I2S_DOUT` (out) | I2S1 SDO3 | 4_B5 | VCCIO6, 1.8 V | SN74AXC4T774 (line 95). Same TX block and clocks as the DAC data (SDO0) |
 | L2 | `I2S_DIN0`–`I2S_DIN3` (in) | I2S1 SDI0–SDI3, RX clocked from the TX clocks | 3_D2–3_D5 | VCCIO6, 1.8 V | SN74AXC8T245 from 3.3 V (line 95, 4 of 8 bits) |
@@ -498,7 +498,7 @@ Re-used: I2S1 SDO3 (4_B5), freed in v1.2, now carries `I2S_DOUT`.
 | Faceplate panels with 1.8 V IOVCC | 3.3 V → 1.8 V | On the faceplate | The faceplate's own concern; `1V8_FP` is provided |
 | Debug UART | 1.8 V pads | None | Use a 1.8 V-capable USB-UART adapter. Document this in the bring-up guide |
 | RP2350 | 1.8 V IOVDD | None | RP2350 datasheet: IOVDD 1.8–3.3 V, with `VOLTAGE_SELECT = 1` for 1.8 V input thresholds ([RP2350 datasheet](https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf)). The RP2350 then taps the 1.8 V I2S/DSD nets directly (BRD-041) |
-| Power ICs on I2C1 at 1.8 V | — | None expected | BQ25895, MAX17055 and FUSB302B logic thresholds at 1.8 V pull-up are **UNVERIFIED**. Check each datasheet's VIH. Fallback: PMUIO2 at 3.3 V plus translators to the RP2350 and DAC control |
+| Power ICs on I2C1 at 1.8 V | — | None expected | FUSB302B logic thresholds at 1.8 V pull-up are **UNVERIFIED**; the BOM v1.5 charger and gauge meet a 1.8 V pull-up (BQ25798 VIH 1.3 V, BQ28Z610-R1 VIH ≤ 1.40 V, from their datasheets). Check each datasheet's VIH. Fallback: PMUIO2 at 3.3 V plus translators to the RP2350 and DAC control |
 
 ---
 
@@ -573,4 +573,4 @@ Re-used: I2S1 SDO3 (4_B5), freed in v1.2, now carries `I2S_DOUT`.
 ### Other parts
 
 - Raspberry Pi *RP2350 Datasheet* (IOVDD 1.8–3.3 V, `VOLTAGE_SELECT`): <https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf>
-- CS43198, IW612 (Murata Type 2EL), MAX98357A, BQ25895, MAX17055, FUSB302B, LSM6DSV16X, VEML6030, GT911, TCA6416A, PCA9306: datasheets **not re-read** this session. The addresses and levels quoted above are from the parts' usual configurations and are **UNVERIFIED** where marked.
+- CS43198, IW612 (Murata Type 2EL), MAX98357A, BQ25895, MAX17055 (both replaced in BOM v1.5), FUSB302B, LSM6DSV16X, VEML6030, GT911, TCA6416A, PCA9306: datasheets **not re-read** this session. The addresses and levels quoted above are from the parts' usual configurations and are **UNVERIFIED** where marked.

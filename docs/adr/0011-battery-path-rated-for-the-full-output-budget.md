@@ -1,6 +1,6 @@
 # ADR 0011: Battery path rated for the full output budget
 
-- **Status:** Accepted (2026-10-22). Supersedes [ADR 0007](0007-off-the-shelf-battery.md); the Adafruit 328 stays as the interim prototype pack until a pack meeting these criteria is selected.
+- **Status:** Superseded by [ADR 0014](0014-two-cell-battery.md) (2026-10-22). Previously: Accepted (2026-10-22), superseding [ADR 0007](0007-off-the-shelf-battery.md).
 - **Date:** 2026-10-22
 - **Decided by:** Claude, under the maintainers' delegation, following BRD-049 and BRD-050, applying the maintainers' decision of 2026-10-22 (more output power even if it needs a more robust battery connection)
 

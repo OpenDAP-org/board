@@ -1,6 +1,6 @@
 # ADR 0012: Headphone output stage for the mid-range promise
 
-- **Status:** Accepted
+- **Status:** Accepted; its rail items are superseded by [ADR 0015](0015-amplifier-rails-from-vsys.md).
 - **Date:** 2026-10-22
 - **Decided by:** Claude, under the maintainers' delegation, following the product rules (the T1's promise is a mid-range DAP delivered 100 %; the audiophile experience is never sacrificed; power safety first, BRD-049)
 

@@ -58,7 +58,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-052 | Both headphone jacks shall detect plug insertion and removal, so playback can pause when headphones are unplugged and never move to the speaker unasked. | must | Confirmed |
 | BRD-053 | The board shall support assembly variants: prototypes populate every option to validate the full functionality, and production variants may leave optional parts unpopulated (DNP) or fit lower-cost equivalents on the same footprint, without a board respin. Every optional part is marked as such in the BOM, with its variant. | must | Confirmed |
 | BRD-054 | The main board may use every technique that gets the most from the device: HDI (laser microvias, via-in-pad), both sides populated, as many inner layers as the routing and signal integrity need, and shielding cans. | must | Confirmed |
-| BRD-055 | Every board, flex and assembly shall be producible as a prototype through PCBWay, using its services as far as possible (fabrication, HDI, flex, stencils, SMT and BGA assembly, parts sourcing), within the processes PCBWay publishes. | must | Confirmed |
+| BRD-055 | Every board, flat cable (FPC and rigid-flex) and assembly shall be producible as a prototype through PCBWay, using its services as far as possible (fabrication, HDI, flex, stencils, SMT and BGA assembly, parts sourcing), within the processes PCBWay publishes. | must | Confirmed |
 
 ## Open questions
 

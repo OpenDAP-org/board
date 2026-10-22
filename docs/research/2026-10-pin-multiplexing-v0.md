@@ -360,6 +360,8 @@ The wake-critical lines are on GPIO0: PMIC, charger, USB-C controller, IMU, Acti
 
 ### 4.1 Faceplate connector (Hirose FH35C-45S, 0.3 mm)
 
+> **Superseded (2026-10-22):** the faceplate pinout is now the t1 [faceplate interface v0](https://github.com/opendap-project/t1/blob/main/docs/specs/faceplate-interface.md) ([RFC 0001](https://github.com/opendap-project/rfcs/blob/main/text/0001-faceplate-interface-v0-pinout.md)): FH35C-51S, 46 used and 5 reserved, RGB status LED on three lines. The table below is kept as the v0 history; the board maps its SoC pins onto the t1 groups.
+
 What fits without taking anything from audio or the HAT:
 
 | Group | Signals | Contacts |

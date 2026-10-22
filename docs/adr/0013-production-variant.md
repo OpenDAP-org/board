@@ -12,8 +12,8 @@ BRD-053 lets prototypes populate every option while production leaves optional p
 
 - **Never changed between variants:** the audio chain, the power-safety margins (BRD-049), mainline support and availability.
 - **Memory:** 4 GB LPDDR4X in every variant; 2 GB only as a qualified supply fallback, never the default, because it risks responsiveness and long sessions (T1-046, T1-047, T1-056).
-- **Storage (BRD-037):** 16 GB eMMC in production, 32 GB as a population option on the same footprint; the prototype fits 32 GB. Music lives on microSD; the A/B system image and user data fit in 16 GB.
-- **Population options left off in the production variant** (fitted on prototypes): three of the four INA236 current monitors (the VSYS monitor stays, because it enforces the battery and headphone current limits), the IMU, the ambient-noise microphone, and the RP2354A coprocessor once its wake lines move to the SoC or the GPIO expander. OpenDAP OS detects each part instead of assuming it (T1-045).
+- **Storage (BRD-037):** 32 GB eMMC on prototypes. Production fits 32 GB too when the volume quotes put its difference to 16 GB at a small share of the BOM; otherwise 16 GB, with 32 GB as a population option on the same footprint. Music lives on microSD; the A/B system image and user data fit in 16 GB.
+- **Small-cost *should* parts stay in production** (maintainers' rule, 2026-10-22: include a *should* hardware feature unless it moves the price materially): all four INA236 current monitors, the IMU, the ambient-noise microphone and the RP2354A coprocessor are fitted in every variant. They remain population options (BRD-053) and OpenDAP OS still detects each part instead of assuming it (T1-045), so a future variant can leave one off without a respin.
 - **Capacitor voltage ratings** on the non-audio buck outputs are set to the rail with BRD-049 margin, not to a blanket higher rating.
 - **Not adopted:** the second-source display with a DSI-to-RGB bridge (the bridge has no stock and the panel drops to 16-bit colour), cheaper Wi-Fi modules without BT 5.4 or a confirmed mainline driver, and generic pogo pins that do not fit the HAT grid.
 - **Both editions** (Commercial and DIY) use the same production population (T1-004).
@@ -22,5 +22,5 @@ BRD-053 lets prototypes populate every option while production leaves optional p
 ## Consequences
 
 - The BOM marks every optional part with its variant (BRD-053), and the schematic gives each one safe defaults when unpopulated (pull-ups, straps, enables).
-- The pin plan moves the wake lines off the RP2354A before it can be left unpopulated.
+- The RP2354A stays fitted, so its wake lines can stay; moving them is needed only if a future variant leaves it off.
 - Open, for the maintainers: whether the HAT device-side piece is fitted to every T1 (HCS-012) or is a fitted option.

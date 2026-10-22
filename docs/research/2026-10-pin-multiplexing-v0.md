@@ -139,8 +139,8 @@ Domains and voltages follow §5. "Board" means it stays on the main PCB, "FP" me
 | Speaker SD_MODE | GPIO | — | 1_D1 | VCCIO2 / 1.8 V | Board: MAX98357A SD_MODE | 1.8 V logic high is above the SD_MODE threshold (**UNVERIFIED** exact value) |
 | PDM main mic (faceplate) | PDM | M1 | CLK0 3_D6, SDI0 3_D7 | VCCIO6 / 1.8 V | FP | Second channel of SDI0 is unused, or both mics share one line (L/R select) |
 | PDM ambient mic (body, top right) | PDM | M1 | CLK1 4_A0, SDI1 4_A1 | VCCIO6 / 1.8 V | Board | Separate clock pin keeps the faceplate clock stub off the body mic |
-| MCLK 44.1k family enable | GPIO | — | 4_B4 | VCCIO6 / 1.8 V | Board: 22.5792 MHz oscillator ST (tri-state) | One oscillator at a time; the DAC is clock master |
-| MCLK 48k family enable | GPIO | — | 4_C0 | VCCIO6 / 1.8 V | Board: 24.576 MHz oscillator ST (tri-state) | |
+| MCLK 44.1k family enable | GPIO | — | 4_B4 | VCCIO6 / 1.8 V | Board: freed by board ADR 0010 (the 3.3 V oscillators' ST pins move to 3.3 V logic); spare for pinout v1 | One oscillator at a time; the DAC is clock master |
+| MCLK 48k family enable | GPIO | — | 4_C0 | VCCIO6 / 1.8 V | Board: freed by board ADR 0010; spare for pinout v1 | |
 | DAC reset | GPIO | — | 4_A2 | VCCIO6 / 1.8 V | Board: both CS43198 RESET | Free because UART7 M2 is unused |
 | DAC interrupt | GPIO | — | 4_A3 | VCCIO6 / 1.8 V | Board: both CS43198 INT (open-drain, wired-OR) | |
 | DAC control | I2C2 | M0 | 0_B5/0_B6 | PMUIO2 / 1.8 V | Board | CS43198 at 0x30 and 0x31 (ADR pin; range by analogy with CS43130, **UNVERIFIED**) |

@@ -11,7 +11,7 @@
 
 1. **The CS43198 does not accept a 45.1584 or 49.152 MHz master clock.** Its datasheet (DS1156F2, §4.6 and Table 3-13) allows an external MCLK only at the nominal internal frequencies **22.5792 MHz and 24.576 MHz** (or PLL references 9.6–26 MHz). BRD-023 (Draft) and BOM v0 lines 9–10 name 45.1584/49.152 MHz. Proposal: **22.5792 MHz and 24.576 MHz NDK NZ2520SDA**, which keeps the intent of BRD-023 (two families, DAC as clock master, no resampling). A divide-by-two flip-flop would also work but adds a part and jitter in the clock path, against BRD-042.
 2. **The CS43198 also needs a battery-class supply, VP = 3.0–5.25 V** (charge-pump supply for its output stage), plus four 1.8 V rails (VA, VCP, VD, VL). VP must come up first and go down last (DS1156F2 §5.2).
-3. **The MCLK oscillator must run at 1.8 V**, because XTI/MCLK is in the VL (1.8 V) domain. The stocked NDK spec numbers are the 3.3 V ones (NSC5083D); the 1.8 V spec is NSC5083A, which is not listed at Digi-Key (quote needed, see BOM).
+3. **The MCLK input is in the 1.8 V VL domain.** No stocked audio-grade 1.8 V oscillator exists at 22.5792 MHz (the 1.8 V NSC5083A has no authorized stock), so the stocked 3.3 V NSC5083D runs on its own MCLK_3V3 LDO and reaches XTI through a passive attenuator (ADR 0010).
 4. **The LM27762 cannot make ±5 V from a 1S battery.** Its positive output is an LDO from VIN, so at VSYS = 3.5 V the positive rail is at most about 3.45 V (calculation in §4.2). The proposed generator is a **TPS65131** dual boost/inverter followed by **TPS7A4901 / TPS7A3001** LDOs.
 5. **The TPS7A94 is unsuitable for a battery device here:** 15 mA typical ground current at 5.1 V out (SBVS336C, Electrical Characteristics), that is about 80 mW wasted.
 6. **The RK809-5 must be used with the reference rail mapping.** Its regulators come up at OTP default voltages before Linux runs. The mapping below copies the mainline Orange Pi 3B device tree (RK3566 + RK809), including an external 3.3 V buck that feeds the RK809 switch input, so no rail starts at a wrong voltage.
@@ -20,7 +20,7 @@
 9. **The BQ25895 cannot supply OTG while it charges.** The draft fed HAT_5V and the USB-C source from the OTG boost, so a class A/B HAT lost 5 V whenever USB-C power was plugged in. HAT_5V and USB-C VBUS out now come from a **TPS61088 boost from VSYS** (5.1 V) behind eFuses #A and #C.
 10. **The T1's own 5 V must not re-enter the charger.** When the T1 sources USB-C VBUS, that VBUS is also TPS2121 IN1; when it sources HAT_5V, that net is IN2. Both OV inputs are forced high by hardware OR of the source enables (`USB_SRC_ON`, `HAT_SRC_ON`), not by software order.
 11. **IO voltages follow the pin plan:** I2C0/1/2 on PMUIO2 at 1.8 V (the CS43198 control port shares the bank and is 1.8 V-only); the faceplate bank VCCIO5 at 3.3 V.
-12. **No stocked 1.8 V audio-grade MCLK oscillator exists today** (BOM lines 20–21, blocker). The MCLK_1V8 rail and its LDO stay; the oscillator current below is the NZ2520SDA figure.
+12. **MCLK at 3.3 V** (ADR 0010): MCLK_3V3 from VSYS through a TPS7A2033; the oscillator current below is the NZ2520SDA figure.
 13. **Debian already enables the INA236 current monitor** through the IIO `ina2xx-adc` driver (`CONFIG_INA2XX_ADC=m`, compatible `ti,ina236`), while the hwmon INA2xx/INA238 drivers are off. The instrumentation uses INA236.
 
 ## 2. Power tree (text diagram)
@@ -70,10 +70,10 @@ VBUS_CHG --> BQ25895 (buck charger 1.5 MHz; OTG boost NOT used)                 
           |         +--> TPS22919 FP_3V3 (CTP VDD, ALS, faceplate logic, status/privacy LEDs) ~80 mA
           +--> RK860-0 vdd_cpu 0.80-1.15 V (I2C DVS)   max 3 A (est.), play ~0.15 A (est.)
           +--> TPS22919 DAC_VP (CS43198 VP x2)           0.1 mA play, VP first/last
-          +--> TPS62840 AUDIO_2V2 2.2 V 750 mA max        play 31 mA
+          +--> TPS62840 AUDIO_2V2 2.2 V 750 mA max        play 16 mA
           |         +--> TPS7A2018 DAC1_VA 1.8 V    7.8 mA
           |         +--> TPS7A2018 DAC2_VA 1.8 V    7.8 mA
-          |         +--> TPS7A2018 MCLK_1V8 1.8 V  15 mA (one NZ2520SDA active, other in standby)
+          +--> TPS7A2033 MCLK_3V3 3.3 V  15 mA (one NSC5083D active, other in standby; ADR 0010)
           +--> TPS65131 AUDIO_P6V0 +6.0 V / AUDIO_N6V0 -6.0 V
           |         +--> TPS7A4901 +5.0 V  150 mA max, play 10-40 mA
           |         +--> TPS7A3001 -5.0 V  200 mA max, play 10-40 mA
@@ -108,9 +108,9 @@ VBUS_CHG --> BQ25895 (buck charger 1.5 MHz; OTG boost NOT used)                 
 | FP_1V8 | TPS22919 (vcc_1v8) | 1.80 V | 1.5 A switch | 0 (screen off) | `FP_IO_EN` | panel IOVCC, faceplate translators |
 | DAC_VP | TPS22919 (VSYS) | 3.5–4.4 V | 1.5 A switch | 0.06 mA | `DAC_VP_EN` | 2× CS43198 VP |
 | DAC_DIG_1V8 | TPS22919 (vcc_1v8) | 1.80 V | 1.5 A switch | 13.2 mA | `DAC_DIG_EN` | 2× CS43198 VD, VL, VCP |
-| AUDIO_2V2 | TPS62840 | 2.20 V | 0.75 A | 31 mA | `AUDIO_LN_EN` | three TPS7A2018 |
+| AUDIO_2V2 | TPS62840 | 2.20 V | 0.75 A | 16 mA | `AUDIO_LN_EN` | two TPS7A2018 |
 | DACx_VA | TPS7A2018 ×2 | 1.80 V | 0.3 A | 7.8 mA each | `AUDIO_LN_EN` | CS43198 VA |
-| MCLK_1V8 | TPS7A2018 | 1.80 V | 0.3 A | 15 mA | `AUDIO_LN_EN` | 2× NZ2520SDA (one in standby) |
+| MCLK_3V3 | TPS7A2033 (from VSYS) | 3.30 V | 0.3 A | 15 mA | `AUDIO_LN_EN` | 2× NSC5083D (one in standby), passive attenuator to XTI (ADR 0010) |
 | AUDIO_P6V0 / N6V0 | TPS65131 | +6.0 / −6.0 V | 0.2–0.5 A each (Vin-dependent) | 12–45 mA each | `HPA_RAIL_EN` (ENP, ENN) | LDOs below |
 | HPA_P5V0 | TPS7A4901 | +5.0 V | 0.15 A | 10–40 mA | `HPA_RAIL_EN` | OPA1622 V+ |
 | HPA_N5V0 | TPS7A3001 | −5.0 V | 0.2 A | 10–40 mA | `HPA_RAIL_EN` | OPA1622 V− |
@@ -187,7 +187,7 @@ Ground currents: TPS7A4901 about 800 µA at 100 mA; TPS7A3001 55 µA at no load,
 
 **DAC power (Table 3-17, PCM playback, VA = VCP = VD = VL = 1.8 V, VP = 3.6 V):** VCP 3.808 mA, VA 7.835 mA, VD 2.786 mA, VP 0.028 mA, **26.1 mW per DAC**. Standby (HP detect on) 0.58 mW; off (VP only) 11 µW.
 
-**Efficiency of the 1.8 V analog path** (two DACs' VA = 15.7 mA plus MCLK 15 mA = 30.7 mA at 1.8 V = 55 mW):
+**Efficiency of the 1.8 V analog path** (two DACs' VA = 15.7 mA at 1.8 V = 28 mW; the MCLK now runs at 3.3 V from VSYS, see the clocks row):
 
 | Feed | Chain efficiency | Battery power |
 |---|---|---|
@@ -271,8 +271,8 @@ Default state is the state with no software running (pull resistors). "SoC GPIO"
 |---|---|---|---|---|---|---|
 | DAC digital (both) | DAC_DIG_1V8 | TPS22919 | SoC GPIO `DAC_DIG_EN` | off (pull-down) | QOD in TPS22919 | Park I2S lines low before removal (back-powering) |
 | DAC VP (both) | DAC_VP | TPS22919 | SoC GPIO `DAC_VP_EN` | off | QOD | VP first on, last off |
-| DAC analog + clocks | AUDIO_2V2, DACx_VA, MCLK_1V8 | TPS62840 EN, TPS7A2018 EN | SoC GPIO `AUDIO_LN_EN` | off | TPS7A20 smart pulldown, TPS62840 active discharge | — |
-| MCLK family select | NZ2520SDA ×2 | ST pin (tri-state) | SoC GPIO `MCLK441_EN`, `MCLK48_EN` | both standby | — | Never both enabled |
+| DAC analog + clocks | AUDIO_2V2, DACx_VA, MCLK_3V3 | TPS62840 EN, TPS7A2018 EN | SoC GPIO `AUDIO_LN_EN` | off | TPS7A20 smart pulldown, TPS62840 active discharge | — |
+| MCLK family select | NZ2520SDA ×2 | ST pin (tri-state) | `MCLK441_EN`, `MCLK48_EN` at 3.3 V logic (TCA6416A or single-bit translator, pinout v1) | both standby | — | Never both enabled |
 | HP amp rails | AUDIO_P6V0/N6V0, HPA_P5V0/N5V0 | TPS65131 ENP/ENN, LDO EN | SoC GPIO `HPA_RAIL_EN` | off | — | Symmetric ramp (OPA1622 §7.4.2) |
 | HP amp outputs | per package | OPA1622 EN (×4) | SoC GPIO `HPA_SE_EN`, `HPA_BAL_EN` | low (shutdown, 5 µA/ch) | — | EN low during rail ramps |
 | Speaker amp | VSYS | MAX98357A SD_MODE | SoC GPIO `SPK_SD` | shutdown | — | Device shutdown, no extra switch |
@@ -356,7 +356,7 @@ Datasheets with revision, date and sha256 are listed once, in the [BOM v1 Datash
 
 1. **BRD-023 frequencies:** closed (22.5792/24.576 MHz, BRD-023 corrected).
 2. **Output targets:** is 4 Vrms balanced / 2 Vrms single-ended the right target, and must the 3.5 mm output drive 16 Ω at full level (parallel halves) or is the low-power single-half build preferred?
-3. **MCLK at 1.8 V (blocker):** no stocked audio-grade part; ADR 0009 forbids the translator option. See the cross-validation §4.
+3. **MCLK:** stocked 3.3 V NSC5083D with a passive attenuator into the 1.8 V XTI input (ADR 0010); SPICE check pending.
 4. **RK809-5 OTP sequence and VCC9:** confirm with Rockchip (or the RK3566 hardware design guide) the OTP defaults and that VCC9 may be fed from the external vcc3v3_sys, as on the Orange Pi 3B.
 5. **Is the NPU supply separate on the RK3566 (BUCK4) or shared with the GPU** as on RK817 handhelds? This decides whether BUCK4 is free.
 6. **RP2354A power default:** on at boot (always-available orchestrator) or off until OpenDAP OS enables it (lowest standby)?
@@ -372,7 +372,7 @@ Datasheets with revision, date and sha256 are listed once, in the [BOM v1 Datash
 4. **OPA1622 parallel halves** for 16 Ω drive are not validated. *Mitigation:* simulate; fall back to one half per channel.
 5. **VBUS surge coordination:** TVS2200 clamp at 40 A (28.4 V) is above the TPS2121 (24 V) and BQ25895 (22 V) absolute maxima. *Mitigation:* decide whether IEC 61000-4-5 applies to the USB-C port; if it does, add series OVP or choose a lower-clamp TVS with a 14 V standoff and accept the 20 V fault case.
 6. **Self-feeding loops** through TPS2121 IN1/IN2 when the T1 sources 5 V. *Mitigation:* hardware OR of `USB_SRC_ON`/`HAT_SRC_ON` into OV1/OV2 (finding 11); verify the OV pin drive levels against SLVSEA3F.
-7. **MCLK at 1.8 V not stocked** (blocker). The translator fallback is ruled out by ADR 0009. *Mitigation:* cross-validation §4 options.
+7. **MCLK attenuator** (ADR 0010): the edge at XTI must stay within the VL input limits. *Mitigation:* SPICE with the CS43198 input capacitance before layout freeze; J-test captures on the first boards.
 8. **Battery current limit** (2 A JST PH contact). *Mitigation:* software power budget on the VSYS INA236; screen-on + CPU peak + HAT load must be measured.
 9. **0.6 V LPDDR4X rail sizing** is an estimate. *Mitigation:* Rockchip guide, Radxa/Firefly LPDDR4X schematics.
 10. **Thermal:** RK3566 + RK809 + RK860 + charger in a 25 mm sealed body; not modelled. *Mitigation:* thermal simulation once the board outline exists.

@@ -18,7 +18,7 @@
 
 Full evidence and severity in the [cross-validation report](../research/2026-10-bom-v1-cross-validation.md) §2.
 
-1. **MCLK oscillators (lines 20, 21): decided in [ADR 0010](../adr/0010-audio-master-clock-source.md)** (NDK NSC5083A through NDK's franchised channel; stocked XOs for bring-up only). Finding: the 1.8 V NDK NSC5083A has no stock at any authorized distributor (FindChips: no results; Digi-Key lists only the 3.3 V NSC5083D; LCSC NZ2520SDA codes all 0). No stocked, active, audio-grade 1.8 V quartz oscillator at 22.5792 MHz was found.
+1. **MCLK oscillators (lines 20, 21): decided in [ADR 0010](../adr/0010-audio-master-clock-source.md)** (stocked 3.3 V NDK NSC5083D on a dedicated LDO, passive attenuator into the 1.8 V XTI input). The 1.8 V NSC5083A has no authorized stock, and no stocked audio-grade 1.8 V oscillator exists at 22.5792 MHz.
 2. **Battery (line 46) follows ADR 0007:** Adafruit 328 primary, Adafruit 2011 second source. The quoted 105060 pack is removed (T1-038). The 2-pin JST PH connector (line 47) is the single footprint; the board NTC stays.
 3. **Battery current budget:** the pack (2C max) and its JST PH lead (2 A per contact) cap the battery path at 2.0 A continuous. VSYS is no longer rated 3.5 A on battery; HAT and USB-C source power on battery are software-budgeted (power tree §4.6).
 4. **New HAT/USB 5 V boost (new line 91, TPS61088):** the BQ25895 cannot run OTG while it is charging, so the draft could not power a class A/B HAT while USB-C is plugged in. HAT 5 V and USB-C source power now come from a VSYS boost behind the eFuses.
@@ -71,8 +71,8 @@ Full evidence and severity in the [cross-validation report](../research/2026-10-
 |---|---|---|---|---|---|---|---|---|---|
 | 18 | Audio | DAC ×2 (dual mono) | Cirrus Logic CS43198-CNZR | 2 | Decided family (ADR 0001); part Proposed | DKMS (`SND_SOC_CS43130` off in Debian) | LCSC C1554755: 346 @ $5.38 (2026-10-22); Digi-Key 471 @ $18.19 (2026-10-21) | None. DSD128 cap in the driver (opendap-os ADR 0006) | v0 #7. Rails: VA, VCP, VD, VL 1.8 V; VP 3.0–5.25 V; 26.1 mW each in playback |
 | 19 | Audio | Headphone amp ×4 | TI OPA1622IDRCR | 4 | Proposed | none | LCSC C2876559: 666 @ $3.03 (2026-10-22); Digi-Key 4,558 (2026-10-21) | None | v0 #8. 2 packages for 4.4 mm (L±, R±), 2 for 3.5 mm (halves paralleled for 16 Ω, **UNVERIFIED**). EN per output for gating |
-| 20 | Audio | MCLK 44.1 kHz family, 22.5792 MHz, 1.8 V, low-jitter | NDK NSC5083A-22.5792M (NZ2520SDA land, ADR 0010; not stocked, ordered through NDK). Bring-up population only: SCTF SX2M22.5792M20F30TNN (1.62–3.63 V, no phase-noise spec) | 1 | Decided (ADR 0010) | none | NSC5083A: no authorized stock (FindChips no results; Digi-Key lists only NSC5083D; LCSC NZ2520SDA-22.5792MHz C2847209: 0) (2026-10-22). SCTF SX2M: LCSC C5452663: 1,374 | Rejected: TI CDC6C (BAW, −86 dBc/Hz at 1 kHz for 100 MHz); Epson SG-210STF 22.5792 (Obsolete at Digi-Key); Kyocera KC2520Z22.5792 (0 stock) | Replaces v0 #9. Tri-state standby (ST) required so both XOs share one MCLK net. Maintainers' decision required (cross-validation §4) |
-| 21 | Audio | MCLK 48 kHz family, 24.576 MHz, 1.8 V, low-jitter | NDK NSC5083A-24.576M (NZ2520SDA land, ADR 0010; not stocked, ordered through NDK). Bring-up population only: Epson SG-210STF 24.5760ML0 (phase noise **UNVERIFIED**) | 1 | Decided (ADR 0010) | none | NSC5083A: no authorized stock; LCSC NZ2520SDA-24.576MHz C2846938: 0. Epson SG-210STF 24.5760ML0: Digi-Key 7,053 @ $0.79 (2026-10-22) | TI CDC6CE024576ADLXR (Digi-Key 2,998): rejected, BAW close-in phase noise | Replaces v0 #10. Same 2520 land as line 20 |
+| 20 | Audio | MCLK 44.1 kHz family, 22.5792 MHz, low-jitter | NDK NSC5083D-22.5792M (NZ2520SDA, 3.3 V, −164 dBc/Hz at 1 kHz), ADR 0010 | 1 | Decided (ADR 0010) | none | Digi-Key 2,239 (2026-10-22, cross-validation §4.1) | 3.3 V audio-grade XO in a compatible package, to qualify (Crystek CCHD-957 class, stock **UNVERIFIED**) | Replaces v0 #9. Tri-state standby (ST) so both XOs share one MCLK net. The 1.8 V NSC5083A is not stocked; 1.8 V alternatives rejected (cross-validation §4.1) |
+| 21 | Audio | MCLK 48 kHz family, 24.576 MHz, low-jitter | NDK NSC5083D-24.576M (NZ2520SDA, 3.3 V), ADR 0010 | 1 | Decided (ADR 0010) | none | Digi-Key 3,083 (2026-10-22, cross-validation §4.1) | As line 20 | Replaces v0 #10. Same 2520 land as line 20 |
 | 22 | Audio | HP-amp pre-rails ±6 V | TI TPS65131RGER | 1 | Proposed | none | LCSC C87663: 2,826 @ $2.88; Mouser 2,182; Arrow 2,175 (2026-10-22) | No pin-compatible part; fallback topology: 5.5 V boost + TI LM27762 (LCSC 41,293) | 1 µA shutdown, PSP/PSN power-save; power tree §4.2 |
 | 23 | Audio | TPS65131 inductors | Murata DFE252012F-4R7M (4.7 µH) | 2 | Proposed | none | LCSC C668313: 5,859 (2026-10-22) | TDK VLS/TFM 4.7 µH 2520 | Datasheet example uses 4.7 µH |
 | 24 | Audio | TPS65131 rectifiers | Nexperia PMEG2010AEH (20 V, 1 A) | 2 | Proposed | none | LCSC C110921: 12,253 (2026-10-22) | onsemi MBRM120LT1G (datasheet example, LCSC 15,827) | — |
@@ -80,7 +80,7 @@ Full evidence and severity in the [cross-validation report](../research/2026-10-
 | 26 | Audio | −5.0 V HP-amp LDO | TI TPS7A3001DGNR | 1 | Proposed | none | LCSC C33835: 8,391 @ $2.02 (2026-10-22); DRBR C2865863: 3,261 | ADI LT3094 (LCSC 1,422); ADI ADP7182 (LCSC 4,911) | 15.1 µVrms, 200 mA, 55 µA Iq |
 | 27 | Audio | Audio 2.2 V pre-buck | TI TPS62840DLCR | 1 | Proposed | none | LCSC C2071859: 6,365; YBGR C2071139: 3,798 (2026-10-22) | TI TPS62A01 (LCSC 48,310) | 60 nA Iq; saves ~42 mW vs. LDOs from VSYS (power tree §4.3) |
 | 28 | Audio | TPS62840 inductor | Murata DFE201610E-2R2M (2.2 µH) | 1 | Proposed | none | LCSC C337891: 855 (2026-10-22) | DFE201610E-1R0M (LCSC 21,995) if the datasheet allows 1 µH | — |
-| 29 | Audio | 1.8 V low-noise LDOs (DAC1 VA, DAC2 VA, MCLK) | TI TPS7A2018PDBVR | 3 | Proposed | none | LCSC C963430: 13,236 @ $0.26; Mouser 3,163 (2026-10-22) | TPS7A2018PDQNR (X2SON); TI LP5907-1.8 (LCSC 29,195) | 7 µVrms, 95 dB PSRR at 1 kHz, 6.5 µA Iq; noise budget in power tree §4.3. Pre-buck at 2.2 V: confirm 2.2 V is a TPS62840 VSET code, else 2.1 V (**UNVERIFIED**) |
+| 29 | Audio | Low-noise LDOs: DAC1 VA and DAC2 VA (1.8 V), MCLK_3V3 (3.3 V from VSYS) | TI TPS7A2018PDBVR ×2, TI TPS7A2033PDBVR ×1 | 3 | Proposed | none | TPS7A2018: LCSC C963430: 13,236 @ $0.26; Mouser 3,163 (2026-10-22). TPS7A2033: stock **UNVERIFIED** | TPS7A2018PDQNR (X2SON); TI LP5907-1.8 (LCSC 29,195); LP5907-3.3 for MCLK | 7 µVrms, 95 dB PSRR at 1 kHz, 6.5 µA Iq; noise budget in power tree §4.3. Pre-buck at 2.2 V for the VA LDOs: confirm 2.2 V is a TPS62840 VSET code, else 2.1 V (**UNVERIFIED**). MCLK_3V3 from VSYS (≥ 3.5 V): dropout at 15 mA is small |
 | 30 | Audio | 3.5 mm jack | Same Sky SJ2-35954D-SMT-TR | 1 | Proposed | none | Mouser 4,528 (2026-10-22, sourcing report); LCSC C4992270: 71 | SJ2-35894D-SMT-TR | v0 #11. Detect switch through the TCA6416A expander (pin plan §2.1); `gpio-keys`/`simple-audio-card` jack via the expander's GPIO |
 | 31 | Audio | 4.4 mm balanced jack | G-Switch GT-3321667P-01 (primary, stocked); genuine Pentaconn (NDICS) as quoted upgrade on a shared land if the drawings match | 1 | Proposed (changed primary) | none | G-Switch: LCSC C2762984: 730 @ $7.30 (2026-10-22). Pentaconn: quote only | Pentaconn (NDICS Hong Kong/Shenzhen) | v0 #12. T1-029: the stocked part is primary. G-Switch drawing, contact plating and detect switch **UNVERIFIED**; confirm 5-pole JEITA RC-8141C before layout |
 | 32 | Audio | Speaker amp | ADI MAX98357AETE+T | 1 | Proposed | mainline + Debian | LCSC C910544: 18,910 @ $1.32 (2026-10-22) | MAX98360A (same driver) | v0 #13. VDD = VSYS; gated by SD_MODE. Limit gain: speaker is 0.7 W |
@@ -238,7 +238,7 @@ Corrected to the [pin multiplexing study](../research/2026-10-pin-multiplexing-v
 | VCCIO3 | 1.8/3.3 V (RK809 LDO5) | microSD UHS-I | in-bank switch |
 | VCCIO4 | 1.8 V | IW612 SDIO 3.0 + BT UART, I2C4 (HAT ID host side), RP2354A RUN/BOOTSEL | PCA9306 (line 94) to the 3.3 V HAT ID bus |
 | VCCIO5 | 3.3 V | Faceplate I2C3 (GT911 0x5D, VEML6030 0x10, HID controller), SPI1, INT/RST/TE, status LED PWM9, speaker I2S3, HAT PWM | Faceplates with 1.8 V IOVCC translate on their side (line 96) |
-| VCCIO6 | 1.8 V | I2S1 (DACs, DSD), PDM mics, DAC RESET/INT, MCLK enables, I2S2 (HAT) | HAT branch only: AXC translators (line 95). DAC nets untranslated |
+| VCCIO6 | 1.8 V | I2S1 (DACs, DSD), PDM mics, DAC RESET/INT, I2S2 (HAT) | HAT branch only: AXC translators (line 95). DAC nets untranslated |
 | VCCIO7 | 3.3 V | HAT SPI, HAT I2C5, HAT GPIO | none |
 
 ### 4.3 Clocks
@@ -247,12 +247,12 @@ Corrected to the [pin multiplexing study](../research/2026-10-pin-multiplexing-v
 |---|---|---|---|
 | SoC 24 MHz | YXC X322524MOB4SI crystal (line 15) | SoC oscillator | SoC |
 | RTC 32.768 kHz | Seiko SC-32S crystal on RK809 (line 16) | RK809 | always on |
-| DAC MCLK 22.5792 MHz | NSC5083A (line 20, ADR 0010), tri-state ST | MCLK_1V8 | ST pin, output tri-stated |
-| DAC MCLK 24.576 MHz | NSC5083A (line 21, ADR 0010) | MCLK_1V8 | as above; the two outputs share one net, one enabled at a time |
+| DAC MCLK 22.5792 MHz | NSC5083D (line 20, ADR 0010), tri-state ST, passive attenuator to XTI | MCLK_3V3 | ST pin at 3.3 V logic, output tri-stated |
+| DAC MCLK 24.576 MHz | NSC5083D (line 21, ADR 0010) | MCLK_3V3 | as above; the two outputs share one net, one enabled at a time |
 | RP2350 12 MHz | Abracon ABM8-272-T3 (line 14) | RP2354A | with RP2354A power |
 | PCIe 100 MHz REFCLK | SoC combphy2 internal output | — | HAT overlay |
 
-MCLK acceptance criteria for any candidate (cross-validation §4): active part, authorized stock ≥ 1,000 per frequency, 1.62–1.98 V operation at the CS43198 VL, tri-state standby, and measured or datasheet phase noise inside the CS43198 "MCLK phase noise mask without PLL" (DS1156F2 Fig. 4-11), with the NDK NZ2520SDA at 1.8 V (−158 dBc/Hz at 1 kHz, 22.5792 MHz, NDK catalog) as the reference.
+MCLK acceptance criteria for any candidate or second source (cross-validation §4, ADR 0010): active part, authorized stock ≥ 1,000 per frequency, tri-state standby, and datasheet or measured phase noise inside the CS43198 "MCLK phase noise mask without PLL" (DS1156F2 Fig. 4-11), with the NDK NSC5083D (−164 dBc/Hz at 1 kHz) as the reference. A 3.3 V part reaches the 1.8 V XTI input only through the passive attenuator.
 
 ## 5. Passives and magnetics (estimate)
 
@@ -286,7 +286,7 @@ Counts are scaled from the Radxa ZERO 3W v1.12 schematic (RK3566 + RK817 + LPDDR
 
 Closed by the cross-validation: BRD-023 frequencies (confirmed), MaskROM entry (ADR 0009, lines 97–98), battery connector (2-pin JST PH, ADR 0007), HAT flat-cable connector (line 66), HAT ESD location (pogo field), backlight driver (board).
 
-1. **MCLK (lines 20–21):** NDK lead time and MOQ for the NSC5083A are not quoted yet (ADR 0010). If NDK cannot supply, the decision is reopened before layout freeze.
+1. **MCLK (lines 20–21):** the passive attenuator into the 1.8 V XTI input must be confirmed by SPICE before layout freeze (ADR 0010).
 2. **3.5 mm output topology:** parallel halves for 16 Ω drive (4 packages) or one half per channel?
 3. **HAT power on battery:** with a 2 A battery path, how much HAT_5V and USB-C source power is allowed on battery (power tree §4.6)?
 4. **Item tracking with the T1 off (BRD-030, line 103):** required, or only while the T1 is on or suspended?
@@ -298,7 +298,7 @@ Closed by the cross-validation: BRD-023 frequencies (confirmed), MaskROM entry (
 
 ## 8. Risks
 
-1. **MCLK** (lines 20, 21): NDK quote pending, see §7 and ADR 0010.
+1. **MCLK** (lines 20, 21): attenuator SPICE check pending, see §7 and ADR 0010.
 2. **Memory price and availability** (lines 8, 10): LPDDR4X 236 and eMMC 270–490 at LCSC.
 3. **DAC stock** (line 18): LCSC 346, Digi-Key 471 for a part needed twice per unit.
 4. **Display stock is retail samples** (line 81); production by quote.
@@ -345,7 +345,7 @@ Every MPN in this BOM. "sha256" is the hash of the PDF downloaded on 2026-10-22 
 | AT24C02D-STUM-T | Microchip | <https://ww1.microchip.com/downloads/aemDocuments/documents/MPD/ProductDocuments/DataSheets/AT24C01D-AT24C02D-I2C-Compatible-Two-Wire-Serial-EEPROM-1-Kbit-2-Kbit-DS20006064.pdf> | UNVERIFIED | UNVERIFIED | not downloaded |
 | CS43198-CNZR | Cirrus Logic | <https://www.cirrus.com/docs/ds/cs43198-datasheet.pdf> | DS1156F2 | 2022-12 | e2da18e07a5683ee9eb134154a31ac7f8a197587c01c250c42286ea604dd351d |
 | OPA1622IDRCR | Texas Instruments | <https://www.ti.com/lit/ds/symlink/opa1622.pdf> | SBOS727B | 2016-05 | 505556d18113e86aed84f20c1dbcfc6b4ad66ccdc5202998bd883f7a7eac9824 |
-| NSC5083A-22.5792M, NSC5083A-24.576M (NZ2520SDA, target, not stocked) | NDK | <https://www.ndk.com/images/products/catalog/c_NZ2520SDA_e.pdf> | catalog 1703A | 2017-03 (code) | b818c72bf170e8dac004fcc7e0c5639eb8ffbe22d624f2e851aef9fde8f87825 |
+| NSC5083D-22.5792M, NSC5083D-24.576M (NZ2520SDA, 3.3 V) | NDK | <https://www.ndk.com/images/products/catalog/c_NZ2520SDA_e.pdf> | catalog 1703A | 2017-03 (code) | b818c72bf170e8dac004fcc7e0c5639eb8ffbe22d624f2e851aef9fde8f87825 |
 | TPS65131RGER | Texas Instruments | <https://www.ti.com/lit/ds/symlink/tps65131.pdf> | SLVS493E | 2022-04 | e8360b9509047317416cfd9163a09d8cdf5c8accbd4e702ad6a43292ef48e0ed |
 | LM27762 | Texas Instruments | <https://www.ti.com/lit/ds/symlink/lm27762.pdf> | SNVSAF7C | 2025-10 | 465db259d11b3b2fe202661b21e1e664065ff8873056a984aa9f967a9fbdc6e0 |
 | PMEG2010AEH | Nexperia | <https://assets.nexperia.com/documents/data-sheet/PMEG2010AEH.pdf> | UNVERIFIED | UNVERIFIED | not downloaded (HTTP 403 from this host) |

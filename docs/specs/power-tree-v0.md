@@ -1,9 +1,9 @@
 # Power tree v0
 
-- **Status:** Draft. Desk design only: nothing here has been built, simulated or measured. Every part is *Proposed* unless [BOM v1](bom-v1.md) says *Decided*. Updated 2026-10-22 by the [BOM v1 cross-validation](../research/2026-10-bom-v1-cross-validation.md) (battery, HAT/USB 5 V source, TPS2121 isolation, faceplate rails, IO voltages, vdd_cpu part), then by BOM v1.1 (RK809-5 feeds and ratings, TPS61089 boost, 3.1 V MCLK supply, RP2354A supplies, battery derating, TPS2121 OV1, HP-amp soft-start), then by BOM v1.2 (power margin check of every rail, converter, connector and cable, BRD-049, §4.10; vcc3v3_sys on a 3 A TPS62826; battery path sized for the full output budget, BRD-050 and proposed ADR 0011; battery fuse; 50-contact HAT power connector; RGB status LED driver; TPS61089 and TPS2121 current limits).
+- **Status:** Draft. Desk design only: nothing here has been built, simulated or measured. Every part is *Proposed* unless [BOM v1](bom-v1.md) says *Decided*. Updated 2026-10-22 by the [BOM v1 cross-validation](../research/2026-10-bom-v1-cross-validation.md) (battery, HAT/USB 5 V source, TPS2121 isolation, faceplate rails, IO voltages, vdd_cpu part), then by BOM v1.1 (RK809-5 feeds and ratings, TPS61089 boost, 3.1 V MCLK supply, RP2354A supplies, battery derating, TPS2121 OV1, HP-amp soft-start), then by BOM v1.2 (power margin check of every rail, converter, connector and cable, BRD-049, §4.10; vcc3v3_sys on a 3 A TPS62826; battery path sized for the full output budget, BRD-050 and proposed ADR 0011; battery fuse; 50-contact HAT power connector; RGB status LED driver; TPS61089 and TPS2121 current limits), then by BOM v1.3 ([ADR 0012](../adr/0012-headphone-output-stage.md): six OPA1622 with paralleled halves, ±6 V amplifier rails on LT3045/LT3094 from ±7 V TPS65131 pre-rails, gain 1.62 with the CS43198 at `+1dB_EN` = 0, §4.1, §4.2, §4.10.1; interim-pack output ceiling, §4.11; vcc3v3_sys inductor, §4.10).
 - **Date:** 2026-10-22
 - **Companion:** [BOM v1](bom-v1.md) (parts, stock, datasheet links and hashes).
-- **Inputs:** [BOM v0](bom-v0.md), [board requirements](../requirements/README.md) (BRD-001 to BRD-050), board ADRs 0001–0011, [component selection](../research/2026-10-component-selection.md), [sourcing alternatives](../research/2026-10-sourcing-alternatives.md), [high-speed I/O topology](../research/2026-10-high-speed-io-topology.md), [battery selection](../research/2026-10-battery-selection.md), touch-faceplate ADR 0001 (Focus E35GH), T1 and HAT Case Standard requirements, opendap-os ADRs 0006–0008. [pin multiplexing v0](../research/2026-10-pin-multiplexing-v0.md) gives the balls; GPIO names below are logical names.
+- **Inputs:** [BOM v0](bom-v0.md), [headphone output power research](../research/2026-10-headphone-output-power.md), [board requirements](../requirements/README.md) (BRD-001 to BRD-050), board ADRs 0001–0012, [component selection](../research/2026-10-component-selection.md), [sourcing alternatives](../research/2026-10-sourcing-alternatives.md), [high-speed I/O topology](../research/2026-10-high-speed-io-topology.md), [battery selection](../research/2026-10-battery-selection.md), touch-faceplate ADR 0001 (Focus E35GH), T1 and HAT Case Standard requirements, opendap-os ADRs 0006–0008. [pin multiplexing v0](../research/2026-10-pin-multiplexing-v0.md) gives the balls; GPIO names below are logical names.
 - **Method:** datasheets were downloaded and read (revision and sha256 in the BOM's Datasheets table); the RK809 rail mapping follows the Radxa ROCK 3C v1.4 schematic (PMIC marked RK809-5) and the mainline device trees of RK3566 + RK809 boards (Orange Pi 3B, ROCK 3C, ODROID-M1S), with Anbernic RG353 (RK817) and the Radxa ZERO 3W schematic v1.12 for the rest. Calculations are shown inline.
 - **Conventions:** **UNVERIFIED** = no primary source found in this session. "Est." = engineering estimate, to be replaced by measurement (T1-026).
 
@@ -12,7 +12,7 @@
 1. **The CS43198 does not accept a 45.1584 or 49.152 MHz master clock.** Its datasheet (DS1156F2, §4.6 and Table 3-13) allows an external MCLK only at the nominal internal frequencies **22.5792 MHz and 24.576 MHz** (or PLL references 9.6–26 MHz). BRD-023 (Draft) and BOM v0 lines 9–10 name 45.1584/49.152 MHz. Proposal: **22.5792 MHz and 24.576 MHz NDK NZ2520SDA**, which keeps the intent of BRD-023 (two families, DAC as clock master, no resampling). A divide-by-two flip-flop would also work but adds a part and jitter in the clock path, against BRD-042.
 2. **The CS43198 also needs a battery-class supply, VP = 3.0–5.25 V** (charge-pump supply for its output stage), plus four 1.8 V rails (VA, VCP, VD, VL). VP must come up first and go down last (DS1156F2 §5.2).
 3. **The MCLK input is in the 1.8 V VL domain.** No stocked audio-grade 1.8 V oscillator exists at 22.5792 MHz (the 1.8 V NSC5083A has no authorized stock), so the stocked 3.3 V NSC5083D runs on its own MCLK_3V3 LDO and reaches XTI through a passive attenuator (ADR 0010).
-4. **The LM27762 cannot make ±5 V from a 1S battery.** Its positive output is an LDO from VIN, so at VSYS = 3.5 V the positive rail is at most about 3.45 V (calculation in §4.2). The proposed generator is a **TPS65131** dual boost/inverter followed by **TPS7A4901 / TPS7A3001** LDOs.
+4. **The LM27762 cannot make ±5 V from a 1S battery.** Its positive output is an LDO from VIN, so at VSYS = 3.5 V the positive rail is at most about 3.45 V (calculation in §4.2). The proposed generator is a **TPS65131** dual boost/inverter followed by **TPS7A4901 / TPS7A3001** LDOs (v1.3: **LT3045 / LT3094**, ADR 0012).
 5. **The TPS7A94 is unsuitable for a battery device here:** 15 mA typical ground current at 5.1 V out (SBVS336C, Electrical Characteristics), that is about 80 mW wasted.
 6. **The RK809-5 must be used with the reference rail mapping.** Its regulators come up at OTP default voltages before Linux runs. The mapping below copies the Radxa ROCK 3C v1.4 schematic (RK809-5) and the mainline device trees of the ROCK 3C, Orange Pi 3B and ODROID-M1S, which agree: every VCC pin of the reference boards is on a free-running vcc3v3_sys (the ROCK 3C leaves the EXT_EN option on its 3.3 V buck unfitted). The T1 keeps VCC5–VCC9 on vcc3v3_sys, now always-on, and feeds VCC1–VCC4 (BUCK1–4) from VSYS as in the datasheet application circuit (Fig. 1-1). Supply-pin mapping (RK809 datasheet §2.5): VCC1–VCC4 → BUCK1–4, VCC5 → LDO1–3, VCC6 → LDO4–6, VCC7 → LDO7–9, VCC9 → BUCK5 and SWOUT1, VCC8 → SWOUT2. The RK809-5 OTP defaults are not public (**UNVERIFIED**).
 7. **LPDDR4X needs a separate 0.6 V VDDQ rail.** The Radxa ZERO 3W schematic table gives VDDQ 1.10 V and VDDQL 0.60 V for LPDDR4X, with a 0 Ω option (R122) that ties VCC0V6_DDR to VCC_DDR only for plain LPDDR4.
@@ -73,10 +73,10 @@ VBUS_CHG --> BQ25895 (buck charger 1.5 MHz; OTG boost NOT used)                 
           |         +--> TPS7A2018 DAC1_VA 1.8 V    7.8 mA
           |         +--> TPS7A2018 DAC2_VA 1.8 V    7.8 mA
           +--> TPS7A2031 MCLK_3V1 3.1 V  15 mA (one NSC5083D active, other in standby; ADR 0010, part amended in v1.1)
-          +--> TPS65131 AUDIO_P6V0 +6.0 V / AUDIO_N6V0 -6.0 V
-          |         +--> TPS7A4901 +5.0 V  150 mA max, play 10-40 mA
-          |         +--> TPS7A3001 -5.0 V  200 mA max, play 10-40 mA
-          |                  +--> 4x OPA1622 (only the selected output's 2 packages enabled)
+          +--> TPS65131 AUDIO_P7V0 +7.0 V / AUDIO_N7V0 -7.0 V (v1.3)
+          |         +--> LT3045 HPA_P6V0 +6.0 V  500 mA rating, 275 mA worst continuous, idle 12.7 mA (SE) / 23.1 mA (bal)
+          |         +--> LT3094 HPA_N6V0 -6.0 V  500 mA rating, 275 mA worst continuous, idle 12.9 mA (SE) / 23.3 mA (bal)
+          |                  +--> 6x OPA1622, halves paralleled (selected output only: 2 packages SE, 4 balanced)
           +--> MAX98357A speaker amp (VDD = VSYS, SD_MODE shutdown)
           +--> TPS61169 backlight boost, LEDA up to 16.5 V, ILED 60 mA max (5S2P, 10 LEDs)
           +--> TLV62569 HAT_3V3 3.3 V 2 A --> TPS259470 #B (ILIM 1.0 A) --> HAT_3V3
@@ -115,9 +115,9 @@ VBUS_CHG --> BQ25895 (buck charger 1.5 MHz; OTG boost NOT used)                 
 | MCLK_3V1 | TPS7A2031 (from VSYS) | 3.10 V | 0.3 A | 15 mA | `AUDIO_LN_EN` | 2× NSC5083D (one in standby, ST pulled down), passive attenuator to XTI (ADR 0010) |
 | RP_3V3 | TPS22919 (vcc3v3_sys) | 3.30 V | 1.5 A switch | RP2354A dependent | `RP_PWR_EN` | RP2354A VREG_VIN + VREG_AVDD, QSPI_IOVDD, USB_OTP_VDD, ADC_AVDD |
 | RP_IOVDD_1V8 | TPS22919 (vcc_1v8) | 1.80 V | 1.5 A switch | RP2354A dependent | `RP_PWR_EN` | RP2354A IOVDD, 12 MHz XO (≤ 2.5 mA at 1.8 V) |
-| AUDIO_P6V0 / N6V0 | TPS65131 | +6.0 / −6.0 V | 0.2–0.5 A each (Vin-dependent) | 12–45 mA each | `HPA_RAIL_EN` (ENP, ENN) | LDOs below |
-| HPA_P5V0 | TPS7A4901 | +5.0 V | 0.15 A | 10–40 mA | `HPA_RAIL_EN` | OPA1622 V+ |
-| HPA_N5V0 | TPS7A3001 | −5.0 V | 0.2 A | 10–40 mA | `HPA_RAIL_EN` | OPA1622 V− |
+| AUDIO_P7V0 / N7V0 | TPS65131 (v1.3: ±7.0 V) | +7.0 / −7.0 V | 275 mA each worst continuous; inverter at 72–79 % of its minimum switch limit (§4.10.1) | 12.7–12.9 mA each (SE idle), 23 mA (balanced idle) | `HPA_RAIL_EN` (ENP, ENN) | LDOs below |
+| HPA_P6V0 | LT3045 (v1.3, was TPS7A4901 at +5.0 V) | +6.04 V | 0.5 A (≈ 0.4 A programmed limit) | 10.4 mA (SE idle) / 20.8 mA (balanced idle) at the amplifiers | `HPA_LDO_EN` | OPA1622 V+ |
+| HPA_N6V0 | LT3094 (v1.3, was TPS7A3001 at −5.0 V) | −6.04 V | 0.5 A (≈ 0.4 A programmed limit) | as HPA_P6V0 | `HPA_LDO_EN` | OPA1622 V− |
 | BL_LEDA | TPS61169 | 13–16.5 V | 60 mA | 0 (screen off) | `BL_PWM` (CTRL, 1 µA off) | panel LED string |
 | HAT_3V3 | TLV62569 → TPS259470 #B | 3.30 V | 1.0 A (ILIM) | 0 | `HAT3V3_EN` | HAT |
 | HAT_5V (out) | TPS61089 → TPS259470 #A | 5.1 V | 1.5 A (ILIM, 1.66 A max); on battery per §4.6 budget | 0 | `HAT5V_EN` (also forces TPS2121 OV2) | HAT class A/B |
@@ -128,33 +128,30 @@ VBUS_CHG --> BQ25895 (buck charger 1.5 MHz; OTG boost NOT used)                 
 
 ### 4.1 Headphone amplifier rails (OPA1622)
 
-**Targets** (proposed, to confirm with the maintainers):
+**v1.3: [ADR 0012](../adr/0012-headphone-output-stage.md)** (Accepted) replaces the v1.2 stage (four OPA1622 at ±5 V, gain 1, CS43198 at `+1dB_EN` = 1). Figures are from the [headphone output power research](../research/2026-10-headphone-output-power.md) (option A6) and are desk estimates until simulated and measured.
 
-- 4.4 mm balanced: 4.0 Vrms differential, i.e. 2.0 Vrms per leg (the CS43198 full-scale 2 Vrms per output, gain 1).
-- 3.5 mm single-ended: 2.0 Vrms into high-impedance loads; current-limited into 16–32 Ω.
+**Topology:**
 
-**Voltage headroom.** OPA1622 output swing to the rail is 0.8 V with no load and 0.9 V at 600 Ω (SBOS727B, §6.5); it grows with current (Figure 38, not tabulated). Use 1.0 V at 20–100 mA as the design figure (**UNVERIFIED** from the curve).
+- Six OPA1622. Every package runs both halves in parallel: one package per balanced leg (L+, L−, R+, R−) and one per single-ended channel.
+- Each half is its own difference amplifier fed from the same CS43198 output pair: R1 = R3 = 1.00 kΩ, R2 = R4 = 1.62 kΩ, 100 pF across R2 and R4 (gain 1.62, pole at 982 kHz), feedback taken before a 1.0 Ω ballast resistor (BOM lines 37, 107, 108).
+- CS43198 at `+1dB_EN` = 0: 1.73 Vrms full scale (4.66 Vpp minimum), −115 dB THD+N typ, −109 dB max (DS1156F2 Table 3-4).
 
-| Case | Peak voltage per leg | Peak current | Rail needed | Margin at ±5.0 V |
+**Limits (SBOS727B):** ≈ 100 mA peak per half at ±5 V (Table 2: 109 mA into 16 Ω, 97 mA into 32 Ω, both current-limited); swing headroom ≈ 1.9 V at ≈ 100 mA (derived from Table 2), 0.8–0.9 V at low current (§6.5). Swing against current at ±6 V is **UNVERIFIED** (Figure 38 is plotted at ±18 V).
+
+**Expected output (est., research §4.5):**
+
+| Output | 16 Ω | 32 Ω | 300 Ω | Limited by |
 |---|---|---|---|---|
-| Balanced, 300 Ω, 4.0 Vrms diff | 2.0 × √2 = 2.83 V | 5.66 V / 300 Ω = 18.9 mA | ±3.83 V | 1.17 V |
-| Balanced, 32 Ω, 2.0 Vrms diff (125 mW) | 1.41 V | 2.83 V / 32 Ω = 88 mA | ±2.41 V | 2.59 V (current-limited first) |
-| SE, 600 Ω, 2.0 Vrms | 2.83 V | 4.7 mA | ±3.83 V | 1.17 V |
-| SE, 32 Ω, 2.0 Vrms (125 mW) | 2.83 V | 88 mA | ±3.83 V | 1.17 V |
-| SE, 16 Ω, 1.23 Vrms (95 mW, datasheet limit at ±5 V) | 1.74 V | 109 mA | ±2.74 V | 2.26 V |
+| 3.5 mm SE | ≈ 320 mW | **≈ 240 mW** (3.92 V peak, 122 mA) | 26 mW | current at 16 Ω, DAC level × gain at 32 and 300 Ω |
+| 4.4 mm balanced | ≈ 320 mW | **≈ 640 mW** (490–760 mW with imperfect sharing) | 102 mW | current (175–218 mA per leg) at 16 and 32 Ω, gain at 300 Ω |
 
-- **Current limit, not voltage, caps low-impedance loads.** TI's own ±5 V headphone example (SBOS727B, Table 2) reaches 95 mW into 16 Ω and 150 mW into 32 Ω, both limited by output current (109 mA and 97 mA peak). Short-circuit current is +145/−130 mA.
-- **Why four OPA1622:** two packages per output. 4.4 mm: one package per channel drives L+ and L− (R+ and R−). 3.5 mm: one package per channel, its two halves paralleled through small ballast resistors (about 0.5–1 Ω, inside the feedback loop) for about twice the current into 16 Ω (**UNVERIFIED**, needs simulation; the alternative is one half per channel and the other package unpopulated).
-- **±5.0 V is the minimum that meets the balanced 4 Vrms target with 1 V of margin.** It is also what TI characterises.
+**Supply current per rail** (sine, both channels; a rail supplies one half-cycle of each leg's current, average Ipk/π per leg):
 
-**Supply current per rail** (sine, both channels driven; a rail supplies one half-cycle, average Ipk/π per leg):
+- Quiescent: 2.6 mA per enabled half (3.3 mA max; 5 µA in shutdown). SE: 4 halves = **10.4 mA**; balanced: 8 halves = **20.8 mA** per rail. A disabled package cannot drop to one half, since its outputs are not high-impedance in shutdown (SBOS727B §7.4.1).
+- SE 32 Ω full scale (122 mA peak per channel): 2 × 122 / π + 10.4 = **88 mA** per rail. SE 16 Ω (200 mA): **138 mA**.
+- Balanced 32 Ω full scale (≈ 200 mA peak per leg, current limit): 2 channels × 2 legs × 200 / π + 20.8 = **275 mA** per rail. This is the design case for every part from VSYS to the amplifiers (§4.10.1).
 
-- Quiescent: 2 active packages × 2 channels × 2.6 mA = **10.4 mA** per rail (3.3 mA max per channel, 5 µA in shutdown).
-- SE 32 Ω, 2 Vrms both channels: 2 × 88 mA / π = 56 mA + 10.4 = **67 mA** per rail.
-- Balanced 32 Ω, 2 Vrms diff both channels: the load current alternates between the + and − legs, so V+ supplies |i| on both half-cycles: 2 channels × 2 × 88 mA / π = 112 mA + 10.4 = **122 mA** per rail.
-- Design rail rating: **150 mA** (TPS7A4901 limit), which covers the worst continuous sine case (122 mA). Music averages are far lower; the balanced output into 32 Ω at full level is the case to watch.
-
-**Thermal** (OPA1622 DRC, θJA 47.6 °C/W): worst case per channel, symmetric ±5 V into 16 Ω, Pmax = 2·Vs²/(π²·RL) = 2 × 25 / (9.87 × 16) = 0.32 W, but the 109 mA current limit holds it near 0.25 W per channel, about 0.5 W per package → +24 °C rise. Acceptable with the exposed pad soldered to a ground pour.
+**Thermal (est.):** per package, balanced 32 Ω full-scale sine (each leg into 16 Ω): ≈ 0.44 W at the 200 mA limit plus 0.06 W quiescent = **≈ 0.5 W**, +24 °C at θJA 47.6 °C/W (SBOS727B §6.4), the same per package as the v1.2 plan. Whole stage at the full-scale sine: ≈ 2.0 W in the four balanced packages, ≈ 0.6 W in the two LDOs, plus converter losses, ≈ 3.5 W into the body: a bench condition (music sits 10–20 dB lower). A balanced 32 Ω full-scale soak in the closed body is a prototype test.
 
 ### 4.2 Rail generator choice
 
@@ -163,27 +160,28 @@ VBUS_CHG --> BQ25895 (buck charger 1.5 MHz; OTG boost NOT used)                 
 | LM27762 alone (SNVSAF7C) | LDO from VIN: ≤ 3.5 − 0.045 = 3.45 V → swing 2.45 Vpk → 1.7 Vrms per leg | −VIN via charge pump, then LDO | 1 | **Rejected:** fails 4 Vrms balanced (needs 3.83 V) |
 | Boost to 5.5 V + LM27762 | 5.0 V | −5.0 V | 2 + boost passives | Possible second option; LM27762 has the best stock (LCSC 41,293), 22 µVrms noise, 250 mA |
 | TPS63710 inverter + boost | — | \|VOUT\| < 0.7 × VIN → max −2.45 V at 3.5 V in | 2 | **Rejected** for the negative rail |
-| **TPS65131 + TPS7A4901 + TPS7A3001** | +6.0 → +5.0 V | −6.0 → −5.0 V | 3 | **Proposed**: one IC makes both pre-rails from 2.7–5.5 V, 1 µA shutdown, power-save per output (PSP/PSN) |
+| TPS65131 + TPS7A4901 + TPS7A3001 (v1.2) | +6.0 → +5.0 V | −6.0 → −5.0 V | 3 | **Removed in v1.3**: the LDOs would run at 183 % / 138 % of their 150 / 200 mA ratings at 275 mA |
+| **TPS65131 + LT3045 + LT3094** (v1.3, ADR 0012) | +7.0 → +6.04 V | −7.0 → −6.04 V | 3 | **Proposed**: one IC makes both pre-rails from 2.7–5.5 V, 1 µA shutdown, power-save per output (PSP/PSN); 500 mA LDOs |
 
-TPS65131 (SLVS493E): input 2.7–5.5 V, 1.25 MHz, maximum output current "200 mA to 500 mA range, depending on input-to-output voltage ratio". At VIN = 3.5 V and ±6 V the curve (Figure 6-2) has to be read from the plot; the need is ≤ 150 mA per rail (**UNVERIFIED** margin until simulated).
+TPS65131 (SLVS493E): input 2.7–5.5 V, 1.25 MHz, switch current limit 1.8 / 1.95 / 2.2 A, maximum output current given only as typical curves (Figures 6-2, 6-4). v1.3 pre-rails: VPOS = 1.213 V × (1 + 475 k / 100 k) = 6.97 V, VNEG = −1.213 V × 576 k / 100 k = −6.99 V (Eq. 1–2; BOM line 111). The need is 275 mA per rail; the margin check is in §4.10.1.
 
 **Ripple and PSRR chain** (assume 20 mVpp switching ripple on each pre-rail, **UNVERIFIED** until the output capacitors are sized):
 
-- Forced PWM (PSP = PSN = 0): ripple at 1.25 MHz, outside the audio band. TPS7A4901 PSRR ≥ 52 dB up to 400 kHz (≥ 40 dB assumed at 1.25 MHz) → ≤ 0.2 mVpp at the OPA1622. Add a ferrite bead + 10 µF π-filter before each LDO for another 20 dB.
-- Power-save (PFM bursts can land in the audio band): TPS7A4901 72 dB at 120 Hz → 20 mV × 10^(−72/20) = 5 µV; the OPA1622 PSRR is 0.1 µV/V typ at DC (−140 dB); even at an assumed −100 dB in band, the residue is 0.05 nV, far below the DAC floor (0.63 µVrms, §4.3). **Conclusion: power-save mode can stay enabled during playback**, which matters for battery life. Verify by measurement.
+- Forced PWM (PSP = PSN = 0): ripple at 1.25 MHz, outside the audio band. LT3045 / LT3094 PSRR at 1 V headroom ≈ 65–75 dB / ≈ 65 dB near 1 MHz (curves G45 / G47, read from the plot) → ≤ 12 µVpp at the OPA1622 (v1.3; the TPS7A4901 gave ≥ 40 dB, ≤ 0.2 mVpp). Add a ferrite bead + 10 µF π-filter before each LDO for another 20 dB.
+- Power-save (PFM bursts can land in the audio band): the v1.2 budget used the TPS7A4901's 72 dB at 120 Hz, 20 mV × 10^(−72/20) = 5 µV at the amplifier supply; the LT3045 is specified higher (117 dB at 120 Hz with CSET 4.7 µF, ≈ 110 dB at 1 kHz from curve G41; the figure with CSET 0.47 µF is not tabulated), so 5 µV stays an upper bound. The OPA1622 PSRR is 0.1 µV/V typ at DC (−140 dB); even at an assumed −100 dB in band, the residue is 0.05 nV, far below the DAC floor (0.63 µVrms, §4.3). **Conclusion: power-save mode can stay enabled during playback**, which matters for battery life. Verify by measurement.
 
 **LDO headroom and dissipation:**
 
-| LDO | In → out | Dropout (datasheet) | Headroom | Pd at 67 mA | Pd at 150 mA |
+| LDO (v1.3) | In → out | Maximum dropout, full range (datasheet) | Headroom | Pd at idle (SE, 10.4 mA) | Pd at 275 mA |
 |---|---|---|---|---|---|
-| TPS7A4901 (SBVS121E) | +6.0 → +5.0 V | 260 mV at 100 mA | 1.0 V | 67 mW | 150 mW |
-| TPS7A3001 (SBVS125D) | −6.0 → −5.0 V | 216 mV at 100 mA | 1.0 V | 67 mW | 150 mW |
+| LT3045 (Rev. D) | +7.0 → +6.04 V | 350 mV at 300 mA | ≈ 0.96 V | ≈ 25 mW | ≈ 0.34 W (+12 °C at 34 °C/W) |
+| LT3094 (Rev. B) | −7.0 → −6.04 V | 280 mV at 100 mA, 410 mV at 500 mA | ≈ 0.96 V | ≈ 27 mW | ≈ 0.33 W |
 
-Ground currents: TPS7A4901 about 800 µA at 100 mA; TPS7A3001 55 µA at no load, 950 µA at 100 mA. 1 V of headroom keeps PSRR on its rated curve; reducing it to 0.5 V saves 10 mW per rail at the quiescent load.
+Ground currents: LT3045 2.2 mA typ at 10 µA load, 4.3 mA typ (7 mA max) at 100 mA in dropout; LT3094 2.35 mA typ, 3.8 mA typ (6.5 mA max) at 100 mA in dropout. Pd at idle counts the ground current at 7 V. The TPS65131 3 % output accuracy and the ±2 % SET current leave ≥ 0.7 V of headroom (est.), above the dropout. PSRR is specified at 2 V headroom; the 1 V curves above are the design basis.
 
-**Ramp symmetry (BOM v1.1, D3).** The OPA1622 wants V+ and V− to ramp symmetrically with EN held low (SBOS727B §7.4.2). The two LDOs have different soft-start laws: tSS = 1.4 ms/nF × CNR/SS for the TPS7A4901 (SBVS121E Eq. 1) and 0.9 ms/nF for the TPS7A3001 (SBVS125D Eq. 1). CNR/SS = 10 nF and 15 nF give 14 ms and 13.5 ms: the outputs ramp linearly from zero and differ by at most 5 V × (1 − 13.5/14) ≈ 0.2 V at any instant. Both LDO ENs share one 3.3 V net (`HPA_LDO_EN`, expander port), raised only after the TPS65131 pre-rails have settled (`HPA_RAIL_EN` first), so the LDO soft-start alone sets the ramp. 15 nF also lowers the TPS7A3001 reference noise, as 10 nF does on the positive side. The equations are typical values and the TPS7A30 start-up curve is given without CFF, so the ramp match is a bring-up measurement.
+**Ramp symmetry (v1.3, D30).** The OPA1622 wants V+ and V− to ramp symmetrically with EN held low (SBOS727B §7.4.2). The LT3045 and LT3094 share the soft-start law tSS ≈ 2.3 × RSET × CSET (LT3045 Rev. D p. 19, LT3094 Rev. B p. 22): with RSET 60.4 kΩ and CSET 0.47 µF on both, each rail ramps on the same RC curve in ≈ 65 ms. Fast start-up is disabled (PGFB tied to IN), because its SET currents differ (2 mA and 1.8 mA typ). Both EN/UV pins share the 3.3 V `HPA_LDO_EN` net, raised after the TPS65131 pre-rails settle (`HPA_RAIL_EN` first), so the LDO soft-start alone sets the ramp. The residual mismatch is the CSET tolerance: a bring-up measurement. The v1.1 TPS7A4901/TPS7A3001 sizing (CNR/SS 10 nF / 15 nF, D3) no longer applies.
 
-**Rejected positive LDOs:** TPS7A94 (15 mA ground current, §1); TPS7A2050 (7 µVrms, 6.5 µA Iq, better on paper, but VIN absolute maximum is 6.0 V, so the pre-rail would have to sit at ≤ 5.5 V with no overshoot margin; kept as an option if the pre-rail is set to +5.4 V).
+**Rejected positive LDOs:** TPS7A94 (15 mA ground current, §1); TPS7A2050 (VIN absolute maximum 6.0 V, below the +7 V pre-rail of v1.3); TPS7A4901 (150 mA, removed in v1.3).
 
 ### 4.3 DAC analog rails: noise budget versus PSRR
 
@@ -276,13 +274,13 @@ TPS259470 (SLVSFC9C): 2.7–23 V, RON 28.3 mΩ, ILIM set by RILM (1.65 kΩ → 2
 | SoC, LPDDR4X, eMMC, PMIC losses | — | 450–800 mW | **Est., UNVERIFIED** (no RK3566 measurement yet) |
 | 2× CS43198 (VA, VCP, VD, VL, VP) | 52 mW | 65 mW | Table 3-17 + chain efficiency |
 | Active MCLK oscillator | 47 mW | 56 mW | NDK catalog maximum at 3.1 V, LDO from VSYS |
-| OPA1622, 2 packages, quiescent | 104 mW | 180 mW | 10.4 mA × 10 V, LDO 1 V headroom, TPS65131 η ≈ 70 % (**UNVERIFIED**) |
+| OPA1622, SE output (2 packages, 4 halves), quiescent, with the LT3045/LT3094 (v1.3) | 125 mW | 256 mW | 10.4 mA × 12 V at the amplifiers; (10.4 + 2.3) mA and (10.4 + 2.45) mA at ±7 V = 179 mW at the pre-rails; TPS65131 η ≈ 70 % (**UNVERIFIED**). v1.2 (±5 V, TPS7A pair): 180 mW |
 | Headphone load, 1 mW per channel | 2 mW | 4 mW | — |
 | IMU, gauge, TCPC, charger | — | 3 mW | datasheets |
-| **Total** | — | **0.76–1.11 W** | — |
+| **Total** | — | **0.84–1.19 W** (v1.2: 0.76–1.11 W) | — |
 
-- Runtime, 90 % usable energy: Adafruit 328 (9.4 Wh, the only adopted pack, ADR 0007) → **7.6–11.1 h**: above the 6 h red line and mostly above the 8 h warning, below the 12 h ideal (T1-039). The SoC estimate dominates (risk 1). Larger packs are not adopted (T1-038).
-- The OPA1622 quiescent current (180 mW from the battery) is the largest audio term. Enabling only the selected output's two packages already halves it; a "single package per output" build option would halve it again at the cost of 16 Ω drive.
+- Runtime, 90 % usable energy: Adafruit 328 (9.4 Wh, the only adopted pack, ADR 0007) → **7.1–10.1 h** (v1.2: 7.6–11.1 h): above the 6 h red line, around the 8 h warning, below the 12 h ideal (T1-039). The battery model of the T1 battery-life analysis gives 12.8 → 11.4 h for its core SE session (research §5.3). The SoC estimate dominates (risk 1). Larger packs are not adopted (T1-038).
+- The OPA1622 quiescent current (256 mW from the battery on the SE output) is the largest audio term. Only the selected output is enabled. The balanced output enables 8 halves: (20.8 + 2.3) mA and (20.8 + 2.45) mA at ±7 V = 324 mW at the pre-rails, **≈ 464 mW** from the battery (est.).
 - Screen on at 200 nit adds about 0.25 W backlight + 0.05 W panel and touch + GPU/VOP (**UNVERIFIED**, est. 0.2 W).
 
 ### 4.10 Power margin check (BOM v1.2)
@@ -302,7 +300,7 @@ BRD-049 check of every rail, converter, connector and cable. Rule: continuous lo
 | Battery cell (Adafruit 328) | 5 A (2C) | 1.6 A / 4.8 A | 32 % / 96 % | — | **Fails the full budget** (ADR 0011) |
 | VSYS INA236 shunt 10 mΩ | ≥ 1 W required | 0.23 W at 4.8 A | ≤ 23 % | 0.36 W at 6 A | v1.2 requirement |
 | vcc3v3_sys buck TPS62826 | 3 A; ILIM ≥ 3.7 A | 1.85 A peak (est.) | 62 % | inductor peak 2.25 A = 61 % of ILIM min | OK (v1.2; TLV62569 was 80–90 %) |
-| vcc3v3_sys inductor DFE252012F-R47M | 4.9 A (ΔT 40 °C), Isat 6.7 A | 2.25 A peak | 46 % | ILIM max 5.0 A < Isat | OK |
+| vcc3v3_sys inductor Würth 744373240047 (v1.3, D27; was DFE252012F-R47M, 4.9 A < 5.0 A) | 6.8 A (TI Table 8-5); IR 8.7 A (ΔT 40 K), Isat 10.4 A at 10 % drop (Würth page) | 2.25 A peak | 33 % of 6.8 A | ILIM max 5.0 A = 74 % of 6.8 A | OK |
 | RK860-0 vdd_cpu | **UNVERIFIED** (no public datasheet) | 3 A (est.) | — | — | Open: datasheet from Rockchip |
 | RK809 BUCK1–5 | 2.5 / 2.5 / 1.5 / 1.5 / 2.5 A (RK809 DC table) | play 0.1–0.3 A; peaks **UNVERIFIED** | — | — | Open: measure on a reference board |
 | RK809 LDO4 FP_VCI | 100 mA design (tables disagree, 100/400 mA) | panel VCI (spec gives no current) | — | — | Open with the panel current |
@@ -311,9 +309,9 @@ BRD-049 check of every rail, converter, connector and cable. Rule: continuous lo
 | TPS22919 load switches | 1.5 A | ≤ 0.08 A | ≤ 6 % | — | OK |
 | TPS62840 AUDIO_2V2 | 0.75 A | 16 mA | 2 % | — | OK |
 | TPS7A2018 ×2, TPS7A2031 | 0.3 A | 7.8 / 15 mA | ≤ 5 % | — | OK |
-| TPS65131 pre-rails | 0.2–0.5 A, Vin-dependent (curve) | ≈ 0.15 A per rail | **UNVERIFIED** | — | Open (risk 3) |
-| TPS7A4901 HPA_P5V0 | 0.15 A | 0.122 A worst continuous sine | **81 %** | — | **Close to rating**: LT3045 proposed (BOM line 25) |
-| TPS7A3001 HPA_N5V0 | 0.2 A | 0.122 A | 61 % | — | OK |
+| TPS65131 pre-rails ±7 V (v1.3) | switch limit 1.8 A min | 275 mA per rail | inverter 72–79 %, boost 48–56 % of the minimum switch limit | 2.2 A max switch limit | **Conditional**: inside the rule at its edge; simulation before layout freeze (§4.10.1, ADR 0012) |
+| LT3045 HPA_P6V0 (v1.3) | 0.5 A | 0.275 A worst continuous sine | 55 % | ≈ 0.4 A programmed (≈ 0.36 A min, est.) | OK |
+| LT3094 HPA_N6V0 (v1.3) | 0.5 A | 0.275 A | 55 % | ≈ 0.4 A programmed | OK |
 | TPS61169 backlight | switch ≥ 1.2 A | 0.45 A peak | 38 % | — | OK |
 | PMEG6010CEH rectifier | 1 A, 60 V | 0.06 A avg, 39 V OVP max | 6 % / 65 % | — | OK |
 | LQH3NPN100MJRL | Isat **UNVERIFIED** (≥ 0.6 A needed) | 0.45 A peak | — | — | Open: spec sheet |
@@ -330,6 +328,42 @@ BRD-049 check of every rail, converter, connector and cable. Rule: continuous lo
 | Faceplate FH35C contacts | 0.2 A, 0.14 A all loaded | FP_VCI 0.1 A ×1; FP_3V3 ≈ 0.08 A ×2; BL 60 mA; LED ≤ 20 mA | ≤ 71 % of the derated figure | — | OK |
 | LP5521 outputs / LED | 25.5 mA; LED IF 25 mA | 20 mA DT cap | 78 % / 80 % | — | OK (new, v1.2) |
 
+### 4.10.1 Headphone stage margin (BOM v1.3, ADR 0012)
+
+Worst continuous case: full-scale sine into balanced 32 Ω, both channels, 275 mA per ±7 V rail (§4.1). VIN = VSYS, 3.0 V (battery near empty) to 3.5 V. The TPS65131 equations are SLVS493E Eq. 3 and 4 (peak inductor current, IL = V × I / (VIN × 0.64)); the curve readings are typical values at 25 °C, read from Figures 6-2 and 6-4 and interpolated between the plotted output voltages.
+
+| Item | Rating (source) | Load at VIN 3.5 V | Load at VIN 3.0 V | Use (3.5 / 3.0 V) | Verdict |
+|---|---|---|---|---|---|
+| TPS65131 inverter switch | 1.8 A min, 1.95 typ, 2.2 max | 1.29 A peak (Eq. 4) | 1.43 A | **72 % / 79 %** | At the edge of the 80 % rule: conditional (simulation) |
+| TPS65131 inverter output, typical curve | Figure 6-4: ≈ 480 mA at 3.5 V, ≈ 340 mA at 3.0 V (−7 V, interpolated) | 275 mA | 275 mA | 57 % / 81 % | Typical only; agrees with Eq. 4 at 3.0 V |
+| TPS65131 boost switch | 1.8 A min | 0.86 A (Eq. 3) | 1.00 A | 48 % / 56 % | OK |
+| TPS65131 boost output, typical curve | Figure 6-2: ≈ 640 mA at 3.0 V (+7 V, between the 5 V and 10 V curves) | 275 mA | 275 mA | — / 43 % | OK |
+| Inverter inductor DFE252012F-4R7M | 2.1 A (ΔL/L −30 %), 1.5 A (ΔT 40 °C) | 1.29 A peak | 1.43 A peak, ≈ 1.15 A average (η 0.8, est.) | 61 % / 68 % peak; 76 % average | OK at the design load; the 2.2 A maximum switch limit exceeds the 2.1 A rating (BOM D31) |
+| Boost inductor DFE252012F-4R7M | as above | 0.86 A peak | 1.00 A peak, ≈ 0.80 A average | 48 % peak; 53 % average | OK |
+| Rectifiers PMEG2010AEH | 1 A, 20 V (listing) | 275 mA average | 275 mA; reverse VIN + 7 V ≤ 11.4 V | 28 %; 57 % | OK |
+| LT3045 / LT3094 | 500 mA | 275 mA | 275 mA | 55 % | OK |
+| VSYS draw of the headphone rails | interim battery path 1.6 A (§4.7) | 4.8 W = **1.38 A** (η 0.8, est.) | **1.61 A** | 86 % / 100 % by itself | **Fails on the interim pack without a ceiling**: §4.11 |
+
+- **Result:** every part except the TPS65131 inverter is inside the BRD-049 rule with margin. The inverter stays at 79 % of its minimum switch limit at VIN 3.0 V by Eq. 4, and the typical curve gives ≈ 81 % there. ADR 0012's condition holds: confirm by WEBENCH or SPICE at VIN 3.0 V, ±7 V, 275 mA per rail before layout freeze, or replace the inverter by one with more margin.
+- With the interim ceiling of §4.11 in screen-off playback the rails carry ≈ 217 mA, and the inverter peak drops to 1.13 A at VIN 3.0 V (63 %).
+
+### 4.11 Interim battery: headphone output ceiling (BOM v1.3, ADR 0012)
+
+The Adafruit 328 path is budgeted at **1.6 A continuous** (§4.7), for every load together. At full scale into balanced 32 Ω the headphone rails alone draw 2 × 7 V × 275 mA / 0.8 ≈ 4.8 W from VSYS: 1.38 A at 3.5 V, **1.61 A at 3.0 V** (η 0.8 for the TPS65131 at this load, est.). Single-ended, full scale draws ≈ 1.5 W into 32 Ω (0.51 A at 3.0 V) and ≈ 2.4 W into 16 Ω (0.80 A).
+
+Headroom for the headphone rails is 1.6 A × VSYS less the rest of the system. Ceiling on a continuous full-scale sine into balanced 32 Ω, per channel, from the rail model of §4.1 (Ipk per leg = (I_rail − 20.8 mA) × π / 4, P = Ipk² × 16 Ω):
+
+| VSYS | Rest of the system (est.) | Left for the headphone rails | Ceiling, balanced 32 Ω | Below the full ≈ 640 mW |
+|---|---|---|---|---|
+| 3.5 V | 1.0 W (screen-off playback, §4.9 without the amplifier terms, rounded up) | 4.6 W | ≈ 580 mW | −0.4 dB |
+| 3.3 V | 1.0 W | 4.3 W | ≈ 490 mW | −1.1 dB |
+| **3.0 V** | **1.0 W** | **3.8 W** | **≈ 380 mW** | **−2.3 dB** |
+| 3.0 V | 3.0 W (screen on with CPU load, §4.7) | 1.8 W | ≈ 65 mW | −9.8 dB |
+
+**Requirement for OpenDAP OS (ADR 0012 condition):** while a battery path budgeted below the full output is fitted (the Adafruit 328: 1.6 A), OpenDAP OS shall limit the headphone output level so that the continuous battery current, measured by the VSYS INA236, stays at or below that budget, together with the HAT and USB-C source load of §4.6. The design figure for screen-off playback is **≈ 380 mW per channel into balanced 32 Ω at VSYS 3.0 V** (≈ −2.3 dB under the full output); single-ended output stays below the ceiling except at 16 Ω with a high system load. The full output needs an ADR 0011 pack. The system figures are estimates (T1-026); the ceiling is enforced on the measured current, not on these numbers.
+
+- **With an ADR 0011 pack:** the full output budget of §4.7 (15.9 W from VSYS) counts the system at 3.0 W and has no separate headphone term; the full-scale balanced 32 Ω sine adds ≈ 4.8 W. OpenDAP OS must budget headphone and HAT/USB-C power together, or the budget grows: a decision for the maintainers (BOM §7 item 17).
+
 ## 5. Power-gating map
 
 Default state is the state with no software running (pull resistors). "SoC GPIO" means a RK3566 GPIO in a 1.8 V bank unless noted; ball assignment waits for the pin-multiplexing study.
@@ -340,8 +374,8 @@ Default state is the state with no software running (pull resistors). "SoC GPIO"
 | DAC VP (both) | DAC_VP | TPS22919 | SoC GPIO `DAC_VP_EN` | off | QOD | VP first on, last off |
 | DAC analog + clocks | AUDIO_2V2, DACx_VA, MCLK_3V1 | TPS62840 EN, TPS7A2018 EN, TPS7A2031 EN | SoC GPIO `AUDIO_LN_EN` | off | TPS7A20 smart pulldown, TPS62840 active discharge | — |
 | MCLK family select | NZ2520SDA ×2 | ST pin (tri-state) | `MCLK441_EN`, `MCLK48_EN` at 3.3 V logic (TCA6416A or single-bit translator, pinout v1) | both standby (pull-down on each ST pin; an open ST enables the output) | — | Never both enabled |
-| HP amp rails | AUDIO_P6V0/N6V0, HPA_P5V0/N5V0 | TPS65131 ENP/ENN; TPS7A4901 and TPS7A3001 EN | `HPA_RAIL_EN` (pre-rails), then `HPA_LDO_EN` (both LDOs), 3.3 V logic (LDO EN thresholds ≥ 2.1 V and ≥ 2 V) | off | — | Symmetric ramp from matched soft-start, CNR/SS 10 nF / 15 nF (§4.2, OPA1622 §7.4.2) |
-| HP amp outputs | per package | OPA1622 EN (×4) | SoC GPIO `HPA_SE_EN`, `HPA_BAL_EN` | low (shutdown, 5 µA/ch) | — | EN low during rail ramps |
+| HP amp rails | AUDIO_P7V0/N7V0, HPA_P6V0/N6V0 | TPS65131 ENP/ENN; LT3045 and LT3094 EN/UV (v1.3) | `HPA_RAIL_EN` (pre-rails), then `HPA_LDO_EN` (both LDOs), 3.3 V logic (EN/UV thresholds 1.24 V and +1.26 V) | off | — | Symmetric ramp from equal RSET × CSET, ≈ 65 ms (§4.2, OPA1622 §7.4.2) |
+| HP amp outputs | per package | OPA1622 EN (×6: 2 SE, 4 balanced) | SoC GPIO `HPA_SE_EN`, `HPA_BAL_EN` | low (shutdown, 5 µA/ch) | — | EN low during rail ramps; on battery the level is capped by §4.11 |
 | Speaker amp | VSYS | MAX98357A SD_MODE | SoC GPIO `SPK_SD` | shutdown | — | Device shutdown, no extra switch |
 | Microphones + privacy LED | MIC_1V8 | TPS22919 | SoC GPIO `MIC_EN` | off | QOD | LED gate driven by MIC_1V8 itself (BRD-027) |
 | Faceplate logic | FP_VCI, FP_3V3, FP_1V8 | RK809 LDO4, TPS22919 ×2 | RK809 I2C, expander `FP_IO_EN` | off | QOD | Panel and touch reset low first |
@@ -375,8 +409,8 @@ Default state is the state with no software running (pull resistors). "SoC GPIO"
 1. `DAC_VP_EN` (VP first, DS1156F2 §5.2).
 2. `DAC_DIG_EN`, `AUDIO_LN_EN`, one `MCLKxx_EN`. Wait for the XO start-up (≤ 4 ms) and LDO settling.
 3. Release the CS43198 RESET (≥ 1 ms low pulse already done), program over I2C, keep outputs muted (Popguard).
-4. `HPA_RAIL_EN`: TPS65131 ENP and ENN together; once the ±6 V pre-rails settle, `HPA_LDO_EN` raises both LDO ENs together, so the ±5 V rails ramp on the matched 14 / 13.5 ms soft-start (§4.2, OPA1622 §7.4.2). OPA1622 EN stays low.
-5. After the rails are in regulation (LDO PG or a fixed delay), raise the OPA1622 EN for the selected output only.
+4. `HPA_RAIL_EN`: TPS65131 ENP and ENN together; once the ±7 V pre-rails settle, `HPA_LDO_EN` raises both LDO EN/UV pins together, so the ±6 V rails ramp on equal RSET × CSET soft-starts, ≈ 65 ms (§4.2, OPA1622 §7.4.2). OPA1622 EN stays low.
+5. After the rails are in regulation (a fixed delay: PG is unused because fast start-up is disabled), raise the OPA1622 EN for the selected output only.
 6. Unmute with the DAC's soft ramp.
 
 ### 6.3 Audio power-down
@@ -403,8 +437,10 @@ Datasheets with revision, date and sha256 are listed once, in the [BOM v1 Datash
 - Rockchip RK809 datasheet Rev 1.01 (2018-08-28): <https://rockchip.fr/RK809%20datasheet%20V1.01.pdf>
 - TI TPS65131, SLVS493E (Apr 2022): <https://www.ti.com/lit/ds/symlink/tps65131.pdf>
 - TI LM27762, SNVSAF7C (Oct 2025): <https://www.ti.com/lit/ds/symlink/lm27762.pdf>
-- TI TPS7A49, SBVS121E (May 2015): <https://www.ti.com/lit/ds/symlink/tps7a49.pdf>
-- TI TPS7A30, SBVS125D (Jun 2015): <https://www.ti.com/lit/ds/symlink/tps7a30.pdf>
+- TI TPS7A49, SBVS121E (May 2015): <https://www.ti.com/lit/ds/symlink/tps7a49.pdf> (part removed in v1.3)
+- TI TPS7A30, SBVS125D (Jun 2015): <https://www.ti.com/lit/ds/symlink/tps7a30.pdf> (part removed in v1.3)
+- ADI LT3045, Rev. D (Nov 2022), and LT3094, Rev. B (Jan 2020), read through the LCSC mirror (BOM Datasheets table) (v1.3)
+- TI TPS62826, SLVSEF9I (Mar 2024), Table 8-5 (v1.3 inductor): <https://www.ti.com/lit/ds/symlink/tps62826.pdf>
 - TI TPS7A20, SBVS338H (Jul 2024): <https://www.ti.com/lit/ds/symlink/tps7a20.pdf>
 - TI TPS7A94, SBVS336C (Jun 2023): <https://www.ti.com/lit/ds/symlink/tps7a94.pdf>
 - TI TPS62840, SLVSEC6D (Mar 2020): <https://www.ti.com/lit/ds/symlink/tps62840.pdf>
@@ -424,7 +460,7 @@ Datasheets with revision, date and sha256 are listed once, in the [BOM v1 Datash
 ## 8. Open questions
 
 1. **BRD-023 frequencies:** closed (22.5792/24.576 MHz, BRD-023 corrected).
-2. **Output targets:** is 4 Vrms balanced / 2 Vrms single-ended the right target, and must the 3.5 mm output drive 16 Ω at full level (parallel halves) or is the low-power single-half build preferred?
+2. **Output targets:** closed in v1.3 by ADR 0012 (segment output into low-impedance headphones; paralleled halves on every package, §4.1).
 3. **MCLK:** stocked 3.3 V NSC5083D with a passive attenuator into the 1.8 V XTI input (ADR 0010); SPICE check pending.
 4. **RK809-5 OTP sequence:** confirm with Rockchip (or the RK3566 hardware design guide) the OTP defaults. VCC5–VCC9 on vcc3v3_sys follows the ROCK 3C v1.4 (RK809-5) and three mainline device trees; feeding VCC1–VCC4 from VSYS follows the datasheet application circuit only.
 5. **Is the NPU supply separate on the RK3566 (BUCK4) or shared with the GPU** as on RK817 handhelds? This decides whether BUCK4 is free.
@@ -432,14 +468,16 @@ Datasheets with revision, date and sha256 are listed once, in the [BOM v1 Datash
 7. **Backlight driver location:** main board (proposed, keeps faceplates passive) or on each faceplate?
 8. **HAT power classes and the battery (v1.2):** the board carries the full output budget (§4.6–4.7); the interim pack still leaves about 0.4 A at 5.1 V on battery. ADR 0011 (Proposed) sets the pack criteria; no stocked pack meets them yet. Accept ADR 0011 and its budget definition, and choose a fallback if no pack is found.
 9. **eMMC power in suspend:** keep vcc3v3_sys on, or power the eMMC down in suspend?
-10. **HP-amp +5 V LDO (v1.2):** 81 % of the TPS7A4901 rating at the worst continuous sine (§4.10); LT3045/LT3094 proposed, pending their datasheets.
+10. **HP-amp +5 V LDO (v1.2):** closed in v1.3 by ADR 0012 (LT3045/LT3094 at ±6 V, 55 %).
+11. **TPS65131 inverter (v1.3, ADR 0012 condition):** simulate at VIN 3.0 V, ±7 V, 275 mA per rail before layout freeze, or replace the inverter (§4.10.1).
+12. **Headphone and HAT power on an ADR 0011 pack (v1.3):** budget them together, or grow the full output budget (§4.11)?
 
 ## 9. Risks
 
 1. **SoC power is unmeasured.** The 450–800 mW SoC estimate dominates the runtime figure; a ±30 % error moves runtime by hours. *Mitigation:* measure on a Radxa ZERO 3W or Quartz64 with mainline 7.2 and the INA236 plan.
 2. **RK809-5 OTP defaults unknown.** A wrong mapping can put a wrong voltage on a rail at boot. *Mitigation:* the VCC feeds and rail names copy the ROCK 3C v1.4 (RK809-5); confirm the OTP table with Rockchip.
-3. **TPS65131 output current at low battery** is read from a curve, not a table. *Mitigation:* SPICE/WEBENCH at VIN = 3.4 V, ±6 V, 150 mA; the LM27762 + boost option stays as a fallback.
-4. **OPA1622 parallel halves** for 16 Ω drive are not validated. *Mitigation:* simulate; fall back to one half per channel.
+3. **TPS65131 output current at low battery** is read from a curve, not a table, and v1.3 puts the inverter at 79 % of its minimum switch limit at VIN 3.0 V. *Mitigation:* SPICE/WEBENCH at VIN = 3.0 V, ±7 V, 275 mA per rail (ADR 0012); the interim ceiling of §4.11 lowers the load on the Adafruit 328; a converter with more margin is the fallback.
+4. **OPA1622 parallel halves** (v1.3: every package) are not described by TI. *Mitigation:* simulate current sharing and stability with the 1.0 Ω ballast and 400 pF loads (TINA-TI model availability **UNVERIFIED**), then measure maximum power, THD+N and output impedance on the first board (research §6).
 5. **VBUS surge coordination:** TVS2200 clamp at 40 A (28.4 V) is above the TPS2121 (24 V) and BQ25895 (22 V) absolute maxima. *Mitigation:* decide whether IEC 61000-4-5 applies to the USB-C port; if it does, add series OVP or choose a lower-clamp TVS with a 14 V standoff and accept the 20 V fault case.
 6. **Self-feeding loops** through TPS2121 IN1/IN2 when the T1 sources 5 V. *Mitigation:* hardware OR of `USB_SRC_ON`/`HAT_SRC_ON` into OV1/OV2 (finding 11); verify the OV pin drive levels against SLVSEA3F.
 7. **MCLK attenuator** (ADR 0010): the edge at XTI must stay within the VL input limits. *Mitigation:* SPICE with the CS43198 input capacitance before layout freeze; J-test captures on the first boards.
@@ -448,3 +486,4 @@ Datasheets with revision, date and sha256 are listed once, in the [BOM v1 Datash
 10. **Thermal:** RK3566 + RK809 + RK860 + charger in a 25 mm sealed body; not modelled. *Mitigation:* thermal simulation once the board outline exists.
 11. **vcc3v3_sys peak** (1.85 A est.): closed in v1.2 by the 3 A TPS62826 (62 %). *Mitigation:* re-sum from the schematic; the 4 A TPS62827 is pin- and BOM-compatible.
 12. **Ratings not yet published** for the RK860-0 and the RK809 BUCK1–4 peak loads of the RK3566 (§4.10). *Mitigation:* measure on a reference board; RK860 datasheet from Rockchip.
+13. **Interim-pack output ceiling** depends on OpenDAP OS (§4.11). *Mitigation:* the 2.5 A battery fuse still bounds a software failure (§4.7); the ceiling acts on the measured VSYS current.

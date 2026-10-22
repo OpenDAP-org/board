@@ -17,7 +17,7 @@ ADR 0009 excluded "a 3.3 V oscillator behind a level translator" because an acti
 ## Decision
 
 - **Oscillators:** NDK NSC5083D-22.5792M and NSC5083D-24.576M (NZ2520SDA, 3.3 V), one per rate family, the DAC as clock master (BRD-023).
-- **Supply:** a dedicated low-noise LDO, MCLK_3V3 (TI TPS7A2033), only for the two oscillators.
+- **Supply:** a dedicated low-noise LDO, MCLK_3V1 (TI TPS7A2031, 3.1 V), only for the two oscillators. 3.1 V is inside the NSC5083D supply range (2.97–3.63 V) and keeps the LDO's recommended 0.3 V headroom with VSYS down to 3.4 V on battery (BOM v1.1, D5). Phase noise at 3.1 V is **UNVERIFIED**; the catalogue figure is at 3.3 V.
 - **Level adaptation:** a passive, series-terminated resistive attenuator from each oscillator output into the shared MCLK net at the CS43198 XTI/MCLK input (VL 1.8 V). No active translator in the clock path. The values are set in the schematic so the edge at XTI stays inside the VL input limits and does not slow down materially; this is checked by SPICE with the CS43198 input capacitance before layout freeze.
 - **Tri-state:** each oscillator's ST pin is driven at 3.3 V logic (from the TCA6416A expander, or a single-bit translator if the expander port is not at 3.3 V; fixed in pinout v1). One oscillator runs at a time.
 - **Second source:** a stocked 3.3 V audio-grade XO in a compatible package, to be qualified (Crystek CCHD-957 class; stock **UNVERIFIED**).
@@ -26,6 +26,6 @@ ADR 0009 excluded "a 3.3 V oscillator behind a level translator" because an acti
 ## Consequences
 
 - BOM v1 lines 20–21 are *Decided* with authorized stock. No part on the clock path depends on a quote.
-- The power tree replaces MCLK_1V8 with MCLK_3V3. Its TPS7A2033 runs from VSYS, whose minimum is 3.5 V (VSYSMIN), which leaves enough headroom at 15 mA.
+- The power tree replaces MCLK_1V8 with MCLK_3V1 from VSYS. VSYS follows the battery, so a 3.3 V output would not keep the LDO's headroom at low charge (amended 2026-10-22 with BOM v1.1).
 - The SoC GPIOs that drove the oscillator enables at 1.8 V (pin plan 4_B4, 4_C0) are freed or reassigned in pinout v1.
 - Verification: SPICE for the attenuator edge, then the J-test and THD+N captures of the verification toolkit on the first boards.

@@ -52,6 +52,8 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-046 | Ideally everything goes through the main USB-C, including the serial console from as early in boot as possible: U-Boot and Linux expose a USB serial (CDC-ACM) console on it. | should | Confirmed |
 | BRD-047 | UART test pads shall exist for bring-up of the earliest boot stages (BootROM, TPL/SPL), which cannot use USB. | must | Confirmed |
 | BRD-048 | The board shall route enough dedicated signals to the faceplate for almost any display and touch connection standard, so that a change of display or touch part needs no board redesign. | must | Confirmed |
+| BRD-049 | Power safety comes first: every rail, converter, connector and cable shall run with margin below its rating and shall be protected. A safer power design is preferred over a smaller or cheaper one. | must | Confirmed |
+| BRD-050 | The battery path shall carry enough current for the full HAT and USB-C output budget on battery, with a more robust battery connection if the off-the-shelf lead or connector cannot. | must | Confirmed |
 
 ## Open questions
 

@@ -231,7 +231,7 @@ Corrected to the [pin multiplexing study](../research/2026-10-pin-multiplexing-v
 | PMUIO1 | 3.3 V (fixed) | PMIC_INT, PMIC_SLEEP, TSADC_SHUT, HAT_DET#, HAT_INT#, SD detect | none |
 | PMUIO2: I2C0 | 1.8 V | RK809 0x20, RK860-0 0x40 | RK809/RK860 at 1.8 V as on Radxa ZERO 3 and Quartz64-B |
 | PMUIO2: I2C1 | 1.8 V | FUSB302B 0x22, MAX17055 0x36, BQ25895 0x6A, INA236 ×4 0x40–0x43 | VIH of FUSB302B, MAX17055, BQ25895 at 1.8 V **UNVERIFIED**; INA236 is 1.2 V-compliant |
-| PMUIO2: I2C2 M0 | 1.8 V | TCA6416A 0x21, CS43198 0x30 (ADR to GND) and 0x31 (ADR 4.99 kΩ to GND), AT24C02D 0x57, LSM6DSV16X 0x6A, RP2354A (to be assigned) | CS43198 VIH = 0.7 × VL |
+| PMUIO2: I2C2 M0 | 1.8 V | TCA6416A 0x21, CS43198 0x30 (ADR to GND) and 0x31 (ADR 4.99 kΩ to GND), AT24C02D 0x50 (SOT23 has no address pins), LSM6DSV16X 0x6A, RP2354A (to be assigned) | CS43198 VIH = 0.7 × VL |
 | PMUIO2: UART0, UART2, wake INTs | 1.8 V | RP2354A, debug pads | 1.8 V debug adapter |
 | VCCIO1 | 3.3 V | HAT UART, HAT JTAG, PCIe sidebands | none |
 | VCCIO2 | 1.8 V | eMMC (FLASH_VOL_SEL high), RP2354A SWD, OPA1622 EN, MAX98357A SD_MODE | none |
@@ -312,6 +312,38 @@ Closed by the cross-validation: BRD-023 frequencies (confirmed), MaskROM entry (
 12. **MaskROM combo timing** against the RK3566 BootROM is unverified (lines 97–98).
 13. **Clone parts on LCSC** (TPD4E05U06, TVS2200, TPS7A2050 clones): the commercial edition must pin genuine-brand C-codes.
 14. **Stock is a 2026-10-22 snapshot**; Digi-Key was only partly re-checked; PCBWay has no public catalog.
+
+## 9. Datasheet review (spec sheets, 2026-10-22)
+
+Writing the [parts-lib](https://github.com/opendap-project/parts-lib) spec sheets for every line checked each pick against its datasheet. *Resolved* items are decided here (under the maintainers' delegation); *Open* items must be closed in BOM v1.1 before schematic capture. Each spec sheet carries the datasheet references.
+
+| # | Lines | Finding (source: parts-lib sheet) | Status and action |
+|---|---|---|---|
+| D1 | 17 | AT24C02D in SOT23 has no A0–A2 pins: it answers only at 0x50, not 0x57 | Resolved: 0x50 on I2C2 (free; address map in §4 updated) |
+| D2 | HPA rails | TPS7A4901 EN needs ≥ 2.1 V and TPS7A3001 EN ≥ 2 V; a 1.8 V GPIO cannot enable them | Resolved: `HPA_RAIL_EN` is driven at 3.3 V logic (TCA6416A port at 3.3 V or a single-bit translator, pinout v1) |
+| D3 | HPA rails | The two LDOs ramp at different rates per nF of soft-start capacitance; equal capacitors do not give a symmetric ±5 V ramp | Open: size NR/SS capacitors per datasheet curves; verify by SPICE |
+| D4 | 28 | TPS62840: 2.2 V is a valid setting (RSET 4.32 kΩ); the 1 µH inductor alternative is not allowed | Resolved: 2.2 V confirmed; 1 µH alternative removed |
+| D5 | 20–21, 29 | TPS7A2033 has 0.2 V headroom at VSYS 3.5 V; TI recommends ≥ 0.3 V. NDK gives phase noise at 22.5792 MHz only. ST of the idle oscillator needs a defined low from power-up | Open: MCLK_3V3 headroom (lower-dropout LDO or a pre-regulated rail); ST pull-downs added to the schematic checklist |
+| D6 | RP2354A | QSPI flash supply and two other supplies need 3.3 V with I/O at 1.8 V; crystal circuit tuned for 3.3 V I/O; firmware must select 1.8 V I/O | Open: power tree adds the 3.3 V pins; crystal load re-derived; firmware note |
+| D7 | 36, 74 | TPD1E10B06 must sit at the connector, not at the OPA1622 feedback node | Resolved: placed at the jack and button pads |
+| D8 | 95 | SN74AXC2T45 has no OE pin, so it cannot isolate an absent HAT | Open: replace with a 2-bit translator with OE |
+| D9 | 94 | TCA9406 is not a pin-compatible second source for the PCA9306; the PCA9306 EN must be at the 3.3 V side | Resolved: TCA9406 removed as second source; EN tied per the datasheet application circuit |
+| D10 | 97–98 | TPS3839 delay is 120–350 ms, not 200 ms; SN74LVC1G27 has no specified hysteresis and needs fast edges | Open: MaskROM window spec widened to 120–350 ms; gate with Schmitt-trigger inputs |
+| D11 | 76 | KMR2 travel is 0.25 mm: still fails T1-022 | Open (already open in §7) |
+| D12 | 66 | DF40 corner contacts are metal hold-downs: 96 + 26 usable contacts, one fewer than the 97 allocated on the 100-pin | Open: re-allocate one signal; 5 Gb/s rating still UNVERIFIED |
+| D13 | 57 | Molex 146187-0050 is a rigid PCB antenna with a cable, not an FPC antenna | Resolved: description corrected here; part kept |
+| D14 | 81 | The display has a single DSI lane and an ILI9488 controller; no mainline DRM driver was confirmed; VCI absolute maximum 3.3 V | Open, major: driver path for the display (faceplate-touch ADR 0001) must be re-checked |
+| D15 | 85 | The display spec names no connector for the 6-pin touch tail; FH12-6S is not backed by the spec | Open: confirm with the display maker's drawing |
+| D16 | 79 | Green LED VF reaches 3.7 V at 20 mA; a 3.3 V drive cannot reach it | Open: lower current or another LED |
+| D17 | 72 | TPD6E05U06 RVZ package drawing is not in the datasheet | Open: obtain TI's package drawing |
+| D18 | 38 (HAT boost) | TPS61088: TI returns 404 for datasheet and product page | Open, availability: confirm status; pick a stocked boost if it is not active |
+| D19 | 2 | The public RK809 datasheet covers the RK809-1 (OTP: BUCK4 3.0 V, BUCK5 3.3 V); the RK809-5 defaults are unknown. SWOUT1 is 1.5 A and SWOUT2 3 A (reversed in the power tree); SWOUT2 is fed from VCC8, and the reference circuit feeds VCC6 and VCC8 from BUCK5; LDO4 is 400 mA or 100 mA depending on the table | Open, major: power tree §3 re-derived from a reference board using the RK809-5 |
+| D20 | 16 | BQ25895: TS thresholds are fixed REGN fractions (0–40 °C only through the NTC divider); watchdog expiry restores 2048 mA; OTG pin must be tied low | Resolved: NTC divider sized for 0–40 °C; OTG tied low; OpenDAP OS services the watchdog (requirement to add in opendap-os) |
+| D21 | 20 (mux) | TPS2121 RON up to 100 mΩ (0.4 W at 2 A); OV1 threshold differs between BOM (≈ 13.7 V) and power tree (≈ 14.5 V) | Open: thermal check and one OV1 value |
+| D22 | 19 | TPS259470: current-limit accuracy about ±15 % at 1 A; TI recommends a TVS from OUT to IN on the USB-C eFuse | Resolved: TVS added to the USB-C eFuse (part chosen in v1.1); limits set with the tolerance |
+| D23 | INA236 | Powers up converting continuously; 100 mΩ shunts cap the audio and display monitors at 0.82 A | Resolved: driver configures it at boot; shunts resized in v1.1 |
+| D24 | 46 | JST PH 2 A rating is for AWG #24; the Adafruit 328 lead is 26 AWG, so the 2.0 A battery budget is unconfirmed | Open: derate or confirm with JST/Adafruit data |
+| D25 | Backlight | TPS61169 open-LED protection up to 39 V leaves 1 V margin on the 40 V PMEG4010CEH; orderable part rated −40 to 85 °C | Open: 60 V-class Schottky |
 
 ## Datasheets
 

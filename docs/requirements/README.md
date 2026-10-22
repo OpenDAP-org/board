@@ -17,7 +17,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-011 | The board shall provide a 3.5 mm and a 4.4 mm headphone output. | must | Confirmed |
 | BRD-012 | The integrated mono speaker shall be driven independently of the DAC. | must | Confirmed |
 | BRD-013 | The board repository shall own the specification of the flat cable from the board to the device-side piece of the HAT case. | must | Confirmed |
-| BRD-014 | The board shall include a Raspberry Pi RP-series microcontroller as an orchestration coprocessor. The exact part is not fixed yet. | must | Confirmed |
+| BRD-014 | The board shall include a Raspberry Pi RP-series microcontroller as an orchestration coprocessor. The exact part is not fixed yet. | should | Confirmed |
 | BRD-015 | OpenDAP OS shall be able to flash and update the RP coprocessor. | must | Confirmed |
 | BRD-016 | The board shall provide a MaskROM button for recovery flashing. | must | Confirmed |
 | BRD-017 | The board shall provide a recovery key. | must | Confirmed |
@@ -34,12 +34,12 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-028 | The first intention is a single PCB carrying the SoC, the DAC chipset and the rest of the electronics (no system-on-module). Not final. | should | Confirmed |
 | BRD-029 | The T1 shall have Wi-Fi and Bluetooth. | must | Confirmed |
 | BRD-030 | The T1 should support item tracking over Bluetooth, in the style of an AirTag. | should | Confirmed |
-| BRD-031 | An ambient-noise microphone shall sit at the top right of the device, in addition to the main microphone on the faceplate. | must | Confirmed |
-| BRD-032 | The board shall include an IMU. | must | Confirmed |
+| BRD-031 | An ambient-noise microphone shall sit at the top right of the device, in addition to the main microphone on the faceplate. | should | Confirmed |
+| BRD-032 | The board shall include an IMU. | should | Confirmed |
 | BRD-033 | PCIe on the board PCB is nice to have, not required. | should | Confirmed |
 | BRD-034 | The main USB-C port shall support as much as possible: OTG, flashing, debugging, working with the device, file transfer, charging, and acting as a host when needed. | must | Confirmed |
 | BRD-035 | The main / power button shall also be the boot-mode (MaskROM) button. | must | Confirmed |
-| BRD-036 | Every button of the T1 should be accessible to developers; at least the Action button shall be. | must | Confirmed |
+| BRD-036 | The Action button shall be accessible to developers. | must | Confirmed |
 | BRD-037 | Memory: most likely 4 GB of RAM and 32 GB of storage. | should | Draft |
 | BRD-038 | The T1 shall have an SD/TF card slot; the more storage, the better. | must | Confirmed |
 | BRD-039 | The early serial console shall follow the same path as the main USB-C port. | must | Confirmed |
@@ -59,6 +59,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-053 | The board shall support assembly variants: prototypes populate every option to validate the full functionality, and production variants may leave optional parts unpopulated (DNP) or fit lower-cost equivalents on the same footprint, without a board respin. Every optional part is marked as such in the BOM, with its variant. | must | Confirmed |
 | BRD-054 | The main board may use every technique that gets the most from the device: HDI (laser microvias, via-in-pad), both sides populated, as many inner layers as the routing and signal integrity need, and shielding cans. | must | Confirmed |
 | BRD-055 | Every board, flat cable (FPC and rigid-flex) and assembly shall be producible as a prototype through PCBWay, using its services as far as possible (fabrication, HDI, flex, stencils, SMT and BGA assembly, parts sourcing), within the processes PCBWay publishes. | must | Confirmed |
+| BRD-056 | Every other button of the T1 should be accessible to developers too (split from BRD-036). | should | Confirmed |
 
 ## Open questions
 
@@ -66,6 +67,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 
 ## Context
 
+- Priorities revised on 2026-10-22 under the maintainers' delegation ([priority audit](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-requirement-priorities.md)): BRD-014 (RP2354A coprocessor), BRD-031 (ambient-noise microphone) and BRD-032 (IMU) are should and become population options (BRD-053). BRD-014 holds as should only while no must function depends on the coprocessor; the pin plan currently routes wake lines to it, so those move to the SoC or the expander before the coprocessor can be left unpopulated. BRD-036 split into BRD-036 (must) and BRD-056 (should).
 - BRD-054, BRD-055 (maintainers, 2026-10-22): HDI and advanced build-ups are welcome as long as PCBWay can prototype them with its own services. The fab rules live in kicad-lib (KLIB-002), one rule set per PCBWay process.
 - BRD-053 (maintainers, 2026-10-22): prototypes may exceed the production cost limits to validate everything; production simply omits parts. Value engineering therefore targets the production variant, and optional parts are designed in as population options from the start.
 - BRD-051: UHS-II (SD 4.0) needs a second row of contacts and SoC support the RK3566 does not have (RK3568 datasheet Rev 1.0, p. 8: SD 3.0, 4-bit). The board already provides the switchable 1.8/3.3 V VCCIO3 and 1.8 V-rated ESD for SDR104 (BOM lines 11, 73).

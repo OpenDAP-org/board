@@ -333,7 +333,7 @@ Forcing strength with 1 kΩ: D0 = 1.8 V × 1 kΩ / (1 kΩ + R<sub>PU</sub>) = 0.
 
 Consequences to accept or reject (maintainers):
 
-- Holding Main + Volume − during the first 1.2–3.4 s after RESETB disturbs any eMMC access then (BootROM, or U-Boot if the BootROM was quicker): that is the MaskROM request by definition. OpenDAP OS is not running yet, so the runtime screenshot and power-menu combinations are unaffected.
+- Holding Main + Volume − during the first 1.2–3.4 s after RESETB disturbs any eMMC access then (BootROM, or U-Boot if the BootROM was quicker): that is the MaskROM request by definition. Blackbird OS is not running yet, so the runtime screenshot and power-menu combinations are unaffected.
 - A warm restart that keeps vcca1v8_pmu up does not reopen the window: MaskROM through the buttons needs a full power-off, as the controls spec says ("held at power-on"); software can still reboot into the loader.
 - The TPS3808G01 is a different part from the TPS3839 (SOT-23-6 vs SOT-23-3); stock was not re-captured here (**UNVERIFIED**).
 

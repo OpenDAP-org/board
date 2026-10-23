@@ -17,7 +17,7 @@ The [headphone output power research](../research/2026-10-headphone-output-power
 
 ## Conditions (BRD-049)
 
-- **Interim battery:** a full-scale balanced 32 Ω sine draws about 1.4–1.6 A from VSYS, at the interim pack's 1.6 A budget. While the Adafruit 328 is fitted, OpenDAP OS applies an output ceiling that keeps the battery current inside its budget; the full output needs an ADR 0011 pack.
+- **Interim battery:** a full-scale balanced 32 Ω sine draws about 1.4–1.6 A from VSYS, at the interim pack's 1.6 A budget. While the Adafruit 328 is fitted, Blackbird OS applies an output ceiling that keeps the battery current inside its budget; the full output needs an ADR 0011 pack.
 - **Inverter margin:** the TPS65131 inverter runs at 72–79 % of its minimum switch current limit, at the edge of the 80 % rule. Confirmed by simulation before layout freeze, or the inverter is replaced by one with more margin.
 - **Current sharing** between paralleled halves and the LT3045/LT3094 figures (datasheets not yet read in full) are **UNVERIFIED** until simulated and measured.
 

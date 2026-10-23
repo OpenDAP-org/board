@@ -158,7 +158,7 @@ OTG0 HS (usb2phy0_otg) --------------------------- USB-C D+/D- (always)
   - **Alternative:** a TI **HD3SS3220** (DRP controller with a built-in 2:1 SuperSpeed mux, automatic orientation, mainline [`hd3ss3220.c`](https://github.com/torvalds/linux/blob/master/drivers/usb/typec/hd3ss3220.c) with role switch). It removes MUX-B and the GPIO, but it **has no USB PD**. Charging would be capped at Type-C current (5 V 3 A), and it cannot share the CC pins with a FUSB302B. It is only worth it if PD is dropped.
   - For a Type-C crossbar there is also Diodes `pi3usb30532` (I2C, mainline `TYPEC_MUX_PI3USB30532`). It is overkill without DisplayPort alt mode.
 - **USB 2 half in "C-port USB 3 host" mode.** The C-port D+/D− stay on **OTG0** (in host role when the port is a DFP), and the SuperSpeed lanes come from **HOST1**. A USB 3 peripheral then links SuperSpeed on HOST1. If SuperSpeed training fails, it falls back to USB 2 on OTG0. A USB 3 hub plugged in would show its USB 2 part on OTG0 and its SuperSpeed part on HOST1. Linux tolerates this split: they appear as two independent root ports without peer-port pairing. Pairing the USB 2 half of the USB-C with a different controller than its SuperSpeed half is **UNVERIFIED** for compliance and robustness and **must be bench-tested**. Fallback: a USB 2 2:1 switch (TI **TS3USB221A** or Diodes **PI3USB102**) that moves HOST1-HS to the C-port together with MUX-A. In that case the HAT's USB 2 half moves to EHCI host 1 for that time.
-- **Selection policy (OpenDAP OS).** The HAT wins when its EEPROM declares USB 3 use. Otherwise the C-port wins when a USB 3 device is attached as DFP. Switching MUX-A looks like an unplug/replug to xHCI, which is harmless. The select line is a plain GPIO (`gpio-line-names`, libgpiod) or a `gpio-mux` mux-controller.
+- **Selection policy (Blackbird OS).** The HAT wins when its EEPROM declares USB 3 use. Otherwise the C-port wins when a USB 3 device is attached as DFP. Switching MUX-A looks like an unplug/replug to xHCI, which is harmless. The select line is a plain GPIO (`gpio-line-names`, libgpiod) or a `gpio-mux` mux-controller.
 - **HCS-004:** met. When selected, the HAT path is passive and dedicated, with no shared bandwidth and no added latency.
 
 #### Option U3: USB 3 hub on HOST1 (both ports usable at once)
@@ -362,7 +362,7 @@ Sourcing flags:
 
 ### 5.4 Linux support summary
 
-- **Muxes:** no driver in the data path. Select lines are GPIOs, controlled by OpenDAP OS (libgpiod) or modelled as a `gpio-mux` mux-controller. C-port orientation comes from TCPM through a Type-C `orientation-switch`.
+- **Muxes:** no driver in the data path. Select lines are GPIOs, controlled by Blackbird OS (libgpiod) or modelled as a `gpio-mux` mux-controller. C-port orientation comes from TCPM through a Type-C `orientation-switch`.
 - **Hubs:** the USB hub class is driverless. `onboard_usb_dev` is optional, for power and reset.
 - **PCIe switches:** standard PCI-to-PCI bridges, nothing special.
 - **Combo PHY mode:** set by the DT or an overlay (`PHY_TYPE_USB3`, `PHY_TYPE_SATA` or `PHY_TYPE_PCIE`). The HAT EEPROM drives which overlay U-Boot applies.

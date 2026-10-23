@@ -93,7 +93,7 @@ The commit message of `c3746b35` places one backup bit at "reg 0x0f[1]" and back
 
 A unified diff against master, `Documentation/devicetree/bindings/mfd/ti,bq25703a.yaml`, 10 insertions and 4 deletions: the compatible becomes `oneOf` an enum (`ti,bq25703a`, `ti,bq25792`) or the pair `ti,bq25798` + `ti,bq25792`, and the BQ25792 limits apply when the compatible **contains** `ti,bq25792`. It is identical to linux-next `c3746b35b050` and was checked to apply cleanly to master (`git apply --check`). **It was not sent** and should not be: upstream already carries it. No C change is needed. The draft and an illustrative charger and gauge device-tree fragment are kept in the session scratch area, not in this repository.
 
-For OpenDAP OS (OS-023, [opendap-os ADR 0007](https://github.com/opendap-project/opendap-os/blob/main/docs/adr/0007-kernel-modules-through-dkms.md)), the DKMS package for the charger is the mainline `bq257xx` MFD and charger built from source, carrying `56d974f3ad07` (volatile registers) until it reaches the Debian kernel. The device tree uses `compatible = "ti,bq25798", "ti,bq25792"`.
+For Blackbird OS (OS-023, [blackbird-os ADR 0007](https://github.com/opendap-project/blackbird-os/blob/main/docs/adr/0007-kernel-modules-through-dkms.md)), the DKMS package for the charger is the mainline `bq257xx` MFD and charger built from source, carrying `56d974f3ad07` (volatile registers) until it reaches the Debian kernel. The device tree uses `compatible = "ti,bq25798", "ti,bq25792"`.
 
 ---
 
@@ -179,7 +179,7 @@ GlobTek (2S packs in the Digi-Key listings) may also build to specification; its
 ## 5. Consequences for ADR 0014
 
 - **"Confirm the BQ25798 register map against the mainline BQ25792 support":** confirmed for every register the driver uses (§1.2); the only unread item is the BQ25792 REG48 value, which the driver does not use.
-- **"Send the ID upstream":** already done upstream by another contributor (`c3746b35b050`, linux-next). OpenDAP OS uses the fallback compatible and ships `bq257xx` through DKMS until Debian enables it.
+- **"Send the ID upstream":** already done upstream by another contributor (`c3746b35b050`, linux-next). Blackbird OS uses the fallback compatible and ships `bq257xx` through DKMS until Debian enables it.
 - **"Confirm Debian's `BATTERY_BQ27XXX_I2C` on arm64":** it is **off**. The BQ28Z610 front end also needs DKMS (or a Debian config change).
 - **Pack:** no stocked pack fits; request quotes from at least two makers in §4.
 - **New board-level items:** decide whether to fit the BQ25798 ship FET (the driver sets SFET_PRESENT); do not route the charger OTG in the device tree; review the disabled watchdog under BRD-049.

@@ -134,7 +134,7 @@ Sources: [bq27xxx_battery_i2c.c](https://github.com/torvalds/linux/blob/master/d
 
 ### 4.1 Battery current for the full output budget at 2S
 
-Same loads as power tree §4.7, at the 2S equivalent of the 3.3 V shed point: **VSYS = 6.6 V** (3.3 V per cell), below which OpenDAP OS sheds HAT and USB-C load.
+Same loads as power tree §4.7, at the 2S equivalent of the 3.3 V shed point: **VSYS = 6.6 V** (3.3 V per cell), below which Blackbird OS sheds HAT and USB-C load.
 
 | Load | Output | Converter, efficiency | From VSYS |
 |---|---|---|---|

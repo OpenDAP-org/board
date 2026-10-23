@@ -60,6 +60,8 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-054 | The main board may use every technique that gets the most from the device: HDI (laser microvias, via-in-pad), both sides populated, as many inner layers as the routing and signal integrity need, and shielding cans. | must | Confirmed |
 | BRD-055 | Every board, flat cable (FPC and rigid-flex) and assembly shall be producible as a prototype through PCBWay, using its services as far as possible (fabrication, HDI, flex, stencils, SMT and BGA assembly, parts sourcing), within the processes PCBWay publishes. | must | Confirmed |
 | BRD-056 | Every other button of the T1 should be accessible to developers too (split from BRD-036). | should | Confirmed |
+| BRD-057 | The T1 should have NFC, for tap-to-pair and tap-to-hand-off with the listener's other devices. | should | Confirmed |
+| BRD-058 | The T1 should have a haptic actuator, for eyes-free confirmation of actions. | should | Confirmed |
 
 ## Open questions
 
@@ -67,6 +69,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 
 ## Context
 
+- BRD-057, BRD-058 (maintainers, 2026-10-23), from the [ecosystem experience research](https://github.com/opendap-project/t1/blob/main/docs/research/ux/2026-10-ecosystem-experience.md) §12.3: yes, as soon as suitable parts are available; the short pairing code stays the baseline without NFC.
 - BRD-004 and BRD-005 govern the T1 main board. HAT hardware follows the HAT standard's HCS-013 (every programmable HAT chip flashable and debuggable from Blackbird OS, natively over SWD or through the HAT management port), hat-standard ADR 0002 (2026-10-22).
 - Priorities revised on 2026-10-22 under the maintainers' delegation ([priority audit](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-requirement-priorities.md)): BRD-014 (RP2354A coprocessor), BRD-031 (ambient-noise microphone) and BRD-032 (IMU) are should and become population options (BRD-053). BRD-014 holds as should only while no must function depends on the coprocessor; the pin plan currently routes wake lines to it, so those move to the SoC or the expander before the coprocessor can be left unpopulated. BRD-036 split into BRD-036 (must) and BRD-056 (should).
 - BRD-054, BRD-055 (maintainers, 2026-10-22): HDI and advanced build-ups are welcome as long as PCBWay can prototype them with its own services. The fab rules live in kicad-lib (KLIB-002), one rule set per PCBWay process.

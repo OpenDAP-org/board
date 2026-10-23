@@ -6,7 +6,7 @@
   - [ADR 0011](../adr/0011-battery-path-rated-for-the-full-output-budget.md), [ADR 0007](../adr/0007-off-the-shelf-battery.md), [ADR 0008](../adr/0008-battery-technology-ready-for-lihv.md);
   - [battery selection](2026-10-battery-selection.md) (pocket arithmetic, earlier candidates) and [sourcing alternatives](2026-10-sourcing-alternatives.md) §3;
   - [power tree v0](../specs/power-tree-v0.md) §4.7 (4.8 A budget, path drop) and [BOM v1](../specs/bom-v1.md) lines 43, 47, 104;
-  - [T1 requirements](../../../t1/docs/requirements/README.md) T1-031 to T1-039, [t1 ADR 0003](../../../t1/docs/adr/0003-tentative-body-size.md) and the [battery-life analysis](../../../t1/docs/research/2026-10-battery-life-analysis.md).
+  - [T1 requirements](https://github.com/opendap-project/t1/blob/main/docs/requirements/README.md) T1-031 to T1-039, [t1 ADR 0003](https://github.com/opendap-project/t1/blob/main/docs/adr/0003-tentative-body-size.md) and the [battery-life analysis](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-battery-life-analysis.md).
 - **Conventions:**
   - **UNVERIFIED** means no primary source was found in this session.
   - "Not stated" means the page or datasheet that was read gives no value.
@@ -53,7 +53,7 @@ From [ADR 0011](../adr/0011-battery-path-rated-for-the-full-output-budget.md), i
 | C8 | Sourcing | Off the shelf, in authorized stock (ADR 0007, T1-038) |
 | — | Implied by §4.7 | The cell must hold about **3.55 V at 4.8 A** for VSYS = 3.3 V (path drop about 0.24 V). That favors low-impedance cells |
 
-**Pockets** (pack maximum T × W × L, including the PCM fold and lead exit). The arithmetic is from the [battery selection](2026-10-battery-selection.md) §2 and the [battery-life analysis](../../../t1/docs/research/2026-10-battery-life-analysis.md) §11.3.
+**Pockets** (pack maximum T × W × L, including the PCM fold and lead exit). The arithmetic is from the [battery selection](2026-10-battery-selection.md) §2 and the [battery-life analysis](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-battery-life-analysis.md) §11.3.
 
 | Body (W × H × T) | Source | Pack maximum T × W × L |
 |---|---|---|
@@ -178,7 +178,7 @@ ADR 0011 requires the protection **in the pack**, and the battery must stay user
 
 **Supported battery budget:** the minimum of 80 % of the cell rating, 70 % of the lead or connector rating, and the PCM minimum trip. JST-PH figures follow BOM v1 line 47: 2 A with AWG 24, about 1.6 A estimated for 26 AWG.
 
-**Autonomy:** typical scenario 1 (screen off, 3.5 mm SE, 0.66 W) and the pessimistic draw (1.5 W) from the [battery-life analysis](../../../t1/docs/research/2026-10-battery-life-analysis.md) §0.1, with 90 % of label energy usable. Formula: h = 0.9 × Wh / P. The T1-039 thresholds are 6 h red, 8 h warning and 12 h ideal.
+**Autonomy:** typical scenario 1 (screen off, 3.5 mm SE, 0.66 W) and the pessimistic draw (1.5 W) from the [battery-life analysis](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-battery-life-analysis.md) §0.1, with 90 % of label energy usable. Formula: h = 0.9 × Wh / P. The T1-039 thresholds are 6 h red, 8 h warning and 12 h ideal.
 
 | Rank | Pack | Meets ADR 0011? | Supported battery current (est.) | Fits ADR 0003 pocket (10.9 × 50.5 × 63.8)? | Fits ADR 0011 pocket (11.8 × 53.5 × 63.25)? | Autonomy typical / pessimistic | Availability | Price |
 |---|---|---|---|---|---|---|---|---|

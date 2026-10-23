@@ -3,7 +3,7 @@
 - **Date:** 2026-10-22
 - **Status:** Desk research, proposal. Nothing here was built, simulated or measured. It does not change the [BOM v1](../specs/bom-v1.md), the [power tree](../specs/power-tree-v0.md) or any ADR; adopting it needs the maintainers' confirmation, because it touches BRD-022 (Draft: "four OPA1622") and the audio stage.
 - **Question:** the T1 promises a mid-range player delivered through execution, and the audiophile experience is never sacrificed. Does the current headphone stage deliver mid-range output power into low-impedance headphones, and if not, what is the least costly way to get there?
-- **Inputs read:** [BOM v1](../specs/bom-v1.md) (v1.2, lines 18–19, 22–26, 36–37; open question 13), [power tree v0](../specs/power-tree-v0.md) §4.1, §4.2, §4.9, §4.10, board ADRs [0001](../adr/0001-cirrus-logic-dac-family.md) and [0009](../adr/0009-bom-v1-decisions.md), [board requirements](../requirements/README.md) (BRD-022, BRD-024, BRD-049, BRD-050), the T1 [battery-life analysis](../../../t1/docs/research/2026-10-battery-life-analysis.md) (§5 amplifier model, §6 scenarios, §10–11 category and thresholds), and the part sheets in `libs/parts` for OPA1622IDRCR, TPS65131RGER, TPS7A4901DGNR, TPS7A3001DGNR and CS43198-CNZR.
+- **Inputs read:** [BOM v1](../specs/bom-v1.md) (v1.2, lines 18–19, 22–26, 36–37; open question 13), [power tree v0](../specs/power-tree-v0.md) §4.1, §4.2, §4.9, §4.10, board ADRs [0001](../adr/0001-cirrus-logic-dac-family.md) and [0009](../adr/0009-bom-v1-decisions.md), [board requirements](../requirements/README.md) (BRD-022, BRD-024, BRD-049, BRD-050), the T1 [battery-life analysis](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-battery-life-analysis.md) (§5 amplifier model, §6 scenarios, §10–11 category and thresholds), and the part sheets in `libs/parts` for OPA1622IDRCR, TPS65131RGER, TPS7A4901DGNR, TPS7A3001DGNR and CS43198-CNZR.
 - **Datasheets read in this session** (TI and Cirrus PDFs downloaded and converted to text):
   - OPA1622 SBOS727B (§6.5, §8.2, Table 2, Figures 37–38);
   - CS43198 DS1156F2 (Table 3-4, §4.2.3);
@@ -402,4 +402,4 @@ Music averages far below a continuous full-scale sine, but BRD-049 asks for marg
 - HiBy: <https://store.hiby.com/products/hiby-r3pro-ii> and <https://store.hiby.com/products/hiby-r6-iii-2025>, read 2026-10-22.
 - Shanling M1 Plus: figures provided by the maintainers (maker's, via a retailer listing). Not re-read (**UNVERIFIED**).
 - Stock: JLCPCB parts API (LCSC), 2026-10-22.
-- OpenDAP: [BOM v1](../specs/bom-v1.md), [power tree v0](../specs/power-tree-v0.md), [battery-life analysis](../../../t1/docs/research/2026-10-battery-life-analysis.md).
+- OpenDAP: [BOM v1](../specs/bom-v1.md), [power tree v0](../specs/power-tree-v0.md), [battery-life analysis](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-battery-life-analysis.md).

@@ -6,7 +6,7 @@
   - [ADR 0007](../adr/0007-off-the-shelf-battery.md), [ADR 0008](../adr/0008-battery-technology-ready-for-lihv.md), [ADR 0011](../adr/0011-battery-path-rated-for-the-full-output-budget.md), [ADR 0012](../adr/0012-headphone-output-stage.md);
   - [battery for the full output budget](2026-10-battery-high-current.md) (why no 1S pack works) and [battery selection](2026-10-battery-selection.md);
   - [power tree v0](../specs/power-tree-v0.md) §2, §3, §4.6, §4.7, §4.10 and [BOM v1](../specs/bom-v1.md);
-  - [T1 requirements](../../../t1/docs/requirements/README.md) T1-031 to T1-039, [t1 ADR 0003](../../../t1/docs/adr/0003-tentative-body-size.md) and the [battery-life analysis](../../../t1/docs/research/2026-10-battery-life-analysis.md);
+  - [T1 requirements](https://github.com/opendap-project/t1/blob/main/docs/requirements/README.md) T1-031 to T1-039, [t1 ADR 0003](https://github.com/opendap-project/t1/blob/main/docs/adr/0003-tentative-body-size.md) and the [battery-life analysis](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-battery-life-analysis.md);
   - part sheets in `libs/parts/` (input ratings of every part fed from VSYS).
 - **Conventions:**
   - **UNVERIFIED** means no primary source was read in this session.
@@ -53,7 +53,7 @@ Derived from ADR 0011 item 1 for the same power, and from the brief:
 | C7 | Chemistry | 4.2 V or LiHV (ADR 0008) | Same, per cell |
 | C8 | Sourcing | Off the shelf, authorized stock (T1-038, T1-029) | Same |
 
-**Pocket:** **10.9 × 50.5 × 63.8 mm** for the tentative 59.5 × 94.3 × 24 mm body (t1 ADR 0003), from the pocket arithmetic in the [battery-life analysis](../../../t1/docs/research/2026-10-battery-life-analysis.md) §11.3 (t_max already includes 10 % swelling). ADR 0011 states 11.8 × 53.5 × 63.25 mm for the 62.5 × 93.75 × 25 mm body. A flat 2S pack fits the 10.9 mm pocket only as **two cells stacked**, each ≤ about 5.2 mm thick including the wrap (est.); two cells side by side need about 2 × 34 mm of width, more than 50.5 mm.
+**Pocket:** **10.9 × 50.5 × 63.8 mm** for the tentative 59.5 × 94.3 × 24 mm body (t1 ADR 0003), from the pocket arithmetic in the [battery-life analysis](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-battery-life-analysis.md) §11.3 (t_max already includes 10 % swelling). ADR 0011 states 11.8 × 53.5 × 63.25 mm for the 62.5 × 93.75 × 25 mm body. A flat 2S pack fits the 10.9 mm pocket only as **two cells stacked**, each ≤ about 5.2 mm thick including the wrap (est.); two cells side by side need about 2 × 34 mm of width, more than 50.5 mm.
 
 ---
 
@@ -209,7 +209,7 @@ The 2S tree adds below 1 mW of standby draw (est.). The gauge's sleep current do
 
 ## 5. Autonomy
 
-Model: the [battery-life analysis](../../../t1/docs/research/2026-10-battery-life-analysis.md) §6.1, scenario 1 (screen off, 3.5 mm SE), battery-side draw **0.39 / 0.66 / 1.49 W** (best / typical / worst), 90 % of label energy usable. In the 2S tree the same loads sit behind the pre-regulator. Its efficiency at 0.1–0.4 A from 6.6–8.4 V to 3.8 V is taken as **0.88–0.92** (est.; datasheet curves not read). The 2S draw is therefore 1.09–1.14 × the 1S draw: typical **0.72–0.75 W**.
+Model: the [battery-life analysis](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-battery-life-analysis.md) §6.1, scenario 1 (screen off, 3.5 mm SE), battery-side draw **0.39 / 0.66 / 1.49 W** (best / typical / worst), 90 % of label energy usable. In the 2S tree the same loads sit behind the pre-regulator. Its efficiency at 0.1–0.4 A from 6.6–8.4 V to 3.8 V is taken as **0.88–0.92** (est.; datasheet curves not read). The 2S draw is therefore 1.09–1.14 × the 1S draw: typical **0.72–0.75 W**.
 
 | Pack (label energy) | 1S tree, typical | 2S tree, typical (est.) | 2S, worst (est.) |
 |---|---|---|---|

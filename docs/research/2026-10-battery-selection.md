@@ -3,11 +3,11 @@
 - **Date:** 2026-10-22, revision 2. It applies the maintainers' answers to the three decisions of revision 1 (§1.1).
 - **Scope:** the main-body battery of the OpenDAP T1 (not the powerbank HAT).
 - **Inputs:**
-  - [T1 requirements](../../../t1/docs/requirements/README.md): T1-009, T1-012, T1-017, T1-027 to T1-029, T1-031 to T1-033;
+  - [T1 requirements](https://github.com/opendap-project/t1/blob/main/docs/requirements/README.md): T1-009, T1-012, T1-017, T1-027 to T1-029, T1-031 to T1-033;
   - [BOM v0](../specs/bom-v0.md), line 21;
   - [component selection](2026-10-component-selection.md) §3 and [sourcing alternatives](2026-10-sourcing-alternatives.md) §3;
   - certification and compliance §2.2–2.3;
-  - [touch display selection](../../../faceplates/touch/docs/research/2026-10-display-selection.md): the Focus E35GH module is 54.46 × 82.94 × 5.50 mm.
+  - [touch display selection](https://github.com/opendap-project/faceplate-touch/blob/main/docs/research/2026-10-display-selection.md): the Focus E35GH module is 54.46 × 82.94 × 5.50 mm.
 - **Maintainers' rules applied, in order:**
   1. a standard **commercial** cell or pack, not custom, with **≥ 2,000 mAh** (T1-012);
   2. **availability first, validated against real stock** (T1-028, T1-029);
@@ -442,13 +442,13 @@ Usable energy is taken as 90 % of the label Wh. Runtime scales linearly with Wh.
 ## Sources
 
 - Requirements and internal reports:
-  - [T1 requirements](../../../t1/docs/requirements/README.md);
+  - [T1 requirements](https://github.com/opendap-project/t1/blob/main/docs/requirements/README.md);
   - [BOM v0](../specs/bom-v0.md);
   - [component selection](2026-10-component-selection.md);
   - [sourcing alternatives](2026-10-sourcing-alternatives.md);
   - certification and compliance;
-  - [touch display selection](../../../faceplates/touch/docs/research/2026-10-display-selection.md);
-  - [HAT Case Standard requirements](../../../hat-standard/docs/requirements/README.md).
+  - [touch display selection](https://github.com/opendap-project/faceplate-touch/blob/main/docs/research/2026-10-display-selection.md);
+  - [HAT Case Standard requirements](https://github.com/opendap-project/hat-standard/blob/main/docs/requirements/README.md).
 - Digi-Key (2026-10-22):
   - [rechargeable batteries, "lithium polymer"](https://www.digikey.com/en/products/filter/batteries-rechargeable-secondary/91?keywords=lithium%20polymer);
   - ["lithium polymer 3Ah"](https://www.digikey.com/en/products/filter/batteries-rechargeable-secondary/91?keywords=lithium%20polymer%203Ah);

@@ -62,6 +62,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-056 | Every other button of the T1 should be accessible to developers too (split from BRD-036). | should | Confirmed |
 | BRD-057 | The T1 should have NFC, for tap-to-pair and tap-to-hand-off with the listener's other devices. | should | Confirmed |
 | BRD-058 | The T1 should have a haptic actuator, for eyes-free confirmation of actions. | should | Confirmed |
+| BRD-059 | The T1 should have a hardware key holder for the keystore (OS-032), so device and pairing keys are protected even from root. | should | Confirmed |
 
 ## Open questions
 
@@ -69,6 +70,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 
 ## Context
 
+- BRD-059 (maintainers, 2026-10-23): the research showed no mainline OP-TEE on the RK3566 and a read-only OTP ([RFC 0004](https://github.com/opendap-project/rfcs/blob/main/text/0004-opendap-protocol.md) §5), so the keystore needs a chip of its own to be hardware-backed. Direction proposed by Claude: a discrete TPM 2.0 (SPI or I²C), the most standard choice on Linux: mainline drivers `tpm_tis_spi` and `tpm_tis_i2c`, and the standard user-space stack (`tpm2-tss`, PKCS#11, systemd). Secure elements (for example NXP SE050, Microchip ATECC608) and the RP2350 are the alternatives. Part, bus and cost to be chosen in the BOM (BRD-053); availability **UNVERIFIED**.
 - BRD-057, BRD-058 (maintainers, 2026-10-23), from the [ecosystem experience research](https://github.com/opendap-project/t1/blob/main/docs/research/ux/2026-10-ecosystem-experience.md) §12.3: yes, as soon as suitable parts are available; the short pairing code stays the baseline without NFC.
 - BRD-004 and BRD-005 govern the T1 main board. HAT hardware follows the HAT standard's HCS-013 (every programmable HAT chip flashable and debuggable from Blackbird OS, natively over SWD or through the HAT management port), hat-standard ADR 0002 (2026-10-22).
 - Priorities revised on 2026-10-22 under the maintainers' delegation ([priority audit](https://github.com/opendap-project/t1/blob/main/docs/research/2026-10-requirement-priorities.md)): BRD-014 (RP2354A coprocessor), BRD-031 (ambient-noise microphone) and BRD-032 (IMU) are should and become population options (BRD-053). BRD-014 holds as should only while no must function depends on the coprocessor; the pin plan currently routes wake lines to it, so those move to the SoC or the expander before the coprocessor can be left unpopulated. BRD-036 split into BRD-036 (must) and BRD-056 (should).

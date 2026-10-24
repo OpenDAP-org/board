@@ -1,0 +1,84 @@
+# OpenDAP T1 main board: variant "lite"
+#
+# Format: opendap.board-variant/v1, defined in docs/specs/feature-blocks.md §4.
+# Every block of the catalog appears exactly once under [blocks]. KiCad's
+# variant data, the BOM, pick-and-place, devicetree overlays and the device
+# description are generated from this file (RFC 0011 rule 7); nothing is
+# edited by hand per variant.
+#
+# PROPOSAL ONLY. Not decided by the maintainers. Every dnp below is a
+# candidate: whether it moves the price materially (BRD-053 rule, about 1 %
+# of the production BOM each) needs the production BOM total, which the BOM
+# does not carry. The audio chain and every must block stay fitted
+# (RFC 0011 rule 5). Prices are BOM v1.7 qty-1 figures.
+
+schema = "opendap.board-variant/v1"
+board = "t1-main-board"
+name = "lite"
+kind = "lite"
+status = "proposed"
+description = "Proposal: a lower-cost T1 with should blocks left off where they move the price materially; the audio chain unchanged."
+target_level = "Q1"
+catalog = "docs/specs/feature-blocks.md"
+promise = [
+  "T1-040", "T1-004", "T1-049", "T1-072",
+  "BRD-003", "BRD-011", "BRD-012", "BRD-018", "BRD-022", "BRD-023", "BRD-024",
+  "BRD-026", "BRD-027", "BRD-029", "BRD-034", "BRD-037", "BRD-038", "BRD-040",
+  "BRD-044", "BRD-045", "BRD-048", "BRD-049", "BRD-050", "BRD-051", "BRD-052",
+]
+
+[instrumentation]
+links = "zero-ohm"
+test_points = "fit"
+
+[blocks]
+"blk.soc" = { state = "fit" }
+"blk.lpddr4x" = { state = "fit" }
+"blk.emmc" = { state = "alternate", alternate = "emmc-16gb", params = { capacity_gb = 16 }, note = "BRD-037 production minimum" }
+"blk.microsd" = { state = "fit" }
+"blk.board-id" = { state = "fit" }
+"blk.gpio-expander" = { state = "fit" }
+"blk.charger" = { state = "fit" }
+"blk.gauge" = { state = "fit" }
+"blk.usb-c" = { state = "fit" }
+"blk.pwr-vsys-lv" = { state = "fit" }
+"blk.pwr-3v3-sys" = { state = "fit" }
+"blk.pmic" = { state = "fit" }
+"blk.vdd-cpu" = { state = "fit" }
+"blk.pwr-5v1" = { state = "fit" }
+"blk.hat-5v" = { state = "fit" }
+"blk.usb-vbus-out" = { state = "fit" }
+"blk.hat-3v3" = { state = "fit" }
+"blk.current-monitors" = { state = "fit", params = { channels = ["vsys"], shunt_mohm = { vsys = 10 } }, note = "Candidate: keep the VSYS channel for T1-026; the other three shunts become 0 ohm links" }
+"blk.hat-signals" = { state = "fit" }
+"blk.hat-audio" = { state = "fit" }
+"blk.fp-connector" = { state = "fit" }
+"blk.fp-display" = { state = "fit" }
+"blk.fp-backlight" = { state = "fit" }
+"blk.fp-controls" = { state = "fit" }
+"blk.status-led" = { state = "fit" }
+"blk.mic-main" = { state = "fit" }
+"blk.audio" = { state = "fit" }
+"blk.audio-supply" = { state = "fit" }
+"blk.mclk" = { state = "fit" }
+"blk.dac-l" = { state = "fit" }
+"blk.dac-r" = { state = "fit" }
+"blk.hpa-rails" = { state = "fit" }
+"blk.hpa-se" = { state = "fit" }
+"blk.hpa-bal" = { state = "fit" }
+"blk.jack-se" = { state = "fit" }
+"blk.jack-bal" = { state = "fit" }
+"blk.speaker" = { state = "fit" }
+"blk.mic-ambient" = { state = "dnp", note = "Candidate (BRD-031 should): IM73D122 2.88 USD qty 1 at LCSC (line 34)" }
+"blk.radio" = { state = "fit" }
+"blk.antennas" = { state = "fit" }
+"blk.nfc-tag" = { state = "fit" }
+"blk.nfc-reader" = { state = "dnp", note = "Candidate: PN7160 about 5.5 USD qty 1 (BOM v1.7 change 6); the tag stays the phone path" }
+"blk.imu" = { state = "dnp", note = "Candidate (BRD-032 should): LSM6DSV16X 3.36 USD qty 1 at LCSC (line 59); wake on motion is lost" }
+"blk.haptics" = { state = "dnp", note = "Candidate (BRD-058 should): DRV2605L 1.23 USD qty 1 at JLC plus the LRA (price not published)" }
+"blk.tpm" = { state = "fit" }
+"blk.rp2354" = { state = "dnp", note = "Candidate (BRD-014 should): only after no must function relays through it (requirements context of BRD-014; pin plan wake relay)" }
+"blk.buttons" = { state = "fit" }
+"blk.maskrom" = { state = "fit" }
+"blk.debug" = { state = "fit" }
+"blk.shields" = { state = "dnp", note = "BOM line 90: fitted only if EMC or audio measurements require" }

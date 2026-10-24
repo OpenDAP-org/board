@@ -1,0 +1,55 @@
+# VSYS bucks regression. run.py computes the metrics (no .meas): values parsed from its tables.
+version = 1
+
+[[model]]
+id = "tps62136"
+manufacturer = "Texas Instruments"
+mpn = "TPS62136RGXR"
+file = "SLVMC09"
+member = "TPS62136_PSPICE_TRANS/TPS62136_TRANS.lib"
+dest = "models/TPS62136_TRANS.lib"
+sha256 = "252dce79505a414bd31e4bd2209334de90761d277894c759c3f88da003439a56"
+
+[[check]]
+id = "tps62903-step-il-peak"
+description = "TPS62903 inductor peak in 0.1->1.6 A steps, all corners (generic model)"
+command = ["uv", "run", "run.py", "step903"]
+pattern = '^s903_\S+\s+(?:\S+\s+){10}(\S+)\s+\S+\s*$'
+reduce = "all"
+max = 3.2             # 80 % of the 4.0 A minimum high-side limit
+unit = "A"
+source = "BRD-049; SLVSES3A; research 2026-10-boost-and-maskrom-simulation §3.4"
+
+[[check]]
+id = "tps62136-step-lowest"
+description = "VSYS_LV lowest in 0.1->2.0 A steps (TI model, 2-4 min per case)"
+command = ["uv", "run", "run.py", "step136"]
+pattern = '^s136_v(?:6\.0|8\.8|7\.4)\S*\s+\S+\s+\S+\s+(\S+)'
+reduce = "all"
+min = 3.4             # MCLK LDO input minimum on VSYS_LV
+unit = "V"
+source = "research 2026-10-boost-and-maskrom-simulation §1 (TPS62136 item 1), §4.3"
+models = ["tps62136"]
+timeout = 3600
+
+[[check]]
+id = "tps62136-step-il-peak"
+command = ["uv", "run", "run.py", "step136"]
+pattern = '^s136_v(?:6\.0|8\.8|7\.4)\S*\s+(?:\S+\s+){10}(\S+)\s+\S+\s*$'
+reduce = "all"
+max = 3.84            # 80 % of the 4.8 A minimum high-side limit
+unit = "A"
+source = "BRD-049; SLVSDV2; research 2026-10-boost-and-maskrom-simulation §4.5"
+models = ["tps62136"]
+timeout = 3600
+
+[[check]]
+id = "tps62136-phase-margin"
+command = ["uv", "run", "run.py", "loop136"]
+pattern = 'phase margin (\S+) deg'
+reduce = "all"
+min = 45.0
+unit = "deg"
+source = "research 2026-10-boost-and-maskrom-simulation §4.4"
+models = ["tps62136"]
+timeout = 7200

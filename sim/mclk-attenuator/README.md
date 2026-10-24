@@ -1,5 +1,9 @@
 # MCLK attenuator: ngspice simulation
 
+Superseded on 2026-10-24 by [ADR 0019](../../docs/adr/0019-master-clock-divided-from-twice-the-frequency.md)
+and the [`mclk-divider`](../mclk-divider/README.md) study: the attenuator is removed. This study stays as
+the record of why.
+
 The question: does the passive attenuator of [ADR 0010](../../docs/adr/0010-audio-master-clock-source.md)
 bring the 3.1 V master clock of the NDK NSC5083D oscillators (BOM v1 lines 20, 21, on the
 TPS7A2031 MCLK_3V1 rail, line 29) into the XTI/MCLK inputs of the two CS43198 (line 18) inside

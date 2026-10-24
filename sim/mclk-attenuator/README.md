@@ -108,3 +108,7 @@ odapkit sim run .                 # the regression checks
 ```
 
 Results go to `results/` (not committed); a case already in `results/` is not run again.
+
+## Regression
+
+Superseded by [`../mclk-divider/`](../mclk-divider/) and [ADR 0019](../../docs/adr/0019-master-clock-divided-from-twice-the-frequency.md). Its checks are kept as `checks.superseded.toml`, which `odapkit sim` does not run, so the board regression reflects the design in force.

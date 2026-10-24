@@ -3,7 +3,7 @@
 - **Status:** Draft v0 (2026-10-24). Task E1.8 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Written by Claude under the maintainers' delegation. Nothing here is built or measured; every impedance, loss and temperature figure is computed and is confirmed only by the test coupon (§14).
 - **Requirements:** BRD-013 (this repository owns the flat cable), BRD-042 (nothing in the high-speed paths limits the link), BRD-049 (margin below every rating), BRD-060 (constraints with limits); hat-standard HCS-004, HCS-015, HCS-023, HCS-026.
 - **Inputs:** hat-standard [interface v1.1](https://github.com/opendap-project/hat-standard/blob/main/docs/specs/interface-v1.md) §5 and §7.2, [ADR 0004](https://github.com/opendap-project/hat-standard/blob/main/docs/adr/0004-pogo-part-and-field-geometry.md) (coupon), [ADR 0005](https://github.com/opendap-project/hat-standard/blob/main/docs/adr/0005-interface-v1-1-shared-extension-and-contact-reduction.md) (one DF40C-100 pair per end, 87 used, 9 spare, fault ceilings 3.0 / 1.5 / 4.5 A); [ADR 0002](../adr/0002-hat-signals-leave-the-board-over-a-flat-cable.md); [BOM v1](bom-v1.md) lines 65, 66, 102; [PCB design constraints](pcb-design-constraints.md) PCB-I-01 to PCB-I-03, PCB-I-12, PCB-R-06, PCB-P-05, PCB-P-20; kicad-lib [PCBWay capabilities](https://github.com/opendap-project/kicad-lib/blob/main/docs/research/2026-10-pcbway-capabilities.md) §1.3 and [`pcbway-flex`](https://github.com/opendap-project/kicad-lib/tree/main/design-rules/pcbway-flex); parts-lib `Hirose/DF40C-100DS-DP-0.4V.md`; the Hirose DF40 catalog (May 1, 2020) and drawing EDC3-311351-00; PCBWay's *Stack-up for FPC* page (fetched 2026-10-24).
-- **Computation:** [`sim/flex-impedance`](../../sim/flex-impedance/README.md), a 2D finite-difference field solver (validated within 1 % against closed forms). `odapkit stackup` (toolkit-hardware) did not exist yet; the geometries are to be rerun there.
+- **Computation:** impedance with toolkit-hardware's `odapkit stackup` (2D finite-element field solver, [method](https://github.com/opendap-project/toolkit-hardware/blob/main/docs/specs/stackup-method.md)) on [`hardware/hat-flat-cable/stackup-v0.toml`](../../hardware/hat-flat-cable/stackup-v0.toml); loss, coupling, the EMI-film comparison and the power sizing with [`sim/flex-impedance`](../../sim/flex-impedance/README.md), a 2D finite-difference solver that agrees with `odapkit stackup` within 1 Ω on these striplines.
 - **Conventions:** **UNVERIFIED** = no primary source checked. *Input from the case* = a value the case repository sets; this spec assumes a range and says so. Rule IDs `HFC-nn` carry their RFC 0010 quality level; an untagged item is Q1. Positions are DF40 contact numbers as in interface v1.1 §7.2.
 
 ## Summary
@@ -12,7 +12,7 @@ The flat cable carries the whole HAT interface, signals and power, from the boar
 
 - **Stack-up:** PCBWay's standard 4-layer FPC, 0.268 mm, adhesive-based cores, 12 µm inner and 18 µm (24 µm finished) outer copper (§4).
 - **Connectors:** one Hirose DF40C-100 at each end. Hirose recommends mounting the **header** on the FPC (catalog p. 19), so the cable carries two DF40C-100DP-0.4V(51) headers and the board and device-side piece carry the DF40C-100DS-0.4V(51) receptacles. This swaps the genders of BOM line 66 (§2, §17).
-- **Pairs:** every pair runs on L2 as a stripline, ground on L1 above (51 µm) and L4 below (114 µm, L3 voided under the pairs): `EXT0`–`EXT4` 60 / 150 µm for 100.3 Ω, USB 3 and USB 2 70 / 100 µm for 89.9 Ω, I2S 65 µm for 49.7 Ω single-ended. Pairs sit at least 0.35 mm apart (backward coupling −61 dB at 0.3 mm and −77 dB at 0.4 mm, computed). No guard traces between pairs; the ground is the two planes and the via fences (§6, §8).
+- **Pairs:** every pair runs on L2 as a stripline, ground on L1 above (51 µm) and L4 below (114 µm, L3 voided under the pairs): `EXT0`–`EXT4` 62.5 / 150 µm drawn for 100.1 Ω, USB 3 and USB 2 72.5 / 100 µm for 89.9 Ω, I2S 66 µm for 50.0 Ω single-ended. Pairs sit at least 0.35 mm apart (backward coupling −61 dB at 0.3 mm and −77 dB at 0.4 mm, computed). No guard traces between pairs; the ground is the two planes and the via fences (§6, §8).
 - **Power:** `HAT_5V` ≥ 10.5 mm and `HAT_3V3` ≥ 4.0 mm on L3, return on the L1 and L4 planes, sized by IPC-2221B for a 10 °C rise at the fault ceilings (3.0 / 1.5 / 4.5 A) and about 4 °C at the continuous ratings. Drop for a 100 mm cable with both DF40 pairs at their maximum contact resistance: 106 mV (2.1 %) on `HAT_5V` and 114 mV (3.5 %) on `HAT_3V3` at the continuous ratings (§9).
 - **Shielding:** none added. With ground planes on both outer layers an EMI film changes nothing the pairs see; on a microstrip cable it would drop the impedance by about 34 % (§10).
 - **Stiffeners:** 0.2 mm stainless steel under each DF40, bonded with a reflow-capable adhesive (§11).
@@ -134,17 +134,17 @@ Pair band detail (L2): 0.65 mm margin to the `HAT_5V` pour edge (room for the ba
 
 ## 6. Impedance geometry
 
-Computed with the field solver of `sim/flex-impedance` (method in its README). Pairs are edge-coupled striplines on L2: L1 51 µm above the trace, L4 114 µm below it (L3 voided). DK 3.3 (PI) and 3.5 (adhesive, assumed).
+Computed with `odapkit stackup design` and `check` on `hardware/hat-flat-cable/stackup-v0.toml`. Pairs are edge-coupled striplines on L2: L1 51 µm above the trace, L4 114 µm below it (L3 voided). DK 3.3 (PI) and 3.5 (adhesive, assumed); widths are drawn widths with an assumed 4 µm etch reduction on the 12 µm inner copper (the solver uses the mean width). Corners move one parameter at a time: dielectric thickness ±10 %, DK ±5 %, width ±10 µm, copper ±15 % (assumed ranges, as the main board's stack-up).
 
-| ID | Class (net class on the cable) | Signals | Target | Trace / gap | Computed | DK 3.3 / 3.6 | Width −10 / +10 µm |
-|---|---|---|---|---|---|---|---|
-| HFC-01 [Q1] | D100 `HAT_EXT_100D` | `EXT0±`–`EXT4±` | 100 Ω ± 10 % differential (interface v1.1 §4.1, ADR 0005, PCB-I-12) | 60 / 150 µm | 100.3 Ω diff, 26.4 Ω common | 102.2 / 97.8 Ω | 108.8 / 93.1 Ω |
-| HFC-02 [Q1] | D90 `USB_90D` | `USB3_SSTX±`, `USB3_SSRX±`, `USB3_D±` | 90 Ω ± 10 % differential (interface v1.1 §4.1, PCB-I-01, PCB-I-02) | 70 / 100 µm | 89.9 Ω diff, 25.4 Ω common | 91.6 / 87.7 Ω | 97.4 / 83.3 Ω |
-| HFC-03 [Q1] | S50 `I2S_50SE` | `I2S_*` (8) | 50 Ω ± 10 % single-ended (as the board's PCB-I-08) | 65 µm | 49.7 Ω | — | 51.5 Ω (60 µm) / 48.0 Ω (70 µm) |
-| HFC-04 [Q1] | LS | Low-speed, reserved | Not controlled | ≥ 0.10 mm / ≥ 0.15 mm | — | — | — |
+| ID | Class (net class on the cable) | Signals | Target | Trace / gap, drawn | Computed | Dielectric −10 / +10 % | DK −5 / +5 % | Width −10 / +10 µm | Worst case, RSS |
+|---|---|---|---|---|---|---|---|---|---|
+| HFC-01 [Q1] | D100 `HAT_EXT_100D` | `EXT0±`–`EXT4±` | 100 Ω ± 10 % differential (interface v1.1 §4.1, ADR 0005, PCB-I-12) | 62.5 / 150 µm | 100.1 Ω diff, 26.3 Ω common | −4.8 / +4.3 Ω | +2.6 / −2.4 Ω | +8.4 / −7.2 Ω | 84.5–116.7 Ω, ±10.1 Ω |
+| HFC-02 [Q1] | D90 `USB_90D` | `USB3_SSTX±`, `USB3_SSRX±`, `USB3_D±` | 90 Ω ± 10 % differential (interface v1.1 §4.1, PCB-I-01, PCB-I-02) | 72.5 / 100 µm | 89.9 Ω diff, 25.3 Ω common | −4.1 / +3.6 Ω | +2.3 / −2.2 Ω | +7.4 / −6.5 Ω | 75.9–104.4 Ω, ±8.9 Ω |
+| HFC-03 [Q1] | S50 `I2S_50SE` | `I2S_*` (8) | 50 Ω ± 10 % single-ended (as the board's PCB-I-08) | 66 µm | 50.0 Ω | −2.8 / +2.6 Ω | +1.3 / −1.2 Ω | +3.9 / −3.3 Ω | 42.2–58.3 Ω, ±5.0 Ω |
+| HFC-04 [Q1] | LS | Low-speed, reserved | Not controlled | ≥ 0.10 mm / ≥ 0.15 mm | — | — | — | — | — |
 
-- PCBWay controls flex impedance to ±7 % above 50 Ω [P5] by compensating the width; the ±10 µm columns show why the width is theirs to adjust. The order names L2 as the signal layer and L1 and L4 as its references, with L3 void under the pair band (a custom impedance request, **UNVERIFIED** as a standard PCBWay case).
-- 60 µm sits at PCBWay's 0.06 mm order-form floor and below the `pcbway-flex` 3 mil default: the cable's product rules allow it in the D100 class only (§13).
+- PCBWay controls flex impedance to ±7 % above 50 Ω [P5] by compensating the width. The width term dominates every class; the arithmetic worst case lies outside ±10 % and the RSS at its edge for D100, which `odapkit stackup` reports as a warning: the fab's width compensation and the coupon (C1) hold it, as the stack-up method sets out. The `sim/flex-impedance` solver gives 100.3 Ω and 89.9 Ω for the mean widths 60 and 70 µm, within 1 Ω. The order names L2 as the signal layer and L1 and L4 as its references, with L3 void under the pair band (a custom impedance request, **UNVERIFIED** as a standard PCBWay case).
+- 62.5 µm sits just above PCBWay's 0.06 mm order-form floor and below the `pcbway-flex` 3 mil (76 µm) default: the cable's product rules allow it in the D100, D90 and S50 classes only (§13).
 - Propagation: effective DK 3.42, 6.17 ps/mm.
 - Matching on the cable: within each pair ≤ 0.1 mm (HFC-05 [Q1]); `EXT0`, `EXT2`–`EXT4` against `EXT1` (the CSI-2 clock) ≤ 0.1 mm (HFC-06 [Q1]). The pairs run straight and parallel, so both are met by construction; the board owner decides whether the cable's 0.1 mm counts inside PCB-I-12's 0.91 mm CSI-2 budget (§17).
 - Both members of a pair take the same number of vias, side by side, at each end (HFC-07 [Q1], as PCB-I-10).
@@ -228,7 +228,7 @@ Assumed range, stated: the board sits behind the display and the device-side pie
 
 ## 13. Fab notes
 
-- **Rules:** kicad-lib `pcbway-flex` (3 mil track and gap, 0.15 / 0.35 mm vias, 0.20 mm copper to outline **UNVERIFIED** for flex), with cable product rules on top: 60 µm minimum track in the D100 class only (PCBWay's 0.06 mm order-form floor); the widths of §6 and §9 per net class; HFC-26 keep-outs as rule areas.
+- **Rules:** kicad-lib `pcbway-flex` (3 mil track and gap, 0.15 / 0.35 mm vias, 0.20 mm copper to outline **UNVERIFIED** for flex), with cable product rules on top: 62.5 µm minimum track in the D100, D90 and S50 classes only (above PCBWay's 0.06 mm order-form floor); the widths of §6 and §9 per net class; HFC-26 keep-outs as rule areas.
 - **Coverlay at the DF40:** the header lands are 0.23 mm at 0.4 mm pitch, a 0.17 mm gap, below the 8 mil coverlay bridge [P5]: one coverlay opening per land row, or LPI solder mask in that area.
 - **Finish:** ENIG (soldered lands only).
 - **Outline:** laser routed, ±2 mil [P5]; keying features (§15) in the outline if the case uses them.
@@ -275,7 +275,7 @@ The cable cannot be laid out until the case gives:
 4. Channel budgets of USB 3, PCIe Gen 2 and D-PHY through the full path, with the DF40 and pogo field measured (coupon C2, C3).
 5. The `HAT_5V` voltage window (HCS-015), against the drops of §9.
 6. Route, length and width from the case (§15).
-7. Rerun the geometries in `odapkit stackup` when it exists.
+7. Replace the assumed DK, etch and corner ranges in `stackup-v0.toml` with PCBWay's answer and rerun `odapkit stackup check` before the net classes freeze.
 
 ## 17. Changes the board needs (for the board owner)
 
@@ -289,7 +289,7 @@ This spec does not edit the BOM, the pinout, the PCB design constraints or the r
 | B4 | Board footprint (kicad-lib) | DF40C-100DS land pattern: 0.2 ± 0.02 mm lands at 0.4 mm, outer edge to edge 3.78 mm, inner 2.38 mm, ≤ 1.5 mm resist area between the rows (catalog p. 4 note 3) | B1 |
 | B5 | PCB-I-12 (and PCB-I-01 to PCB-I-03 for their HAT segments) | Name the cable segment: geometry per HFC-01 and HFC-02, ≤ 100 mm, intra-pair ≤ 0.1 mm, `EXT` lanes to `EXT1` ≤ 0.1 mm; decide whether the cable's 0.1 mm counts inside the 0.91 mm CSI-2 data-to-clock budget (board share 0.81 mm) or on top of it | §6 |
 | B6 | PCB-R-06 | Record that the cable's pairs have ground on both sides (L1 and L4 planes); the distance stays **UNVERIFIED** | §8 |
-| B7 | Net classes and rules | The cable is its own KiCad project with `pcbway-flex` plus its product rules (§13): classes `HAT_EXT_100D` 60 / 150 µm on L2, `USB_90D` 70 / 100 µm on L2, `I2S_50SE` 65 µm on L2, `PWR_HAT5V` ≥ 10.4 mm and `PWR_HAT3V3` ≥ 4.0 mm on L3; the main-board rules gain nothing from it except the DF40 receptacle land | §6, §9 |
+| B7 | Net classes and rules | The cable is its own KiCad project with `pcbway-flex` plus its product rules (§13): classes `HAT_EXT_100D` 62.5 / 150 µm on L2, `USB_90D` 72.5 / 100 µm on L2, `I2S_50SE` 66 µm on L2 (from `hardware/hat-flat-cable/stackup-v0.toml`), `PWR_HAT5V` ≥ 10.4 mm and `PWR_HAT3V3` ≥ 4.0 mm on L3; the main-board rules gain nothing from it except the DF40 receptacle land | §6, §9 |
 | B8 | Feature blocks, `blk.hat-signals`, `blk.hat-5v`, `blk.hat-3v3` | Connector: DF40C-100DS on the board; cable per this spec | B1 |
 | — | Pinout v1 | No change: positions are interface v1.1 §7.2 | — |
 
@@ -297,7 +297,7 @@ For hat-standard (not edited here): interface v1.1 §7.2 and ADR 0005's BOM note
 
 ## 18. Next step: the KiCad project
 
-Not added in this change: a 4-layer flex project with its stack-up, composed rules (`kicad-dru-composed`) and the ERC and DRC hooks is more than a skeleton, and the board's rules are being edited in parallel. Next: `hardware/hat-flat-cable/` with the stack-up of §4, the net classes of B7, the DF40C-100DP footprint at both ends, the conductor map of §3 as the netlist, the stiffener and bend-zone areas on user layers, and the coupon members C1–C4 as separate boards on the same panel.
+Only the stack-up file is added now (`hardware/hat-flat-cable/stackup-v0.toml`): a KiCad project with composed rules (`kicad-dru-composed`) and the ERC and DRC hooks is more than a skeleton, and the board's rules are being edited in parallel. Next, in `hardware/hat-flat-cable/`: the KiCad project with the stack-up of §4, the net classes of B7, the DF40C-100DP footprint at both ends, the conductor map of §3 as the netlist, the stiffener and bend-zone areas on user layers, and the coupon members C1–C4 as separate boards on the same panel.
 
 ## 19. Sources
 
@@ -305,4 +305,4 @@ Not added in this change: a 4-layer flex project with its stack-up, composed rul
 - PCBWay, *Stack-up for FPC*, <https://www.pcbway.com/pcb_prototype/Stack_up_for_FPC.html>, fetched 2026-10-24; [P5], [P8], [P13] as in the kicad-lib PCBWay capabilities research (fetched 2026-10-22).
 - IPC-2221B, *Generic Standard on Printed Board Design*, conductor current-carrying design equation.
 - Hat-standard interface v1.1, ADR 0004, ADR 0005, HAT interconnect benchmark §6.
-- `sim/flex-impedance` (this repository), results of 2026-10-24.
+- `odapkit stackup` (toolkit-hardware `cf83c68`) on `hardware/hat-flat-cable/stackup-v0.toml`; `sim/flex-impedance` (this repository); both run 2026-10-24.

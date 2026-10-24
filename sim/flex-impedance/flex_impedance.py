@@ -26,8 +26,8 @@ Stack-ups are PCBWay's published standard FPC stack-ups (Stack-up for FPC page, 
 the adhesive and bonding-sheet ("pure gum") DK is not published, so 3.5 is assumed and
 the 3.3 and 3.6 cases are printed as sensitivity.
 
-This is a stand-in until `odapkit stackup` (toolkit-hardware) exists; rerun the same
-geometries there when it does.
+The specifications take their impedance figures from toolkit-hardware's `odapkit stackup`;
+this script cross-checks them and adds loss, coupling, the EMI-film effect and power sizing.
 """
 import math
 import os

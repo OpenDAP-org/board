@@ -5,7 +5,7 @@ The question: which trace geometry gives each pair class its target impedance on
 - the board's [HAT flat-cable specification](../../docs/specs/hat-flat-cable.md) (BRD-013, electronics plan E1.8);
 - faceplate-touch's [faceplate flex specification](https://github.com/opendap-project/faceplate-touch/blob/main/docs/specs/faceplate-flex.md) (E1.9).
 
-`odapkit stackup` (toolkit-hardware) did not exist on 2026-10-24. This study is the stand-in; the same geometries are to be rerun there when it does.
+`odapkit stackup` (toolkit-hardware) landed on 2026-10-24 while this study was written; the specifications take their impedance figures from it (`hardware/hat-flat-cable/stackup-v0.toml`, faceplate-touch `hardware/faceplate-flex/stackup-v0.toml`). This study cross-checks them and adds what `odapkit stackup` does not compute: conductor loss, coupling between lines, the effect of an EMI shielding film, and power-conductor sizing.
 
 ## Method
 
@@ -41,6 +41,8 @@ Output goes to the terminal and to `results/flex-impedance.txt` (not committed).
 | USB 3 and USB 2, 90 Ω | Same | w 70 µm, gap 100 µm | 89.9 Ω; 1.34 dB per 100 mm at 2.5 GHz |
 | I2S, 50 Ω | Same | w 65 µm | 49.7 Ω single-ended |
 | Faceplate DSI | Faceplate flex L1 over L2 (65 µm), coverlay | w 85 µm, gap 150 µm | 99.9 Ω |
+
+Against `odapkit stackup` (finite elements, trapezoidal etch, conformal coverlay): the HAT striplines agree within 1 Ω at the same mean width. The faceplate microstrip differs by about 3 Ω: this study fills the gaps between L1 traces with coverlay adhesive, `odapkit stackup` models a conformal coverlay, so it needs 91 µm (mean) where this study needs 85 µm; the pressed coverlay lies between the two, and the fab's coupon settles it.
 
 Sensitivity, coupling, the EMI-film comparison and the power sizing are in the script's output; the specifications quote them.
 

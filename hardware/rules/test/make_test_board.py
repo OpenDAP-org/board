@@ -51,7 +51,7 @@ tbm.to_mm = _to_value
 # Net classes used by the rules, with the netclasses.toml names.
 CLASSES = ("PWR_BAT", "PWR_VSYS", "PWR_VBUS", "PWR_5V1", "PWR_HAT3V3",
            "PWR_AMP", "SW_NODE", "AUDIO_ANALOG", "AUDIO_REF", "MCLK_50SE",
-           "USB2_90D", "USB3_90D", "PCIE_85D", "MIPI_100D")
+           "USB2_90D", "USB3_90D", "PCIE_85D", "MIPI_100D", "BAT_SENSE")
 
 CRT = 0.6      # courtyard square of a generic small part
 EDGE_W = 0.05  # Edge.Cuts line width (testboard): physical rules measure
@@ -491,6 +491,30 @@ class ProductTestBoard(TestBoard):
             self.part("U", x + 1.5, y, 1.0, field=field)
         self.add_row(name, tbm.ROW_H, build)
 
+    def area_copper_row(self, name, area):
+        """A track inside the no-copper area (FAIL), one beside it (PASS)."""
+        def build(x, y, fail):
+            self.area(area, x - 0.5, y - 0.5, x + 2.5, y + 0.5)
+            ty = y if fail else y + 1.5
+            self._track(x, ty, x + 2, ty, 0.2, pcbnew.F_Cu, self._net())
+        self.add_row(name, tbm.ROW_H + 1.5, build)
+
+    def pad_in_area_row(self, name, area, allowed):
+        """An SMD pad of another net in the area (FAIL), an allowed one (PASS)."""
+        def build(x, y, fail):
+            self.area(area, x - 0.5, y - 1.0, x + 3.5, y + 1.0)
+            net = self._net() if fail else allowed()
+            self.smd("R", x + 1.5, y, 0.6, net=net)
+        self.add_row(name, tbm.ROW_H, build)
+
+    def part_outside_area_row(self, name, area, field):
+        """A footprint with FIELD outside the area (FAIL), inside it (PASS)."""
+        def build(x, y, fail):
+            self.area(area, x - 0.5, y - 1.0, x + 1.5, y + 1.0)
+            self.part("D", x + (3.5 if fail else 0.5), y, 1.0, field=field)
+            self.widen(x + 4.5)
+        self.add_row(name, tbm.ROW_H, build)
+
     # output --------------------------------------------------------------
 
     def save(self, out_dir, ignore_checks=()):
@@ -607,13 +631,19 @@ def main():
                            ("PCIe", "PCIE_85D"), ("MIPI", "MIPI_100D")):
         tb.via_count_row(P + f"PCB-W-03 [Q2]: Vias per {line} line", netclass)
 
-    # Battery and heat placement (PCB-L)
+    # Battery interface and heat placement (PCB-L)
     tb.part_in_area_row(P + "PCB-L-01 [Q0]: Hot part at the battery pocket",
                         "BATTERY_POCKET")
-    tb.foreign_track_row(P + "PCB-L-02 [Q0]: Foreign track at the battery connector",
+    tb.foreign_track_row(P + "PCB-L-02 [Q0]: Foreign track at the battery contacts",
                          "BATTERY_CONNECTOR", lambda: tb.class_net("PWR_BAT"),
                          width=tb.rule(P + "PCB-P-01 [Q0]: Battery path track width (outer)")
                          .value("track_width") + 0.01)
+    tb.pad_in_area_row(P + "PCB-L-05 [Q0]: Foreign pad at the battery contacts",
+                       "BATTERY_CONNECTOR", lambda: tb.class_net("BAT_SENSE"))
+    tb.area_copper_row(P + "PCB-L-04 [Q0]: Copper at the empty battery contact position",
+                       "BATTERY_CONTACT_EMPTY")
+    tb.part_outside_area_row(P + "PCB-L-08 [Q1]: Battery contact ESD away from the contacts",
+                             "BATTERY_ESD", ("ESD", "battery"))
 
     print(tb.save(HERE, ignore_checks=TEST_BOARD_IGNORED_CHECKS))
 

@@ -320,7 +320,7 @@
 )
 
 # Source: hardware/rules/t1-main-board.kicad_dru
-# sha256: 710affeffbe35be075475001f44cfec449704d60f9c54cce46e8af90a3f9be33
+# sha256: 981e1d0781f705e023f6b6aefbafd855f5187e42c1f2c0a59812056c7e1bfe28
 
 # OpenDAP T1 main board: product rules
 #
@@ -328,7 +328,7 @@
 # (kicad-lib design-rules/pcbway-hdi) and the OpenDAP craft rule set
 # (kicad-lib design-rules/opendap-craft) into the project's
 # <project>.kicad_dru. Rules PCB-G, -P, -A and -I enforce constraints of
-# docs/specs/pcb-design-constraints.md (Draft v0.6); rules PCB-V, -H, -B, -D,
+# docs/specs/pcb-design-constraints.md (Draft v0.9); rules PCB-V, -H, -B, -D,
 # -W and -L enforce the constraints of the same families there, and
 # docs/research/2026-10-pcb-dfm-reliability-rules.md lists every value with
 # its source, primary or secondary. The net
@@ -760,8 +760,10 @@
 )
 
 
-# --- Battery and heat placement (PCB-L) ---
-# Safety items (BRD-049): Q0. Their distances are UNVERIFIED, so warnings.
+# --- Battery interface and heat placement (PCB-L) ---
+# Safety items (BRD-049, ADR 0020): Q0, except the ESD placement (Q1).
+# Rules with an UNVERIFIED distance are warnings; partition rules, which
+# carry no numeric value, are errors.
 
 # PCB-L-01: no heat source (footprint field Thermal = hot: converters,
 # eFuses, charger, SoC, PMIC) over the battery pocket. The rule area
@@ -773,11 +775,40 @@
 	(constraint disallow footprint)
 )
 
-# PCB-L-02: inside the battery connector area (rule area BATTERY_CONNECTOR),
-# only unfused battery copper (PWR_BAT) and GND: no other net's track or via
-# where a short has no fuse ahead of it. A partition decision under BRD-049,
-# with no numeric value: an error.
-(rule "T1 PCB-L-02 [Q0]: Foreign track at the battery connector"
-	(condition "(A.Type == 'Track' || A.Type == 'Via') && A.intersectsArea('BATTERY_CONNECTOR') && !A.hasNetclass('PWR_BAT') && A.NetName != 'GND'")
+# PCB-L-02, PCB-L-05: inside the battery contact area (rule area
+# BATTERY_CONNECTOR = the pocket-floor contact window plus 1 mm, ADR 0020),
+# only unfused battery copper: PWR_BAT (P+, P-), BAT_SENSE (mid-cell tap,
+# NTC) and GND. No other net's track or via where a short has no fuse ahead
+# of it. A partition decision under BRD-049, with no numeric value: an error.
+(rule "T1 PCB-L-02 [Q0]: Foreign track at the battery contacts"
+	(condition "(A.Type == 'Track' || A.Type == 'Via') && A.intersectsArea('BATTERY_CONNECTOR') && !A.hasNetclass('PWR_BAT') && !A.hasNetclass('BAT_SENSE') && A.NetName != 'GND'")
 	(constraint disallow track via)
+)
+
+# PCB-L-05: the same partition for pads: no pad of another net inside the
+# contact area (pads with no net, such as locating holes, are allowed).
+# ADR 0020 item 2; partition rule with no numeric value: an error.
+(rule "T1 PCB-L-05 [Q0]: Foreign pad at the battery contacts"
+	(condition "A.Type == 'Pad' && A.intersectsArea('BATTERY_CONNECTOR') && A.NetName != '' && !A.hasNetclass('PWR_BAT') && !A.hasNetclass('BAT_SENSE') && A.NetName != 'GND'")
+	(constraint disallow pad)
+)
+
+# PCB-L-04: the empty position of the contact row (P+, P+, empty, mid-cell
+# tap, NTC, P-, P-; ADR 0020 item 2) carries no copper, so a pack displaced
+# by one pitch puts P+ only over bare board. Rule area
+# BATTERY_CONTACT_EMPTY = the 7.00 x 2.70 mm pad position left empty
+# (KYOCERA AVX drawing 70-9258-001-1X0-00XS sheet 2). Sourced: an error.
+(rule "T1 PCB-L-04 [Q0]: Copper at the empty battery contact position"
+	(condition "A.intersectsArea('BATTERY_CONTACT_EMPTY')")
+	(constraint disallow track via pad zone)
+)
+
+# PCB-L-08: the TPD1E10B06 on the mid-cell tap and NTC contacts (footprint
+# field ESD = battery) sit within 3 mm of their contact: rule area
+# BATTERY_ESD = the contact pads grown by 3 mm. The 3 mm is the research
+# note's value, as PCB-E-01, UNVERIFIED (no primary source): a warning.
+(rule "T1 PCB-L-08 [Q1]: Battery contact ESD away from the contacts"
+	(severity warning)
+	(condition "A.Type == 'Footprint' && A.getField('ESD') == 'battery' && !A.intersectsArea('BATTERY_ESD')")
+	(constraint disallow footprint)
 )

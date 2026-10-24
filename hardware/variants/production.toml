@@ -75,4 +75,5 @@ test_points = "fit"
 "blk.buttons" = { state = "fit" }
 "blk.maskrom" = { state = "fit" }
 "blk.debug" = { state = "fit" }
+"blk.cover-detect" = { state = "fit", note = "ADR 0020 item 7 (should): about $0.05 (est.), far below the BRD-053 threshold, so it stays fitted" }
 "blk.shields" = { state = "dnp", note = "BOM line 90: fitted only if EMC or audio measurements require" }

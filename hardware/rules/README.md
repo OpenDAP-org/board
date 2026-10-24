@@ -34,7 +34,10 @@ The rules find objects by reference prefix, footprint field, pad fabrication pro
 | Via in a pad | Via property Filling = Filled and Capping = Capped (IPC-4761 type VII) | PCB-D-10 |
 | Heat source | Footprint field `Thermal` = `hot` (converters, eFuses, charger, SoC, PMIC) | PCB-L-01 |
 | Battery pocket | Rule area `BATTERY_POCKET`: the pocket's footprint on the board, grown by a 3 mm margin (**UNVERIFIED**) | PCB-L-01 |
-| Battery connector | Rule area `BATTERY_CONNECTOR` around the Micro-Fit connector and its unfused copper | PCB-L-02 |
+| Battery contacts | Rule area `BATTERY_CONNECTOR`: the pocket-floor contact window plus 1 mm, around the six battery contacts and their unfused copper (ADR 0020) | PCB-L-02, L-05 |
+| Battery nets | Net classes `PWR_BAT` (P+, P−) and `BAT_SENSE` (mid-cell tap, NTC) in `netclasses.toml` | PCB-L-02, L-05 |
+| Empty contact position | Rule area `BATTERY_CONTACT_EMPTY`: the 7.00 × 2.70 mm pad position left empty between P+ and the mid-cell tap | PCB-L-04 |
+| Battery contact ESD | Footprint field `ESD` = `battery` on the TPD1E10B06 of the mid-cell tap and NTC; rule area `BATTERY_ESD`: the contact pads grown by 3 mm (**UNVERIFIED**) | PCB-L-08 |
 | Panel break tab | Rule area `BREAK_TAB` around each tab or mouse-bite position on the outline, reaching at least 5.08 mm (PCB-B-03) into the board | PCB-B-02, B-03 |
 | RK3566 escape | Rule area `BGA_ESCAPE` (existing) | PCB-G-02, W-01, V-01 |
 | Analog audio | Rule area `AUDIO_ANALOG` (existing) | PCB-A-07 |
@@ -53,6 +56,6 @@ Rules that overlap the fab and craft rule sets are left to them: silkscreen to p
 
 ## Not checked by DRC
 
-Impedance, length matching and skew (PCB-I), height zones (PCB-Z), copper area per net and via counts for current (PCB-P-01 to PCB-P-03, PCB-P-09), ESD distance (PCB-E-01) and test-pad coverage (PCB-T-02) are layout checks (E4.5). Review items are listed in the specification.
+Impedance, length matching and skew (PCB-I), height zones (PCB-Z, including the battery-contact exception of PCB-L-05), copper area per net and via counts for current (PCB-P-01 to PCB-P-03, PCB-P-09), the battery contacts' pad size, pitch and order (PCB-L-04), via count per contact pad and pour symmetry (PCB-L-07), ESD distance (PCB-E-01) and test-pad coverage (PCB-T-02) are layout checks (E4.5). The contact working height and the liner distance (PCB-L-06) are 3D review and case items. Review items are listed in the specification.
 
 KiCad 10.0.7 can express two more rules, thermal-relief spoke count (`min_resolved_spokes`) and differential-pair uncoupled length (`diff_pair_uncoupled`), but its report does not name the rule for them ("zone min spoke count", "(<rule> maximum uncoupled length"), so `check_drc.py` cannot attribute them. They wait for a kicad-lib `check_drc.py` that reads those messages; until then they are CHK items in the research note, with the other checks DRC cannot make.

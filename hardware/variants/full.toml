@@ -70,4 +70,5 @@ test_points = "fit"
 "blk.buttons" = { state = "fit" }
 "blk.maskrom" = { state = "fit" }
 "blk.debug" = { state = "fit" }
+"blk.cover-detect" = { state = "fit", note = "ADR 0020 item 7 (should): fitted on prototype 1 (RFC 0011 rule 1)" }
 "blk.shields" = { state = "dnp", note = "BOM line 90: fitted only if EMC or audio measurements require" }

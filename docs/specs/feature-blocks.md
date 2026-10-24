@@ -2,13 +2,14 @@
 
 - **Status:** Draft v0 (2026-10-24). Task E10.1 and E10.2 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Written by Claude under the maintainers' delegation, applying [RFC 0011](https://github.com/opendap-project/rfcs/blob/main/text/0011-feature-blocks-and-variants.md) (feature blocks and variants, amended 2026-10-24: promises are fixed, parts are not) and [RFC 0010](https://github.com/opendap-project/rfcs/blob/main/text/0010-quality-levels.md) (quality levels). Nothing here is drawn, built or measured. No decision, priority or requirement status changes here: every proposal below is input for the schematic (E4) and for the maintainers.
 - **Updated 2026-10-24 (BOM v1.9, power tree v0.3):** records `blk.gpio-expander`, `blk.gauge`, `blk.hat-3v3`, `blk.hat-audio`, `blk.fp-connector`, `blk.fp-controls`, `blk.mclk`, `blk.radio` and `blk.rp2354` follow [ADR 0019](../adr/0019-master-clock-divided-from-twice-the-frequency.md), [pinout v1](pinout-v1.md) and three decisions taken under the maintainers' delegation on 2026-10-24 (radio in suspend for item tracking, faceplate supply in suspend, 802.15.4 balls); gaps G3, G8, G13 and G14 updated in §7.
+- **Updated 2026-10-24 (BOM v1.10, power tree v0.4):** [ADR 0020](../adr/0020-battery-connected-through-contacts.md) (battery connected through contacts): the `blk.charger` record takes the six battery contacts (interface, absent state, alternates), and a new should block, `blk.cover-detect` (#50), is added to the catalog and to the three variant files (fitted in each).
 - **Purpose:** the T1 main board's block catalog: one record per function of [BOM v1.7](bom-v1.md), with what it is bound by, its interface, power domain and switch, measurement point, absent state, swap classes, alternates and software. Then the variant file format and the three T1 variant files, what KiCad 10 offers for variants, a sketch of `odapkit variant`, and the gaps the schematic must close.
 - **Inputs:** [BOM v1.7](bom-v1.md), [power tree v0](power-tree-v0.md), [PCB design constraints](pcb-design-constraints.md) v0.5, [pin multiplexing v0](../research/2026-10-pin-multiplexing-v0.md), [board requirements](../requirements/README.md), [ADR 0013](../adr/0013-production-variant.md) (production variant), [ADR 0016](../adr/0016-front-side-height-under-the-display.md) (front-side height), the system [hardware support spec](https://github.com/opendap-project/system/blob/main/docs/specs/hardware-support.md) (layers H0–H5, device description), the t1 [faceplate interface](https://github.com/opendap-project/t1/blob/main/docs/specs/faceplate-interface.md) and the hat-standard [HAT interface v1](https://github.com/opendap-project/hat-standard/blob/main/docs/specs/interface-v1.md).
 - **Conventions:** "line N" is a BOM v1.7 line. **UNVERIFIED** marks what no primary source in this repository confirms yet; each one names what closes it. "Gap Gn" refers to the table in §7.
 
 ## 0. Summary
 
-1. **49 blocks** cover every BOM v1.7 function (§2, §3). Blocks nest where a swap needs a wider boundary than a fit: the audio converter boundary (`blk.audio`) holds the DACs, clocks, supplies and amplifiers, so another DAC family or output stage in a higher-tier variant replaces what sits behind I2S/TDM/DSD, clocks, the control bus, supplies and the jack nets, never the rest of the board.
+1. **50 blocks** cover every BOM v1.7 function, plus the cover detect of BOM v1.10 (`blk.cover-detect`, #50; 49 blocks until then) (§2, §3). Blocks nest where a swap needs a wider boundary than a fit: the audio converter boundary (`blk.audio`) holds the DACs, clocks, supplies and amplifiers, so another DAC family or output stage in a higher-tier variant replaces what sits behind I2S/TDM/DSD, clocks, the control bus, supplies and the jack nets, never the rest of the board.
 2. **Bound by, not fixed.** Following RFC 0011 rule 5, no block is structurally fixed. Each record names the requirements and promise any replacement must meet (for example T1-040 at 100 %, BRD-049 margins). Must requirements of a variant's declared promise keep their block fitted (or replaced by an alternate that meets them) in every product variant.
 3. **Power and measurement are incomplete today.** Four should blocks have no usable switch or enable (IMU, TPM, NFC tag, and the haptic driver, whose enable has no GPIO), 20 blocks have no measurement point of their own, and only 4 current-sense channels exist (VSYS, "audio", "display", HAT 5.1 V), two of them with no defined position. §7 proposes a 0 Ω link plus shunt footprint with Kelvin pads per block supply, and load switches only where the off state matters.
 4. **Five absent-state risks need hardware, not software:** the two CS43198 sit on the shared 1.8 V I2C2 while their digital supply is switched (back-powering through the control port, G2); the master clock can drive the DAC XTI pins with the DAC unpowered (G3); the RP2354A taps the live I2S nets while its own supply is switched (G4); the IMU is on `vcc_1v8`, which is off in suspend, yet it is the wake-on-motion source (G1); the PN7160 is fed "from the battery path", 6.0–8.8 V on the 2S tree, and takes a 3.3 V expander line on a 1.8 V pin (G7).
@@ -35,7 +36,7 @@ Priority is the requirement's own (must / should) as recorded in its requirement
 | 4 | `blk.microsd` | microSD socket, ESD | BRD-038, BRD-043, BRD-051 (must) | RK809 SWOUT2, LDO5 | none (G12) | fit | fit | fit |
 | 5 | `blk.board-id` | Board EEPROM | none recorded (BOM Proposed) | none | none | fit | fit | fit |
 | 6 | `blk.gpio-expander` | TCA6416A | infrastructure for BRD-008, BRD-019 | none (always on) | none | fit | fit | fit |
-| 7 | `blk.charger` | TPS2121, BQ25798, ship FET, fuse, battery connector, NTC | BRD-007, BRD-049, BRD-050 (must), ADR 0014 | ship FET (BQ25798 SDRV) | VSYS channel | fit | fit | fit |
+| 7 | `blk.charger` | TPS2121, BQ25798, ship FET, fuse, six battery contacts and their ESD (v1.10), NTC | BRD-007, BRD-049, BRD-050 (must), ADR 0014, ADR 0020 | ship FET (BQ25798 SDRV) | VSYS channel | fit | fit | fit |
 | 8 | `blk.gauge` | BQ28Z610-R1, sense resistor | BRD-049 (must), ADR 0014 | none (always on) | its own sense resistor | fit | fit | fit |
 | 9 | `blk.usb-c` | USB-C, ESD, CC/SBU protection, FUSB302B, VBUS TVS | BRD-018, BRD-034, BRD-039, BRD-044 (must) | none (always on) | none | fit | fit | fit |
 | 10 | `blk.pwr-vsys-lv` | TPS62136 3.8 V pre-regulator | BRD-049 (must), ADR 0014 | none (EN = VSYS) | none (G11) | fit | fit | fit |
@@ -78,9 +79,10 @@ Priority is the requirement's own (must / should) as recorded in its requirement
 | 47 | `blk.buttons` | Power, Action, Vol+, Vol−, ESD | BRD-016, BRD-017, BRD-035, BRD-036 (must), T1-022 (must) | — | — | fit | fit | fit |
 | 48 | `blk.maskrom` | MaskROM combo (TPS3808, gates, BAT54, FET) | BRD-035, BRD-043 (must) | — (vcca1v8_pmu) | — | fit | fit | fit |
 | 49 | `blk.debug` | UART pads, I2S/DSD pads, rail test points, RP SWD pads, measurement links | BRD-040, BRD-047 (must), T1-026 | — | — | fit | fit (links 0 Ω) | fit (links 0 Ω) |
+| 50 | `blk.cover-detect` | Back-cover detect input: board-edge pad, pull-up, TPD1E10B06 (v1.10) | ADR 0020 item 7 (should; no requirement ID; T1-086 met without it) | — (passive input) | none (µA) | fit | fit | fit |
 | — | `blk.shields` | Shield-can frames (DNP footprints) | BOM line 90, PCB-T-06, PCB-EMC-03 | — | — | dnp | dnp | dnp |
 
-`blk.shields` is listed for completeness: it is a mechanical footprint set, not a function, and is not counted among the 49. Item tracking (BRD-030, line 103) has no hardware block of its own: from BOM v1.9 it is `blk.radio` kept powered in suspend while the listener enables it (decision 2026-10-24); tracking with the T1 off stays open.
+`blk.shields` is listed for completeness: it is a mechanical footprint set, not a function, and is not counted among the 50. Item tracking (BRD-030, line 103) has no hardware block of its own: from BOM v1.9 it is `blk.radio` kept powered in suspend while the listener enables it (decision 2026-10-24); tracking with the T1 off stays open.
 
 ## 3. Block records
 
@@ -178,15 +180,15 @@ Field order follows RFC 0011 §1. "Holds" lists the swap classes the interface t
 
 | Field | Content |
 |---|---|
-| Bound by | BRD-007, BRD-049, BRD-050 (must), ADR 0014 (decided parts: BQ25798, fuse rating, connector family, ship FET) |
-| Interface | USB-C VBUS (from `blk.usb-c`), HAT_5V in (powerbank, from `blk.hat-5v` connector side), VSYS out, battery connector (P+, P−, mid-cell tap, NTC), I2C1 (0x6B), INT (wake), STAT; `USB_SRC_ON`, `HAT_SRC_ON` into the TPS2121 OV pins |
+| Bound by | BRD-007, BRD-049, BRD-050 (must), ADR 0014 (decided parts: BQ25798, fuse rating, ship FET), ADR 0020 (battery contacts, BOM v1.10; replaces ADR 0014's connector family); T1-055, T1-079 (user-replaceable pack, published pack specification) |
+| Interface | USB-C VBUS (from `blk.usb-c`), HAT_5V in (powerbank, from `blk.hat-5v` connector side), VSYS out, battery contacts (six KYOCERA AVX 70-9258-001-120-006 in a window of the pocket floor, face compression; order P+, P+, empty position, mid-cell tap, NTC, P−, P−; BOM line 47) to the pack's terminal board (recessed hard-gold pads, line 46), with a TPD1E10B06 on the mid-cell tap and NTC and a DNP P+ TVS position (line 142); BATP through 100 Ω with 47 nF to GND (line 115); I2C1 (0x6B), INT (wake), STAT; `USB_SRC_ON`, `HAT_SRC_ON` into the TPS2121 OV pins |
 | Power domain | Source of VSYS. Ship FET (line 120) removes the pack |
-| Measure | INA236 VSYS channel (10 mΩ, ≥ 1 W, line 54); BQ25798 ADC; test pads on VBUS_CHG, VSYS, VBAT (PCB-T-02) |
-| Absent state | Not applicable (never omitted). Battery absent: bench supply on the battery connector; TS window follows the pack NTC |
-| Holds / revision | Holds: BQ25792 (same family, mainline-supported, line 39) on the same land. Revision: 1S or 3S+ packs (ADR 0014), another charger family |
-| Alternates | `bq25792` (thin stock, line 39); fuse 0451004.MRL only under ADR 0014's condition (line 104) |
+| Measure | INA236 VSYS channel (10 mΩ, ≥ 1 W, line 54); BQ25798 ADC; test pads on VBUS_CHG, VSYS, VBAT (PCB-T-02), and from v1.10 on the pack side of the fuse and on BAT for the insertion measurement (CB-07, PCB-L-09) |
+| Absent state | Not applicable (never omitted). Battery absent (pack out, contacts open): with no adapter the BQ25798 is unpowered and the ship FET off, so a pack inserted later meets a soft start (ADR 0020 item 6); with an adapter, the BQ25798 keeps SYS regulated, sees the missing NTC, stops charging and reports no battery. Bring-up: a bench terminal board with the pack's pad layout, wired to a bench supply or a protected 2S pack, presses on the same contacts (ADR 0020 item 9); TS window follows the pack NTC |
+| Holds / revision | Holds: BQ25792 (same family, mainline-supported, line 39) on the same land; any pack built to the published pack specification (T1-079). Revision: 1S or 3S+ packs (ADR 0014), another charger family, another contact row (pitch, order or arrangement) |
+| Alternates | `bq25792` (thin stock, line 39); fuse 0451004.MRL only under ADR 0014's condition (line 104); battery contacts: none on the same land; `pogo-contacts`, Mill-Max 0965 or 0990 pogo pins, four per pole on their own land, as the fallback to qualify (line 47; rule 1: a DNP footprint set in this block's sheet, never a land outside it) |
 | Software | `ti,bq25798`, `ti,bq25792` (DKMS); board description `power` section |
-| Level | — / Q1 (Q0 for the battery path: fuse, ship FET, margins) |
+| Level | — / Q1 (Q0 for the battery path: contacts, fuse, ship FET, margins; PCB-L-04 to L-09) |
 
 #### 8. `blk.gauge`: fuel gauge
 
@@ -750,6 +752,20 @@ The faceplate interface is the t1 faceplate interface v0 (FH35C-51S, 46 used, 5 
 | Software | — |
 | Level | — / Q1 |
 
+#### 50. `blk.cover-detect`: back-cover detect
+
+| Field | Content |
+|---|---|
+| Bound by | ADR 0020 item 7 (should); no requirement names it; T1-086 is met without it. Added in BOM v1.10 (line 143) |
+| Interface | One GPIO input (chosen in the pinout); a contact pad at the board edge for the case's actuator; TPD1E10B06 at the pad |
+| Power domain | The pull-up on the GPIO's IO rail; no switch (µA while a closed cover grounds the input) |
+| Measure | None (pull-up current only) |
+| Absent state | If `dnp`: the GPIO's internal pull holds the "cover closed" level and the device description omits the input, so Blackbird OS never acts on it; no other block depends on it |
+| Holds / revision | Holds: any switch or contact the case actuator uses, on the same pad. Revision: a detect that needs a supply (Hall or optical) |
+| Alternates | None |
+| Software | `gpio-keys` (a switch event); Blackbird OS powers down in order (ADR 0017 item 3 sequence with no adapter) when the cover lifts |
+| Level | — / Q2 (PCB-L-10) |
+
 ## 4. Variant files
 
 ### 4.1 Format: `opendap.board-variant/v1`
@@ -779,7 +795,7 @@ Rules:
 
 ### 4.2 The T1 variants
 
-The files list the 49 blocks plus `blk.shields` (50 entries), so the shield footprints' DNP state is data too.
+The files list the 50 blocks plus `blk.shields` (51 entries; 50 until BOM v1.10 added `blk.cover-detect`), so the shield footprints' DNP state is data too.
 
 - [`full.toml`](../../hardware/variants/full.toml): prototype 1 (RFC 0011 rule 1, BRD-053). Every block, every *should* part and every instrumentation link with its shunt value; shields DNP (fitted only if measurement requires, line 90).
 - [`production.toml`](../../hardware/variants/production.toml): Commercial and DIY editions (T1-004, ADR 0013). Same blocks as `full`, measurement links as 0 Ω, the four INA236 kept (ADR 0013). Open: eMMC 16 or 32 GB (BRD-037, ADR 0013 volume-quote condition) and the PN7160 (line 127: DNP option; ADR 0013 rule on small-cost should parts not yet applied to it).
@@ -867,6 +883,7 @@ Proposed parts come from families already in the BOM where possible; stock figur
 | G19 | `blk.board-id` | Supply rail not stated | vcca1v8_pmu, with the variant name in the EEPROM map | — | **Closed** (line 17): VCC on vcca1v8_pmu |
 | G20 | `blk.haptics` | DRV2605L EN has no GPIO | A spare expander line (five are spare, line 93) with a pull-down | — | **Closed** (lines 93, 123): `HAPTIC_EN` on an expander spare with pull-down (pinout v1) |
 | G21 | `blk.audio` | No hardware guarantee that the I2S lines are parked before DAC_DIG_1V8 is removed (power tree §5 states it as a software step) | G2's series-resistor footprints plus a driver sequence test at bring-up (E8.2) | — | **Narrowed** (line 134): series footprints at the DAC end; the driver sequence test at bring-up (E8.2) remains |
+| G22 | `blk.cover-detect` | No GPIO assigned (BOM v1.10, ADR 0020 item 7) | A spare GPIO that wakes from suspend, so the input is seen while suspended | — | **Open**: for the pinout owner (BOM §7 item 42) |
 
 ## 8. Sources
 

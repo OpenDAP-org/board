@@ -337,6 +337,66 @@
 	)
 	(footprint ""
 		(layer "F.Cu")
+		(uuid "2690b989-d13c-427d-bb15-d6569d94fb05")
+		(at 41.5 310.319999)
+		(property "Reference" "R22"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "f2794f8e-e66c-4655-83a6-6989ca672ca2")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "test"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "b20cff63-5be2-44ac-90c1-3eb2f5cbd1a0")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "b106b1ad-79b3-4576-ab19-f3af6ea70128")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "2ae4bd8f-46f6-430c-8820-ab5b9f065280")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr smd board_only)
+		(duplicate_pad_numbers_are_jumpers no)
+		(pad "1" smd rect
+			(at 0 0)
+			(size 0.6 0.6)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(net "N61")
+			(thermal_bridge_angle 45)
+			(uuid "19eef49c-a26d-47a9-b669-8ceff9591bb6")
+		)
+		(embedded_fonts no)
+	)
+	(footprint ""
+		(layer "F.Cu")
 		(uuid "2b63e510-860e-493a-8d06-66c1b8821c82")
 		(at 40.3 32.5)
 		(property "Reference" "R1"
@@ -1549,6 +1609,66 @@
 	)
 	(footprint ""
 		(layer "F.Cu")
+		(uuid "6568a009-5eb4-4528-9820-c5c3aec01807")
+		(at 55.5 310.319999)
+		(property "Reference" "R23"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "141aae84-169c-4b2c-806c-5c01c57f91f9")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "test"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "1696f646-9b8a-4943-a7c3-ea88e570271c")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "193799c4-7004-45b6-a479-970d40de0689")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "2dc48e8c-26d4-40c8-b9fa-0dcd34846c6b")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr smd board_only)
+		(duplicate_pad_numbers_are_jumpers no)
+		(pad "1" smd rect
+			(at 0 0)
+			(size 0.6 0.6)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(net "BAT_SENSE_1")
+			(thermal_bridge_angle 45)
+			(uuid "34134ba6-2025-49c5-854f-73eecf9ccf1a")
+		)
+		(embedded_fonts no)
+	)
+	(footprint ""
+		(layer "F.Cu")
 		(uuid "666c6b3f-b330-4339-a0c6-1d431eaa91a5")
 		(at 57.91 138)
 		(property "Reference" "R6"
@@ -1730,6 +1850,79 @@
 			(fill no)
 			(layer "F.CrtYd")
 			(uuid "615b5d73-aff7-4fa8-b782-9c5558844316")
+		)
+		(embedded_fonts no)
+	)
+	(footprint ""
+		(layer "F.Cu")
+		(uuid "6c2d17fa-061d-4eb3-b3b8-0786a63e407b")
+		(at 54.5 318.819999)
+		(property "Reference" "D2"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "ed05b2f3-f0a0-4e64-a2bc-53e39fbe03e3")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "test"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "3ec89d84-791d-4d72-af77-6c5fbe150e55")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "22ccd9b5-479f-4293-aa0c-a57494edcc3b")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "713bef9a-5a98-4fbd-b242-8bfd16392f8b")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ESD" "battery"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(uuid "02601fc6-bf79-4fbb-a923-935580f82e9a")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr smd board_only)
+		(duplicate_pad_numbers_are_jumpers no)
+		(fp_rect
+			(start -0.5 -0.5)
+			(end 0.5 0.5)
+			(stroke
+				(width 0.05)
+				(type default)
+			)
+			(fill no)
+			(layer "F.CrtYd")
+			(uuid "5c96c816-67a5-4cfe-85f9-552fc828bf38")
 		)
 		(embedded_fonts no)
 	)
@@ -3264,6 +3457,79 @@
 	)
 	(footprint ""
 		(layer "F.Cu")
+		(uuid "eafec058-ac6b-4149-85a9-885a74620b7e")
+		(at 43.5 318.819999)
+		(property "Reference" "D1"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "cb95fb40-ef2b-4311-9879-38e97d8fd498")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "test"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "a2b5c3b9-0eab-44cb-bb12-a30666ed0c01")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "d8412676-eaa2-4708-a15c-03481847f3ae")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "fb536a07-0364-47b2-a983-7ae29ebd5fdb")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ESD" "battery"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(uuid "679b60c5-9629-466b-b584-695466a5952d")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr smd board_only)
+		(duplicate_pad_numbers_are_jumpers no)
+		(fp_rect
+			(start -0.5 -0.5)
+			(end 0.5 0.5)
+			(stroke
+				(width 0.05)
+				(type default)
+			)
+			(fill no)
+			(layer "F.CrtYd")
+			(uuid "6943ebcb-6086-4bd6-9b7f-1b535b171f07")
+		)
+		(embedded_fonts no)
+	)
+	(footprint ""
+		(layer "F.Cu")
 		(uuid "eb2ada82-b373-42e7-96d1-7b8a0fbb3238")
 		(at 41.1 143.2)
 		(property "Reference" "H3"
@@ -3855,14 +4121,14 @@
 	)
 	(gr_rect
 		(start 0 0)
-		(end 80 312.319999)
+		(end 80 324.319999)
 		(stroke
 			(width 0.05)
 			(type default)
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "47f91ca9-f69f-4974-8109-f2168879e3c4")
+		(uuid "b4c3df86-095c-45c6-9e39-c76a61d1cfe6")
 	)
 	(gr_rect
 		(start 40 28.5)
@@ -3873,7 +4139,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "9a15f535-28d5-4ff9-9919-b9802047be56")
+		(uuid "0b08f8cc-620c-4237-a859-e6eedb0f8098")
 	)
 	(gr_rect
 		(start 40 152.499999)
@@ -3884,7 +4150,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "2690b989-d13c-427d-bb15-d6569d94fb05")
+		(uuid "68d517f5-825a-4fcf-96dd-9ff5520b25ef")
 	)
 	(gr_rect
 		(start 40 168.599999)
@@ -3895,7 +4161,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "b20cff63-5be2-44ac-90c1-3eb2f5cbd1a0")
+		(uuid "1df07b01-7a48-4ee7-9fdf-0b50e21d1b5e")
 	)
 	(gr_rect
 		(start 40 172.799999)
@@ -3906,7 +4172,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "2ae4bd8f-46f6-430c-8820-ab5b9f065280")
+		(uuid "7fe5235b-81ee-49e2-8b2d-24f4019856aa")
 	)
 	(gr_rect
 		(start 40 176.299999)
@@ -3917,7 +4183,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "b6afcd98-e14c-41b0-a06b-c6fa6c75da92")
+		(uuid "cbf2c480-e513-4273-8e1a-b3a46b7becef")
 	)
 	(gr_rect
 		(start 40 214.059999)
@@ -3928,7 +4194,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "6568a009-5eb4-4528-9820-c5c3aec01807")
+		(uuid "311e19da-0ecb-47cd-89c2-20d895bb0604")
 	)
 	(gr_rect
 		(start 40 225.909999)
@@ -3939,7 +4205,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "1696f646-9b8a-4943-a7c3-ea88e570271c")
+		(uuid "ae379d71-185f-4b66-903e-011aa5a98be8")
 	)
 	(gr_rect
 		(start 40 259.209999)
@@ -3950,7 +4216,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "2dc48e8c-26d4-40c8-b9fa-0dcd34846c6b")
+		(uuid "da1ddd48-660a-4773-871d-4be8bc7e889b")
 	)
 	(gr_rect
 		(start 54 28.5)
@@ -3961,7 +4227,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "463ede1a-6003-44e8-8735-8d63f458dd96")
+		(uuid "4c8b882d-57a4-4f5c-ab55-2ddcbd4051ea")
 	)
 	(gr_rect
 		(start 54 152.499999)
@@ -3972,7 +4238,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "f2794f8e-e66c-4655-83a6-6989ca672ca2")
+		(uuid "dd5cb109-e96a-4280-a2ca-bd0e2f55024b")
 	)
 	(gr_rect
 		(start 54 168.599999)
@@ -3983,7 +4249,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "b106b1ad-79b3-4576-ab19-f3af6ea70128")
+		(uuid "5040420e-7701-4d68-bf92-3a4b7127f024")
 	)
 	(gr_rect
 		(start 54 172.799999)
@@ -3994,7 +4260,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "19eef49c-a26d-47a9-b669-8ceff9591bb6")
+		(uuid "b474197a-dc9d-452f-b1a2-3a4740498495")
 	)
 	(gr_rect
 		(start 54 176.299999)
@@ -4005,7 +4271,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "46cfe570-0501-4e9f-bf35-57bd74329a35")
+		(uuid "be987a1c-4c40-4d6b-b054-10c224104470")
 	)
 	(gr_rect
 		(start 54 214.059999)
@@ -4016,7 +4282,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "141aae84-169c-4b2c-806c-5c01c57f91f9")
+		(uuid "7341f8e3-a087-48d0-876c-c061808756f2")
 	)
 	(gr_rect
 		(start 54 225.909999)
@@ -4027,7 +4293,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "193799c4-7004-45b6-a479-970d40de0689")
+		(uuid "907bce39-b4a6-4b18-8475-a8f85ce4b58b")
 	)
 	(gr_rect
 		(start 54 259.209999)
@@ -4038,7 +4304,7 @@
 		)
 		(fill no)
 		(layer "Edge.Cuts")
-		(uuid "34134ba6-2025-49c5-854f-73eecf9ccf1a")
+		(uuid "093cfbe3-a2a4-4b8a-bf41-29ec42a52bb1")
 	)
 	(gr_text "T1 PCB-G-01 [Q1]: Copper clearance"
 		(at 2 8 0)
@@ -4640,10 +4906,46 @@
 			(justify left)
 		)
 	)
-	(gr_text "T1 PCB-L-02 [Q0]: Foreign track at the battery connector"
+	(gr_text "T1 PCB-L-02 [Q0]: Foreign track at the battery contacts"
 		(at 2 305.009999 0)
 		(layer "Cmts.User")
 		(uuid "c9cfcc37-cc2e-4191-9793-ffecf948ea83")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+			(justify left)
+		)
+	)
+	(gr_text "T1 PCB-L-05 [Q0]: Foreign pad at the battery contacts"
+		(at 2 310.319999 0)
+		(layer "Cmts.User")
+		(uuid "47f91ca9-f69f-4974-8109-f2168879e3c4")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+			(justify left)
+		)
+	)
+	(gr_text "T1 PCB-L-04 [Q0]: Copper at the empty battery contact position"
+		(at 2 313.819999 0)
+		(layer "Cmts.User")
+		(uuid "85992113-a1dc-41c2-80c9-dc46b5198781")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.09)
+			)
+			(justify left)
+		)
+	)
+	(gr_text "T1 PCB-L-08 [Q1]: Battery contact ESD away from the contacts"
+		(at 2 318.819999 0)
+		(layer "Cmts.User")
+		(uuid "0ca54218-3f9a-4937-8710-7cd746dc7462")
 		(effects
 			(font
 				(size 0.6 0.6)
@@ -6022,6 +6324,22 @@
 		(net "PWR_BAT_5")
 		(uuid "004d8afa-cf10-4e5d-93ab-833c047553a8")
 	)
+	(segment
+		(start 40 313.819999)
+		(end 42 313.819999)
+		(width 0.2)
+		(layer "F.Cu")
+		(net "N62")
+		(uuid "331b63e5-b7c4-4da0-b633-04f9d06f40bd")
+	)
+	(segment
+		(start 54 315.319999)
+		(end 56 315.319999)
+		(width 0.2)
+		(layer "F.Cu")
+		(net "N63")
+		(uuid "c73fc603-feea-4f1d-9433-c9f81dce4a38")
+	)
 	(zone
 		(net "N54")
 		(layer "F.Cu")
@@ -6308,6 +6626,68 @@
 	)
 	(zone
 		(layers "F.Cu" "B.Cu" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu" "In5.Cu" "In6.Cu")
+		(uuid "352653eb-b59d-4b50-8c60-d7c3fe7db2e9")
+		(name "BATTERY_CONTACT_EMPTY")
+		(hatch edge 0.5)
+		(connect_pads
+			(clearance 0)
+		)
+		(min_thickness 0.25)
+		(keepout
+			(tracks allowed)
+			(vias allowed)
+			(pads allowed)
+			(copperpour allowed)
+			(footprints allowed)
+		)
+		(placement
+			(enabled no)
+			(sheetname "")
+		)
+		(fill
+			(thermal_gap 0.5)
+			(thermal_bridge_width 0.5)
+			(island_removal_mode 0)
+		)
+		(polygon
+			(pts
+				(xy 39.5 313.319999) (xy 42.5 313.319999) (xy 42.5 314.319999) (xy 39.5 314.319999)
+			)
+		)
+	)
+	(zone
+		(layers "F.Cu" "B.Cu" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu" "In5.Cu" "In6.Cu")
+		(uuid "360a9fff-693c-40d2-8c0f-c02355bda648")
+		(name "BATTERY_CONTACT_EMPTY")
+		(hatch edge 0.5)
+		(connect_pads
+			(clearance 0)
+		)
+		(min_thickness 0.25)
+		(keepout
+			(tracks allowed)
+			(vias allowed)
+			(pads allowed)
+			(copperpour allowed)
+			(footprints allowed)
+		)
+		(placement
+			(enabled no)
+			(sheetname "")
+		)
+		(fill
+			(thermal_gap 0.5)
+			(thermal_bridge_width 0.5)
+			(island_removal_mode 0)
+		)
+		(polygon
+			(pts
+				(xy 53.5 313.319999) (xy 56.5 313.319999) (xy 56.5 314.319999) (xy 53.5 314.319999)
+			)
+		)
+	)
+	(zone
+		(layers "F.Cu" "B.Cu" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu" "In5.Cu" "In6.Cu")
 		(uuid "448bd13b-83a6-4851-ba86-1a1a0ceef8e3")
 		(name "AUDIO_ANALOG")
 		(hatch edge 0.5)
@@ -6396,6 +6776,68 @@
 		(polygon
 			(pts
 				(xy 39.5 279.009999) (xy 47.5 279.009999) (xy 47.5 283.009999) (xy 39.5 283.009999)
+			)
+		)
+	)
+	(zone
+		(layers "F.Cu" "B.Cu" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu" "In5.Cu" "In6.Cu")
+		(uuid "5262d14e-e1bf-4c19-b68e-98eda42240da")
+		(name "BATTERY_ESD")
+		(hatch edge 0.5)
+		(connect_pads
+			(clearance 0)
+		)
+		(min_thickness 0.25)
+		(keepout
+			(tracks allowed)
+			(vias allowed)
+			(pads allowed)
+			(copperpour allowed)
+			(footprints allowed)
+		)
+		(placement
+			(enabled no)
+			(sheetname "")
+		)
+		(fill
+			(thermal_gap 0.5)
+			(thermal_bridge_width 0.5)
+			(island_removal_mode 0)
+		)
+		(polygon
+			(pts
+				(xy 53.5 317.819999) (xy 55.5 317.819999) (xy 55.5 319.819999) (xy 53.5 319.819999)
+			)
+		)
+	)
+	(zone
+		(layers "F.Cu" "B.Cu" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu" "In5.Cu" "In6.Cu")
+		(uuid "527f67af-3f29-41ee-be8b-d07c40fe274a")
+		(name "BATTERY_ESD")
+		(hatch edge 0.5)
+		(connect_pads
+			(clearance 0)
+		)
+		(min_thickness 0.25)
+		(keepout
+			(tracks allowed)
+			(vias allowed)
+			(pads allowed)
+			(copperpour allowed)
+			(footprints allowed)
+		)
+		(placement
+			(enabled no)
+			(sheetname "")
+		)
+		(fill
+			(thermal_gap 0.5)
+			(thermal_bridge_width 0.5)
+			(island_removal_mode 0)
+		)
+		(polygon
+			(pts
+				(xy 39.5 317.819999) (xy 41.5 317.819999) (xy 41.5 319.819999) (xy 39.5 319.819999)
 			)
 		)
 	)
@@ -6525,6 +6967,37 @@
 	)
 	(zone
 		(layers "F.Cu" "B.Cu" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu" "In5.Cu" "In6.Cu")
+		(uuid "9a15f535-28d5-4ff9-9919-b9802047be56")
+		(name "BATTERY_CONNECTOR")
+		(hatch edge 0.5)
+		(connect_pads
+			(clearance 0)
+		)
+		(min_thickness 0.25)
+		(keepout
+			(tracks allowed)
+			(vias allowed)
+			(pads allowed)
+			(copperpour allowed)
+			(footprints allowed)
+		)
+		(placement
+			(enabled no)
+			(sheetname "")
+		)
+		(fill
+			(thermal_gap 0.5)
+			(thermal_bridge_width 0.5)
+			(island_removal_mode 0)
+		)
+		(polygon
+			(pts
+				(xy 39.5 309.319999) (xy 43.5 309.319999) (xy 43.5 311.319999) (xy 39.5 311.319999)
+			)
+		)
+	)
+	(zone
+		(layers "F.Cu" "B.Cu" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu" "In5.Cu" "In6.Cu")
 		(uuid "9d72d4dc-7a83-41df-b078-dd2ab7a8c6af")
 		(name "BATTERY_CONNECTOR")
 		(hatch edge 0.5)
@@ -6551,6 +7024,37 @@
 		(polygon
 			(pts
 				(xy 53.5 304.509999) (xy 57.5 304.509999) (xy 57.5 308.319999) (xy 53.5 308.319999)
+			)
+		)
+	)
+	(zone
+		(layers "F.Cu" "B.Cu" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu" "In5.Cu" "In6.Cu")
+		(uuid "b6afcd98-e14c-41b0-a06b-c6fa6c75da92")
+		(name "BATTERY_CONNECTOR")
+		(hatch edge 0.5)
+		(connect_pads
+			(clearance 0)
+		)
+		(min_thickness 0.25)
+		(keepout
+			(tracks allowed)
+			(vias allowed)
+			(pads allowed)
+			(copperpour allowed)
+			(footprints allowed)
+		)
+		(placement
+			(enabled no)
+			(sheetname "")
+		)
+		(fill
+			(thermal_gap 0.5)
+			(thermal_bridge_width 0.5)
+			(island_removal_mode 0)
+		)
+		(polygon
+			(pts
+				(xy 53.5 309.319999) (xy 57.5 309.319999) (xy 57.5 311.319999) (xy 53.5 311.319999)
 			)
 		)
 	)

@@ -17,9 +17,14 @@ version = 1
 
 [[class]]
 name = "PWR_BAT"
-signals = "Battery connector P+ through the fuse to the BQ25798 BAT pins; P- through the sense resistor to GND"
+signals = "Battery contacts P+ (two contacts) through the fuse to the BQ25798 BAT pins; P- (two contacts) through the sense resistor to GND (ADR 0020)"
 design_current_a = 5.0
-constraints = ["PCB-P-01"]
+constraints = ["PCB-P-01", "PCB-L-02", "PCB-L-05", "PCB-L-07"]
+
+[[class]]
+name = "BAT_SENSE"
+signals = "Battery contacts mid-cell tap (to the BQ28Z610-R1 VC1 filter) and pack NTC (to the BQ25798 TS network), up to their series parts and ESD diodes (ADR 0020)"
+constraints = ["PCB-L-02", "PCB-L-05", "PCB-L-08", "PCB-P-17"]
 
 [[class]]
 name = "PWR_VSYS"

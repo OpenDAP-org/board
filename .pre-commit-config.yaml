@@ -15,13 +15,14 @@ repos:
     hooks:
       - id: reuse
   - repo: https://github.com/opendap-project/toolkit-hooks
-    rev: v0.3.0
+    rev: v0.4.0
     hooks:
       - id: no-stray-files
       - id: kicad-erc
       - id: kicad-drc
         exclude: ^hardware/rules/test/  # the rule test board fails by design
       - id: no-fab-outputs
+      - id: kicad-dru-composed
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.24.0
     hooks:

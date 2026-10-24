@@ -1,6 +1,7 @@
 # Battery for the full output budget (ADR 0011 search)
 
 - **Date:** 2026-10-22. All stock and price figures were captured on 2026-10-22.
+- **Updated 2026-10-24: superseded by [ADR 0014](../adr/0014-two-cell-battery.md).** The ADR 0011 criteria searched for here were replaced by the 2S pack criteria of ADR 0014 item 2, and the Adafruit 328 is no longer a T1 pack, interim or otherwise. Kept as history.
 - **Question:** is there an off-the-shelf, stocked battery that meets the acceptance criteria of [ADR 0011](../adr/0011-battery-path-rated-for-the-full-output-budget.md), so that BRD-050 can be met on battery?
 - **Inputs:**
   - [ADR 0011](../adr/0011-battery-path-rated-for-the-full-output-budget.md), [ADR 0007](../adr/0007-off-the-shelf-battery.md), [ADR 0008](../adr/0008-battery-technology-ready-for-lihv.md);

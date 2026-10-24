@@ -1,6 +1,7 @@
 # BOM v1 cross-validation
 
 - **Date:** 2026-10-22
+- **Updated 2026-10-24:** the battery, charger and gauge fixes here (Adafruit 328, BQ25895, MAX17055) are superseded by [ADR 0014](../adr/0014-two-cell-battery.md), and the 30-contact HAT power pair by the 50-contact pair of BOM v1.2. [BOM v1](../specs/bom-v1.md) holds the current parts. Kept as history.
 - **Status:** Desk validation. Nothing here was built, simulated or measured. It is an independent, adversarial check of the [BOM v1 draft](../specs/bom-v1-draft.md) and [power tree v0](../specs/power-tree-v0.md). The fixes are applied in [BOM v1](../specs/bom-v1.md) and in the power tree.
 - **Inputs read:** BOM v1 draft, power tree v0, [board requirements](../requirements/README.md), board ADRs 0001–0009, [pin multiplexing v0](2026-10-pin-multiplexing-v0.md), [high-speed I/O topology](2026-10-high-speed-io-topology.md), [battery selection](2026-10-battery-selection.md), [component selection](2026-10-component-selection.md), [sourcing alternatives](2026-10-sourcing-alternatives.md), T1 requirements (T1-001 to T1-042), the T1 battery-life analysis, touch-faceplate ADR 0001 and requirements, HAT Case Standard requirements, blackbird-os ADRs 0006–0008.
 - **Method:**

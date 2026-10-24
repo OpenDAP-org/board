@@ -3,6 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-10-22
 - **Decided by:** Claude, under the maintainers' delegation, following the product rules
+- **Note (2026-10-24):** the decision stands ([ADR 0014](0014-two-cell-battery.md) item 2 keeps 4.2 V or LiHV cells), but the parts named below are superseded by ADR 0014 and [BOM v1](../specs/bom-v1.md) v1.5: the charger is the TI BQ25798 (line 39), the gauge the TI BQ28Z610-R1 (line 42), and the pack a quoted 2S pack, a T1-038 exception (line 46). The Adafruit 328 is no longer a T1 pack.
 
 ## Context
 

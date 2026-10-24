@@ -3,6 +3,7 @@
 - **Status:** Accepted (revised 2026-10-22 after the maintainers' review: no dependence on parts whose supply is not known)
 - **Date:** 2026-10-22
 - **Decided by:** Claude, under the maintainers' delegation, following the product rules
+- **Note (2026-10-24):** since [ADR 0014](0014-two-cell-battery.md) (BOM v1.5) the TPS7A2031 is fed from VSYS_LV, a fixed 3.8 V from the TPS62136, so it has 0.7 V of headroom at every battery state. The "VSYS down to 3.4 V" case and the consequence on VSYS following the battery below applied to the 1S tree.
 
 ## Context
 

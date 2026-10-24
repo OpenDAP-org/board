@@ -1,6 +1,7 @@
 # Battery selection for the T1 (2026-10)
 
 - **Date:** 2026-10-22, revision 2. It applies the maintainers' answers to the three decisions of revision 1 (§1.1).
+- **Updated 2026-10-24: superseded by [ADR 0014](../adr/0014-two-cell-battery.md)** (through ADR 0007 and ADR 0011). The T1 runs on a quoted 2S pack with a BQ25798 charger and a BQ28Z610-R1 gauge; the Adafruit 328 and the BQ25895 / MAX17055 pairing named here are no longer T1 parts. Kept as history.
 - **Scope:** the main-body battery of the OpenDAP T1 (not the powerbank HAT).
 - **Inputs:**
   - [T1 requirements](https://github.com/opendap-project/t1/blob/main/docs/requirements/README.md): T1-009, T1-012, T1-017, T1-027 to T1-029, T1-031 to T1-033;

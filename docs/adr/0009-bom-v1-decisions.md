@@ -3,6 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-10-22
 - **Decided by:** Claude, under the maintainers' delegation, following the product rules
+- **Note (2026-10-24):** the HAT power pair is a 50-contact DF40 since [BOM v1](../specs/bom-v1.md) v1.2 (line 66), not the 30-pin pair named below; the 100-pin signal pair is unchanged.
 
 ## Context
 

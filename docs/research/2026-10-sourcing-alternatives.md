@@ -1,6 +1,7 @@
 # OpenDAP T1: sourcing alternatives for poorly available parts
 
 - **Date:** 2026-10-22. All stock and price figures were captured on 2026-10-22 unless a row says otherwise.
+- **Updated 2026-10-24:** the battery and charger recommendations here (Jauch or Adafruit 328 pack, BQ25895 for v1, BQ25798 only as a HAT upgrade) are superseded by [ADR 0014](../adr/0014-two-cell-battery.md): the T1 charger is the BQ25798 and its binding is already in linux-next ([pre-freeze checks](2026-10-battery-2s-prefreeze.md) §1). [BOM v1](../specs/bom-v1.md) holds the current parts. Kept as history.
 - **Input:** the risks list and "not verified" items in [`2026-10-component-selection.md`](2026-10-component-selection.md) (§3, §5.2, §5.3, §6.4, §7, §9.2, §12).
 - **Owner rules applied:**
   1. **Availability first, then validate.** Every final pick below was checked against a live stock figure.

@@ -3,6 +3,7 @@
 - **Status:** Accepted; its rail items are superseded by [ADR 0015](0015-amplifier-rails-from-vsys.md).
 - **Date:** 2026-10-22
 - **Decided by:** Claude, under the maintainers' delegation, following the product rules (the T1's promise is a mid-range DAP delivered 100 %; the audiophile experience is never sacrificed; power safety first, BRD-049)
+- **Note (2026-10-24):** the superseded items are those [ADR 0015](0015-amplifier-rails-from-vsys.md) names: the "±6 V amplifier rails" decision and the "Interim battery" and "Inverter margin" conditions. The interim pack itself was removed by [ADR 0014](0014-two-cell-battery.md) (items 3–4).
 
 ## Context
 

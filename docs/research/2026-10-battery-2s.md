@@ -1,6 +1,7 @@
 # Two-cell (2S) battery architecture (ADR 0011, branch C)
 
 - **Date:** 2026-10-22. All stock and price figures were captured on 2026-10-22.
+- **Updated 2026-10-24: superseded by [ADR 0014](../adr/0014-two-cell-battery.md).** The verdict of §0 item 5 and §7 ("2S is not viable within the product rules today", branch A preferred) no longer holds: ADR 0014 adopts the 2S pack as a quoted T1-038 exception. The BQ25798 software gap is closed by the [pre-freeze checks](2026-10-battery-2s-prefreeze.md) §1 (binding already in linux-next). The study is kept as history; ADR 0014 adopted the circuit of §4, with primary protection and balancing in the pack and the BQ28Z610-R1 as a gauge only.
 - **Question:** can a two-cell series (2S) pack, with a 2S charger and the power tree changes it implies, meet the full output budget of [ADR 0011](../adr/0011-battery-path-rated-for-the-full-output-budget.md) (BRD-050) within the product rules, and how does it compare with keeping 1S at the lower budget (branch A)?
 - **Inputs:**
   - [ADR 0007](../adr/0007-off-the-shelf-battery.md), [ADR 0008](../adr/0008-battery-technology-ready-for-lihv.md), [ADR 0011](../adr/0011-battery-path-rated-for-the-full-output-budget.md), [ADR 0012](../adr/0012-headphone-output-stage.md);

@@ -1,6 +1,7 @@
 # OpenDAP T1: component selection for the main board and touch faceplate
 
 - **Date:** 2026-10-21. Stock and price data were captured 2026-10-21/22.
+- **Updated 2026-10-24:** the charger, gauge and battery picks here (BQ25895, MAX17055, Adafruit 328) are superseded by [ADR 0014](../adr/0014-two-cell-battery.md) (BQ25798, BQ28Z610-R1, quoted 2S pack), and the 1.27 mm P70 pogo field by hat-standard [ADR 0004](https://github.com/opendap-project/hat-standard/blob/main/docs/adr/0004-pogo-part-and-field-geometry.md) (2.54 mm, Mill-Max 0965 second source). [BOM v1](../specs/bom-v1.md) holds the current parts. Kept as history.
 - **Scope:** every board-level part around the decided core. The core is the RK3566 SoC, RK809 PMIC (draft), 2× CS43198 + 4× OPA1622 (draft), 45.1584/49.152 MHz master clocks (draft), RP2350 coprocessor, pre-certified Wi-Fi/BT module, pogo-pin HAT bus, single PCB, and Debian trixie with the **trixie-backports 7.2.x** kernel.
 - **Owner directives applied:**
   1. Prefer commercial, multi-distributor, second-sourced, active-lifecycle parts.

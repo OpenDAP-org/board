@@ -3,6 +3,7 @@
 - **Status:** Superseded by [ADR 0011](0011-battery-path-rated-for-the-full-output-budget.md). The Adafruit 328 remains the interim prototype pack.
 - **Date:** 2026-10-22
 - **Decided by:** Claude, under the maintainers' delegation, following the product rules
+- **Note (2026-10-24):** ADR 0011 was in turn superseded by [ADR 0014](0014-two-cell-battery.md), under which the Adafruit 328 is no longer a T1 pack (item 4); bring-up uses a bench supply or a protected 2S pack.
 
 ## Context
 

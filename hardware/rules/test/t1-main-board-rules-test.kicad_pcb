@@ -5125,7 +5125,7 @@
 		(end 43 134.5)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "MCLK_1")
+		(net "MCLK_50SE_1")
 		(uuid "6036d838-bc63-4d0c-ab3d-f484ec0e29e6")
 	)
 	(segment
@@ -5141,7 +5141,7 @@
 		(end 57 134.5)
 		(width 0.2)
 		(layer "F.Cu")
-		(net "MCLK_2")
+		(net "MCLK_50SE_2")
 		(uuid "270adadd-7cc8-479f-837c-26f3a2fc4433")
 	)
 	(segment

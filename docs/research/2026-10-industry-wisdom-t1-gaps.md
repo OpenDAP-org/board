@@ -105,3 +105,23 @@ Proposals for the plan owner, not edits.
 ## 4. What the T1 documents already do well
 
 Checked and covered, so not repeated as gaps: one ground with partition by placement (PCB-A-01, MT-031); the DAC's ground pad, filters and references (PCB-A-02 to A-05); hot loop and switch node per datasheet (PCB-P-07, P-08); the spur budget through the LDO PSRR (BOM §7.31, line 26); DAC as clock master with the oscillator next to it and J-test verification (ADR 0010); 0201 AC capacitors (PCB-I-02, I-03); TDR coupons (M-SI); the radio module per Murata (PCB-R-01 to R-03); shield-can frames DNP first (PCB-T-06); double-sided reflow order (ADR 0016); bench supply for bring-up (ADR 0014 item 4); expected values before measuring (verification matrices); board revision in EEPROM (BOM line 17); second sources and dated availability (PLIB-003); the habit of marking every assumption **UNVERIFIED** with its closing action (Bogatin rule 13).
+
+## 5. IDs as integrated (2026-10-24)
+
+The [PCB design constraints](../specs/pcb-design-constraints.md) v0.6 took in §1 of this note. The compliance pass (v0.5) and the DFM rules had already used some of the proposed IDs, so these gaps carry new ones there. The plan proposals of §2 are not affected. The same version renamed the impedance-controlled net classes to the craft convention: `MCLK` → `MCLK_50SE`, `I2S_DSD` → `I2S_50SE`, `EMMC_SD_50` → `EMMC_SD_50SE`, `RF_50` → `RF_50SE`, `DDR` → `DDR_50SE` (DQ, DM, CA) and `DDR_100D` (DQS, CK), and `PCIE_REFCLK_100D` split from `PCIE_85D`; the notes written before it keep the old names.
+
+| Gap | Proposed here | In the constraints (v0.6) |
+|---|---|---|
+| G-01 to G-04 | PCB-S-09 to S-12 | PCB-S-10 to S-13 (S-09 is laminate flammability) |
+| G-05 | PCB-I-10 | PCB-I-10 |
+| G-06 | PCB-I-09 rewording | PCB-I-09, reworded, with the MCLK branch limit (≤ 20 mm per branch, `sim/mclk-attenuator`) |
+| G-07 | PCB-I-11 | PCB-I-11 |
+| G-08 to G-13 | PCB-A-13 to A-18 | PCB-A-14 to A-19 (A-13 is the power-up default of amplifier enables) |
+| G-14 to G-21 | PCB-P-11 to P-18 | PCB-P-12 to P-19 (P-11 is the second limiter on HAT and USB-C outputs) |
+| G-22 | PCB-R-04 | PCB-R-06 (R-04 is the certified antenna list; different content) |
+| G-23 | PCB-R-05 | PCB-R-07 (R-05 places antennas for SAR; this one is the case input on the pocket floor and battery) |
+| G-24 | PCB-E-04 | PCB-E-05 |
+| G-25 | PCB-E-05 | Merged into PCB-E-04 (the same vias-at-the-pad rule; E-04 gains "no stub on the protected line" and TI SLVA680A) |
+| G-26 to G-30 | PCB-T-07 to T-11 | PCB-T-08 to T-12 (T-07 is the RoHS and REACH BOM field); T-12's distance is PCB-D-01 |
+| G-31, G-32 | PCB-G-09, G-10 | PCB-G-09, G-10 |
+| G-33 | PCB-H-01 | PCB-L-03 (PCB-H is mounting holes) |

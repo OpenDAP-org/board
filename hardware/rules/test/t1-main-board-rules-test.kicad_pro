@@ -170,7 +170,7 @@
         "diff_pair_width": 0.1,
         "microvia_diameter": 0.2,
         "microvia_drill": 0.1,
-        "name": "MCLK",
+        "name": "MCLK_50SE",
         "priority": 9,
         "track_width": 0.0,
         "via_diameter": 0.4,
@@ -270,8 +270,8 @@
         "pattern": "AUDIO_REF_*"
       },
       {
-        "netclass": "MCLK",
-        "pattern": "MCLK_*"
+        "netclass": "MCLK_50SE",
+        "pattern": "MCLK_50SE_*"
       },
       {
         "netclass": "USB2_90D",

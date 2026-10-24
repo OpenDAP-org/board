@@ -6,7 +6,9 @@ The T1 main board's own design rules, from the [PCB design constraints](../../do
 - `netclasses.toml`: the net classes the rules and the schematic share, with their constraint IDs, design currents and impedance targets.
 - `test/`: a test board with one failing and one passing object per rule, built by `make_test_board.py` on kicad-lib's test-board tools (submodule `../lib/opendap`).
 
-The KiCad project's `<project>.kicad_dru` is the composition of the PCBWay HDI fab rules (kicad-lib `design-rules/pcbway-hdi`) and these product rules, made and checked with `odapkit dru` (E3.5).
+The KiCad project's rules, [`../t1-main-board/t1-main-board.kicad_dru`](../t1-main-board/), are the composition of the PCBWay HDI fab rules (kicad-lib `design-rules/pcbway-hdi`), the OpenDAP craft rules (kicad-lib `design-rules/opendap-craft`) and these product rules, in that order, made and checked with `odapkit dru` (E3.5) from `t1-main-board.dru.toml`.
+
+Impedance-controlled net classes are named `<name>_<ohms>D` (differential) or `<name>_<ohms>SE` (single-ended), so the craft rules exempt them from their general width rules.
 
 ## Severity
 

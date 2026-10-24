@@ -50,7 +50,7 @@ tbm.to_mm = _to_value
 
 # Net classes used by the rules, with the netclasses.toml names.
 CLASSES = ("PWR_BAT", "PWR_VSYS", "PWR_VBUS", "PWR_5V1", "PWR_HAT3V3",
-           "PWR_AMP", "SW_NODE", "AUDIO_ANALOG", "AUDIO_REF", "MCLK",
+           "PWR_AMP", "SW_NODE", "AUDIO_ANALOG", "AUDIO_REF", "MCLK_50SE",
            "USB2_90D", "USB3_90D", "PCIE_85D", "MIPI_100D")
 
 CRT = 0.6      # courtyard square of a generic small part
@@ -569,7 +569,7 @@ def main():
     tb.foreign_track_row(P + "PCB-A-07 [Q1]: Foreign track in the analog audio area",
                          "AUDIO_ANALOG", lambda: tb.class_net("AUDIO_ANALOG"))
     tb.clearance_row(P + "PCB-I-09 [Q1]: Master clock to other nets", width=0.2,
-                     net_a="MCLK")
+                     net_a="MCLK_50SE")
 
     # Mounting holes (PCB-H)
     tb.hole_to_part_row(P + "PCB-H-01 [Q1]: Part under the screw head", 2.2, "R")

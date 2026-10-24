@@ -5,9 +5,10 @@
 # (kicad-lib design-rules/pcbway-hdi) and the OpenDAP craft rule set
 # (kicad-lib design-rules/opendap-craft) into the project's
 # <project>.kicad_dru. Rules PCB-G, -P, -A and -I enforce constraints of
-# docs/specs/pcb-design-constraints.md (Draft v0.1); rules PCB-V, -H, -B, -D,
-# -W and -L come from docs/research/2026-10-pcb-dfm-reliability-rules.md,
-# which lists every value with its source, primary or secondary. The net
+# docs/specs/pcb-design-constraints.md (Draft v0.6); rules PCB-V, -H, -B, -D,
+# -W and -L enforce the constraints of the same families there, and
+# docs/research/2026-10-pcb-dfm-reliability-rules.md lists every value with
+# its source, primary or secondary. The net
 # classes the conditions use are in netclasses.toml; the reference, field,
 # pad-property and rule-area conventions are in README.md.
 #
@@ -185,11 +186,14 @@
 	(constraint disallow track)
 )
 
-# PCB-I-09: master clock guarded from every other signal. 0.3 mm (three times
-# a 0.1 mm track) is UNVERIFIED until the stackup sets the clock trace width.
+# PCB-I-09: the master clock runs on an inner layer between two ground
+# planes, with spacing to every other signal; no guard traces (Hubing,
+# LearnEMC). Spacing 3 x W: 0.3 mm (three times a 0.1 mm track) is
+# UNVERIFIED until the stackup sets the clock trace width. The branch length
+# limit (20 mm per branch, sim/mclk-attenuator) is a CHK item.
 (rule "T1 PCB-I-09 [Q1]: Master clock to other nets"
 	(severity warning)
-	(condition "(A.hasNetclass('MCLK') && !B.hasNetclass('MCLK') && B.NetName != 'GND') || (B.hasNetclass('MCLK') && !A.hasNetclass('MCLK') && A.NetName != 'GND')")
+	(condition "(A.hasNetclass('MCLK_50SE') && !B.hasNetclass('MCLK_50SE') && B.NetName != 'GND') || (B.hasNetclass('MCLK_50SE') && !A.hasNetclass('MCLK_50SE') && A.NetName != 'GND')")
 	(constraint clearance (min 0.3mm))
 )
 

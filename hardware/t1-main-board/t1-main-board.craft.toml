@@ -1,0 +1,33 @@
+# Craft check configuration of the T1 main board (odapkit craft check),
+# format in toolkit-hardware tools/pcb-craft-check.py.
+#
+# Prototype 1 targets Q1 (RFC 0010; board docs/specs/pcb-design-constraints.md).
+# The mirrored blocks below are placeholders: the schematic has not assigned
+# references yet. They assume one hundred-block of reference numbers per
+# block, the right-hand block numbered 100 above the left-hand one. When the
+# schematic numbers its parts, these tables follow it.
+version = 1
+target = "Q1"
+
+# The CS43198 pair is dual mono (BOM v1 line 18): DAC 1 is the left channel,
+# DAC 2 the right, each with its supplies, filters and references.
+[[symmetry]]
+name = "DAC left / right (CS43198 dual mono)"
+a = ["U1??", "R1??", "C1??", "FB1??"]
+offset = 100
+axis = "vertical"
+
+# 4.4 mm balanced output stage: one OPA1622 package per leg (L+, L-, R+, R-)
+# with its difference-amplifier network and ballast resistors (ADR 0012).
+[[symmetry]]
+name = "Balanced output stage left / right"
+a = ["U3??", "R3??", "C3??"]
+offset = 100
+axis = "vertical"
+
+# 3.5 mm single-ended output stage: one OPA1622 package per channel (ADR 0012).
+[[symmetry]]
+name = "Single-ended output stage left / right"
+a = ["U5??", "R5??", "C5??"]
+offset = 100
+axis = "vertical"

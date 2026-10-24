@@ -8,6 +8,10 @@
 # The KiCad project's net classes are generated from this file (E4.1).
 # Rules also rely on footprint references, fields, pad properties and rule
 # areas; those conventions are in README.md ("Conventions the rules rely on").
+#
+# Impedance-controlled classes are named <name>_<ohms>D (differential) or
+# <name>_<ohms>SE (single-ended), the form kicad-lib's craft rules exempt
+# from their general width rules (pcb-craft-standard.md, composition).
 
 version = 1
 
@@ -63,13 +67,13 @@ signals = "CS43198 REFA and REFB, routed independently to each headphone connect
 constraints = ["PCB-A-03", "PCB-A-07"]
 
 [[class]]
-name = "MCLK"
-signals = "22.5792 MHz and 24.576 MHz oscillator outputs, the attenuator, CS43198 XTI"
+name = "MCLK_50SE"
+signals = "22.5792 MHz and 24.576 MHz oscillator outputs, the attenuator, CS43198 XTI; each branch at most 20 mm (sim/mclk-attenuator)"
 impedance_ohm = 50
 constraints = ["PCB-I-09"]
 
 [[class]]
-name = "I2S_DSD"
+name = "I2S_50SE"
 signals = "SoC to CS43198 ASP: SCLK, LRCK, SDIN"
 impedance_ohm = 50
 constraints = ["PCB-I-08", "PCB-A-12"]
@@ -78,41 +82,52 @@ constraints = ["PCB-I-08", "PCB-A-12"]
 name = "USB2_90D"
 signals = "Main USB-C D+/D- (OTG0), HAT USB3_D+/D-"
 differential_ohm = 90
-constraints = ["PCB-I-01"]
+constraints = ["PCB-I-01", "PCB-I-10"]
 
 [[class]]
 name = "USB3_90D"
 signals = "HAT USB3_SSTX+/-, USB3_SSRX+/-"
 differential_ohm = 90
-constraints = ["PCB-I-02"]
+constraints = ["PCB-I-02", "PCB-I-10"]
 
 [[class]]
 name = "PCIE_85D"
-signals = "HAT PCIE_TX+/-, PCIE_RX+/-, PCIE_REFCLK+/-"
+signals = "HAT PCIE_TX+/-, PCIE_RX+/-"
 differential_ohm = 85
-constraints = ["PCB-I-03"]
+constraints = ["PCB-I-03", "PCB-I-10"]
+
+[[class]]
+name = "PCIE_REFCLK_100D"
+signals = "HAT PCIE_REFCLK+/-"
+differential_ohm = 100
+constraints = ["PCB-I-03", "PCB-I-10"]
 
 [[class]]
 name = "MIPI_100D"
 signals = "Faceplate DSI lanes, HAT CSI-2 lanes"
 differential_ohm = 100
-constraints = ["PCB-I-04"]
+constraints = ["PCB-I-04", "PCB-I-10"]
 
 [[class]]
-name = "DDR"
-signals = "LPDDR4X DQ, DQS, CA, CK"
-impedance_ohm = 40
-differential_ohm = 80
+name = "DDR_50SE"
+signals = "LPDDR4X DQ, DM and CA (command and address)"
+impedance_ohm = 50
 constraints = ["PCB-I-05"]
 
 [[class]]
-name = "EMMC_SD_50"
-signals = "eMMC HS200 and microSD SDR104 clock, command and data"
+name = "DDR_100D"
+signals = "LPDDR4X DQS and CK pairs"
+differential_ohm = 100
+constraints = ["PCB-I-05"]
+
+[[class]]
+name = "EMMC_SD_50SE"
+signals = "eMMC HS200, microSD SDR104 and the SDIO bus to the radio: clock, command and data"
 impedance_ohm = 50
 constraints = ["PCB-I-06"]
 
 [[class]]
-name = "RF_50"
+name = "RF_50SE"
 signals = "Radio module RF pins to the U.FL connectors"
 impedance_ohm = 50
-constraints = ["PCB-I-07", "PCB-R-01"]
+constraints = ["PCB-I-07", "PCB-R-01", "PCB-R-03"]

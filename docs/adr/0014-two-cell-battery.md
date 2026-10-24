@@ -1,6 +1,6 @@
 # ADR 0014: Two-cell (2S) battery with a quoted pack
 
-- **Status:** Accepted. Supersedes [ADR 0011](0011-battery-path-rated-for-the-full-output-budget.md).
+- **Status:** Accepted. Supersedes [ADR 0011](0011-battery-path-rated-for-the-full-output-budget.md). Item 1 (battery connector) and the lead-and-plug criterion of item 2 amended by [ADR 0020](0020-battery-connected-through-contacts.md) (2026-10-24): the pack connects through contacts.
 - **Date:** 2026-10-22
 - **Decided by:** Claude, under the maintainers' delegation of 2026-10-22 (resolve the open technical items following the project's rules)
 

@@ -4,7 +4,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 
 | ID | Requirement | Priority | Status |
 |---|---|---|---|
-| BRD-001 | Every component shall work with mainline Linux drivers. Blackbird OS builds no custom kernel; a board device tree and overlays are acceptable. | must | Confirmed |
+| BRD-001 | Every component shall have a Linux driver that Blackbird OS ships without a custom kernel: a mainline driver first, built as a DKMS module when Debian does not enable it; a vendor driver as a DKMS module only when mainline has none. A board device tree and overlays are acceptable. | must | Confirmed |
 | BRD-002 | The SoC shall meet the project requirements without raising the product price significantly. | must | Confirmed |
 | BRD-003 | The board shall be a general-purpose Linux platform, not a DAP-only design, able to serve the HAT ecosystem and on-board AI uses. | must | Confirmed |
 | BRD-004 | The SoC shall reach every chip on the board and on attached HATs directly, for debugging, flashing and operation. | must | Confirmed |
@@ -25,9 +25,9 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-019 | The SoC shall boot without the RP coprocessor firmware. | must | Confirmed |
 | BRD-020 | The PMIC shall be the Rockchip RK809, the companion PMIC of the RK3566. | must | Draft |
 | BRD-021 | Memory: 4 GB LPDDR4X and 32 GB eMMC. | should | Withdrawn |
-| BRD-022 | The audio stage shall use two Cirrus Logic CS43198 DACs in dual mono, followed by six OPA1622 headphone amplifiers (both halves of one package in parallel on each balanced leg), sized to meet the mid-range segment's output into low-impedance headphones (ADR 0012). | must | Draft |
+| BRD-022 | The audio stage shall use two Cirrus Logic CS43198 DACs in dual mono, followed by six OPA1622 headphone amplifiers (both halves of one package in parallel on each balanced leg), sized to meet the mid-range segment's output into low-impedance headphones (ADR 0012). | must | Confirmed |
 | BRD-023 | The audio stage shall have two master clocks, 22.5792 MHz and 24.576 MHz (44.1 kHz and 48 kHz families) at the CS43198's 1.8 V clock input, with the DAC as clock master, so every sample rate plays bit-perfect without resampling. | must | Confirmed |
-| BRD-024 | The 3.5 mm output shall be single-ended and the 4.4 mm output balanced (Pentaconn). | must | Draft |
+| BRD-024 | The 3.5 mm output shall be single-ended and the 4.4 mm output balanced, on the 5-pole 4.4 mm connector of JEITA RC-8141C (the format known by the Pentaconn brand). The part is chosen in the BOM. | must | Confirmed |
 | BRD-025 | Every radio (Wi-Fi, Bluetooth and any other) shall prioritize certified or pre-certified modules. | must | Confirmed |
 | BRD-026 | Each HAT power rail shall be protected by an eFuse. | must | Draft |
 | BRD-027 | The microphone privacy LED shall be wired to the microphone power, so it cannot be lit independently of the microphone. | must | Draft |
@@ -40,7 +40,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-034 | The main USB-C port shall support as much as possible: OTG, flashing, debugging, working with the device, file transfer, charging, and acting as a host when needed. | must | Confirmed |
 | BRD-035 | The main / power button shall also be the boot-mode (MaskROM) button. | must | Confirmed |
 | BRD-036 | The Action button shall be accessible to developers. | must | Confirmed |
-| BRD-037 | Memory: 4 GB of RAM; storage 16 GB eMMC in production with 32 GB as a population option, prototypes 32 GB (ADR 0013). | must | Draft |
+| BRD-037 | Memory: 4 GB of RAM; storage 16 GB eMMC in production with 32 GB as a population option, prototypes 32 GB (ADR 0013). | must | Confirmed |
 | BRD-038 | The T1 shall have an SD/TF card slot; the more storage, the better. | must | Confirmed |
 | BRD-039 | The early serial console shall follow the same path as the main USB-C port. | must | Confirmed |
 | BRD-040 | The board shall expose test pads on the I2S/DSD lines to the DAC, so the digital audio stream can be captured passively. | must | Confirmed |
@@ -71,7 +71,8 @@ Electrical and system requirements for the OpenDAP T1 main board.
 
 ## Context
 
-- BRD-060 (maintainers, 2026-10-24): constraints with limits, maximum and minimum values, and an own DRC complementing PCBWay's that fits the project's quality requirements. Specification: [`../specs/pcb-design-constraints.md`](../specs/pcb-design-constraints.md); plan tasks E2 and E3 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Priority must set by Claude; to confirm.
+- BRD-001, BRD-022, BRD-024, BRD-037 (2026-10-24, under the maintainers' delegation). BRD-001 is reworded to what Blackbird OS already decided: no custom kernel (OS-002), mainline drivers Debian does not enable ship as DKMS modules ([blackbird-os ADR 0007](https://github.com/opendap-project/blackbird-os/blob/main/docs/adr/0007-kernel-modules-through-dkms.md)), vendor drivers as DKMS modules only when mainline has none ([ADR 0008](https://github.com/opendap-project/blackbird-os/blob/main/docs/adr/0008-vendor-linux-drivers-allowed.md)); a changed kernel configuration is not an option. BRD-024 names the standard instead of a brand: Pentaconn is Nippon DICS's brand for the JEITA RC-8141C 4.4 mm connector, and the BOM primary is the stocked G-Switch GT-3321667P-01 (its RC-8141C contact layout is still **UNVERIFIED**, BOM line 31). BRD-022 and BRD-037 move to Confirmed because their ADRs (0012, 0013) are Accepted. BRD-020 stays Draft while the RK809-5 is Proposed in the BOM.
+- BRD-060 (maintainers, 2026-10-24): constraints with limits, maximum and minimum values, and an own DRC complementing PCBWay's that fits the project's quality requirements. Specification: [`../specs/pcb-design-constraints.md`](../specs/pcb-design-constraints.md); plan tasks E2 and E3 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Priority confirmed by the maintainers on 2026-10-24.
 - BRD-057 to BRD-059 parts (2026-10-23): [BOM v1.7](../specs/bom-v1.md) lines 122–128, decided by Claude under delegation: TPM 2.0 SLB9673 (key holder), DRV2605L with a coin LRA (haptics), an NTAG I2C plus dynamic tag for tap-to-pair and the PN7160 reader as a population option for T1-to-T1 hand-off.
 - BRD-059 (maintainers, 2026-10-23): the research showed no mainline OP-TEE on the RK3566 and a read-only OTP ([RFC 0004](https://github.com/opendap-project/rfcs/blob/main/text/0004-opendap-protocol.md) §5), so the keystore needs a chip of its own to be hardware-backed. Direction proposed by Claude: a discrete TPM 2.0 (SPI or I²C), the most standard choice on Linux: mainline drivers `tpm_tis_spi` and `tpm_tis_i2c`, and the standard user-space stack (`tpm2-tss`, PKCS#11, systemd). Secure elements (for example NXP SE050, Microchip ATECC608) and the RP2350 are the alternatives. Part, bus and cost to be chosen in the BOM (BRD-053); availability **UNVERIFIED**.
 - BRD-057, BRD-058 (maintainers, 2026-10-23), from the [ecosystem experience research](https://github.com/opendap-project/t1/blob/main/docs/research/ux/2026-10-ecosystem-experience.md) §12.3: yes, as soon as suitable parts are available; the short pairing code stays the baseline without NFC.

@@ -320,7 +320,7 @@
 )
 
 # Source: hardware/rules/t1-main-board.kicad_dru
-# sha256: 981e1d0781f705e023f6b6aefbafd855f5187e42c1f2c0a59812056c7e1bfe28
+# sha256: 5c34871d0420425bb0a490a77ddfeeb109496cfb330749382fcb9a76e704401a
 
 # OpenDAP T1 main board: product rules
 #
@@ -459,28 +459,45 @@
 	(constraint track_width (min 6.9mm))
 )
 
+# PCB-P-04 and PCB-P-05 at the eFuse maximum trips with the RILM tolerance
+# (1.68 A and 1.16 A, TI SLVSFC9C, power tree v0.5 section 4.6).
 (rule "T1 PCB-P-04 [Q0]: 5.1 V source track width (outer)"
 	(layer outer)
 	(condition "A.hasNetclass('PWR_5V1')")
-	(constraint track_width (min 0.6mm))
+	(constraint track_width (min 0.65mm))
 )
 
 (rule "T1 PCB-P-04 [Q0]: 5.1 V source track width (inner)"
 	(layer inner)
 	(condition "A.hasNetclass('PWR_5V1')")
-	(constraint track_width (min 3.1mm))
+	(constraint track_width (min 3.2mm))
 )
 
 (rule "T1 PCB-P-05 [Q0]: HAT 3.3 V track width (outer)"
 	(layer outer)
 	(condition "A.hasNetclass('PWR_HAT3V3')")
-	(constraint track_width (min 0.3mm))
+	(constraint track_width (min 0.4mm))
 )
 
 (rule "T1 PCB-P-05 [Q0]: HAT 3.3 V track width (inner)"
 	(layer inner)
 	(condition "A.hasNetclass('PWR_HAT3V3')")
-	(constraint track_width (min 1.5mm))
+	(constraint track_width (min 1.9mm))
+)
+
+# PCB-P-20: HAT_5V in both directions at the hat-standard interface fault
+# ceiling, 3.0 A (interface v1.1 section 5; the TPS2121 trips at 2.95 A at
+# most with RILM 45.3 kOhm 0.1 %, BOM line 45).
+(rule "T1 PCB-P-20 [Q0]: HAT 5 V track width (outer)"
+	(layer outer)
+	(condition "A.hasNetclass('PWR_HAT5V')")
+	(constraint track_width (min 1.4mm))
+)
+
+(rule "T1 PCB-P-20 [Q0]: HAT 5 V track width (inner)"
+	(layer inner)
+	(condition "A.hasNetclass('PWR_HAT5V')")
+	(constraint track_width (min 6.9mm))
 )
 
 # PCB-P-06: amplifier rails, 0.3 mm on every layer (the current needs less;
@@ -757,6 +774,14 @@
 	(severity warning)
 	(condition "A.hasNetclass('MIPI_100D')")
 	(constraint via_count (max 4))
+)
+
+# The shared HAT extension carries PCIe or CSI-2, so it takes the stricter
+# PCIe count (PCB-I-12; hat-standard interface v1.1).
+(rule "T1 PCB-W-03 [Q2]: Vias per HAT extension line"
+	(severity warning)
+	(condition "A.hasNetclass('HAT_EXT_100D')")
+	(constraint via_count (max 2))
 )
 
 

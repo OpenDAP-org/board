@@ -40,15 +40,21 @@ constraints = ["PCB-P-03"]
 
 [[class]]
 name = "PWR_5V1"
-signals = "5.1 V TPS62903 output and the eFuse #A (HAT_5V) and #C (USB-C source) paths"
-design_current_a = 1.66
+signals = "5.1 V TPS62903 output to the eFuse #A and #C inputs, and the eFuse #C output (USB-C source); HAT_5V is PWR_HAT5V"
+design_current_a = 1.68
 constraints = ["PCB-P-04"]
 
 [[class]]
 name = "PWR_HAT3V3"
-signals = "HAT 3.3 V TPS62903 output and the eFuse #B path"
-design_current_a = 1.0
+signals = "HAT 3.3 V TPS62903 output and the eFuse #B path to the DF40"
+design_current_a = 1.16
 constraints = ["PCB-P-05"]
+
+[[class]]
+name = "PWR_HAT5V"
+signals = "HAT_5V: eFuse #A output, DF40 power contacts and the TPS2121 IN2 branch, both directions (hat-standard interface v1.1 fault ceiling 3.0 A)"
+design_current_a = 3.0
+constraints = ["PCB-P-20"]
 
 [[class]]
 name = "PWR_AMP"
@@ -97,21 +103,27 @@ constraints = ["PCB-I-02", "PCB-I-10"]
 
 [[class]]
 name = "PCIE_85D"
-signals = "HAT PCIE_TX+/-, PCIE_RX+/-"
+signals = "HAT PCIE_TX+/-, PCIE_RX+/- from the SoC to port A of the extension switch (TX AC caps on this segment)"
 differential_ohm = 85
 constraints = ["PCB-I-03", "PCB-I-10"]
 
 [[class]]
 name = "PCIE_REFCLK_100D"
-signals = "HAT PCIE_REFCLK+/-"
+signals = "HAT PCIE_REFCLK+/- from the SoC to port A of the extension switch"
 differential_ohm = 100
 constraints = ["PCB-I-03", "PCB-I-10"]
 
 [[class]]
 name = "MIPI_100D"
-signals = "Faceplate DSI lanes, HAT CSI-2 lanes"
+signals = "Faceplate DSI lanes; HAT CSI-2 lanes from the SoC to port B of the extension switch"
 differential_ohm = 100
 constraints = ["PCB-I-04", "PCB-I-10"]
+
+[[class]]
+name = "HAT_EXT_100D"
+signals = "HAT extension EXT0+/- to EXT4+/-: extension switch common port to the DF40 (PCIe or CSI-2, hat-standard interface v1.1)"
+differential_ohm = 100
+constraints = ["PCB-I-12", "PCB-I-13", "PCB-I-10", "PCB-W-03"]
 
 [[class]]
 name = "DDR_50SE"

@@ -51,7 +51,8 @@ tbm.to_mm = _to_value
 # Net classes used by the rules, with the netclasses.toml names.
 CLASSES = ("PWR_BAT", "PWR_VSYS", "PWR_VBUS", "PWR_5V1", "PWR_HAT3V3",
            "PWR_AMP", "SW_NODE", "AUDIO_ANALOG", "AUDIO_REF", "MCLK_50SE",
-           "USB2_90D", "USB3_90D", "PCIE_85D", "MIPI_100D", "BAT_SENSE")
+           "USB2_90D", "USB3_90D", "PCIE_85D", "MIPI_100D", "BAT_SENSE",
+           "PWR_HAT5V", "HAT_EXT_100D")
 
 CRT = 0.6      # courtyard square of a generic small part
 EDGE_W = 0.05  # Edge.Cuts line width (testboard): physical rules measure
@@ -582,7 +583,8 @@ def main():
             ("PCB-P-02 [Q0]: VSYS track width", "PWR_VSYS"),
             ("PCB-P-03 [Q0]: VBUS input track width", "PWR_VBUS"),
             ("PCB-P-04 [Q0]: 5.1 V source track width", "PWR_5V1"),
-            ("PCB-P-05 [Q0]: HAT 3.3 V track width", "PWR_HAT3V3")):
+            ("PCB-P-05 [Q0]: HAT 3.3 V track width", "PWR_HAT3V3"),
+            ("PCB-P-20 [Q0]: HAT 5 V track width", "PWR_HAT5V")):
         tb.width_row(P + rule + " (outer)", pcbnew.F_Cu, netclass)
         tb.width_row(P + rule + " (inner)", pcbnew.In1_Cu, netclass)
     tb.width_row(P + "PCB-P-06 [Q1]: Amplifier rail track width", pcbnew.In2_Cu, "PWR_AMP")
@@ -628,7 +630,8 @@ def main():
     tb.neck_row(P + "PCB-W-01 [Q1]: Copper neck in the BGA escape", area="BGA_ESCAPE")
     tb.teardrop_row(P + "PCB-W-02 [Q2]: Teardrops on vias")
     for line, netclass in (("USB 2", "USB2_90D"), ("USB 3", "USB3_90D"),
-                           ("PCIe", "PCIE_85D"), ("MIPI", "MIPI_100D")):
+                           ("PCIe", "PCIE_85D"), ("MIPI", "MIPI_100D"),
+                           ("HAT extension", "HAT_EXT_100D")):
         tb.via_count_row(P + f"PCB-W-03 [Q2]: Vias per {line} line", netclass)
 
     # Battery interface and heat placement (PCB-L)

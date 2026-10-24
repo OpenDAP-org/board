@@ -240,6 +240,32 @@
         "track_width": 0.0,
         "via_diameter": 0.4,
         "via_drill": 0.2
+      },
+      {
+        "clearance": 0.0,
+        "diff_pair_gap": 0.1,
+        "diff_pair_via_gap": 0.1,
+        "diff_pair_width": 0.1,
+        "microvia_diameter": 0.2,
+        "microvia_drill": 0.1,
+        "name": "PWR_HAT5V",
+        "priority": 15,
+        "track_width": 0.0,
+        "via_diameter": 0.4,
+        "via_drill": 0.2
+      },
+      {
+        "clearance": 0.0,
+        "diff_pair_gap": 0.1,
+        "diff_pair_via_gap": 0.1,
+        "diff_pair_width": 0.1,
+        "microvia_diameter": 0.2,
+        "microvia_drill": 0.1,
+        "name": "HAT_EXT_100D",
+        "priority": 16,
+        "track_width": 0.0,
+        "via_diameter": 0.4,
+        "via_drill": 0.2
       }
     ],
     "meta": {
@@ -305,6 +331,14 @@
       {
         "netclass": "BAT_SENSE",
         "pattern": "BAT_SENSE_*"
+      },
+      {
+        "netclass": "PWR_HAT5V",
+        "pattern": "PWR_HAT5V_*"
+      },
+      {
+        "netclass": "HAT_EXT_100D",
+        "pattern": "HAT_EXT_100D_*"
       }
     ]
   }

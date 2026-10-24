@@ -1,6 +1,7 @@
 # Pinout v1 of the T1 main board
 
 - **Status:** Draft v1 (2026-10-24). Tasks E1.1 and E1.2 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Written by Claude under the maintainers' delegation. It supersedes the ball allocation of [pin multiplexing v0](../research/2026-10-pin-multiplexing-v0.md) §2 and §4.3; the v0 study stays as the history of the reasoning. Nothing here is drawn or measured: the schematic (E6.1) is checked against it, and every **UNVERIFIED** item names what closes it. No decision, priority or requirement status changes here; the BOM and power-tree changes it needs are listed in §9 for their owner, and the faceplate contact positions in §8 are a proposal for the t1 spec.
+- **Updated 2026-10-24 (hat-standard interface v1.1, t1 faceplate interface v1):** the HAT section follows hat-standard [interface v1.1](https://github.com/opendap-project/hat-standard/blob/main/docs/specs/interface-v1.md) and [ADR 0005](https://github.com/opendap-project/hat-standard/blob/main/docs/adr/0005-interface-v1-1-shared-extension-and-contact-reduction.md): the freed SWD balls A22 and B22 drive the extension switch (`HAT_EXT_SEL`, `HAT_EXT_PD`), SWD becomes the bit-banged L2 alternate on `HAT_GPIO2`/`HAT_GPIO3`, the PCIe sideband balls carry `EXT_SB0`–`EXT_SB2`, and the PCIe and CSI-2 balls go to the two TMUXHS4412 ports ([BOM v1.11](bom-v1.md#changes-in-v111) line 144). Faceplate sources follow BOM v1.11 (current-limited rail switches, TPS61160, I2C3 pull-ups 2.2 kΩ); "faceplate interface v0" is now v1. No faceplate contact moves. Changes listed in §10.
 - **Machine-readable copy:** [`../../hardware/pinout/pinout-v1.csv`](../../hardware/pinout/pinout-v1.csv), all 565 balls (ball, pad, function, domain, voltage, net, block, reset_state, notes). The tables in §3 were generated from the same data as the CSV; the CSV is the reference for the schematic check (E6.1), and a change edits both.
 - **Inputs:** pin multiplexing v0; board [ADR 0006](../adr/0006-pin-plan-decisions.md); [BOM v1.8](bom-v1.md) and [power tree v0.2](power-tree-v0.md) (both committed in `00c5183`, reconciled in §9.1); [feature blocks](feature-blocks.md) (block IDs, gaps G1–G21); [PCB design constraints](pcb-design-constraints.md); [RK3566 layout rules](../research/2026-10-rk3566-layout-rules.md); t1 [faceplate interface](https://github.com/opendap-project/t1/blob/main/docs/specs/faceplate-interface.md) and [RFC 0001](https://github.com/opendap-project/rfcs/blob/main/text/0001-faceplate-interface-v0-pinout.md); hat-standard [HAT interface v1](https://github.com/opendap-project/hat-standard/blob/main/docs/specs/interface-v1.md); [RFC 0010](https://github.com/opendap-project/rfcs/blob/main/text/0010-quality-levels.md) and [RFC 0011](https://github.com/opendap-project/rfcs/blob/main/text/0011-feature-blocks-and-variants.md).
 
@@ -40,7 +41,7 @@ This table constrains every block. A domain's supply voltage and its software se
 | PMUIO0 | GPIO0_D3–D6 (and XIN/XOUT24M) | PMUPLL_AVDD_1V8 (1N18) | 1.8 V fixed | vcca1v8_pmu | none (fixed) | TPM reset, NFC tag field detect, PN7160 IRQ, expander interrupt | Fixed by the SoC (HDG p. 32, Table 2-8); on in suspend and wake-capable (HDG pp. 17, 35). v0 left these four balls unused |
 | PMUIO1 | GPIO0_A0–A7, nPOR | PMUIO1 (1P16) | 3.3 V fixed | vcc3v3_pmu | none (fixed) | PMIC control, reset, straps, SD detect, HAT presence and interrupt, faceplate HID interrupt | Fixed by the SoC (DS p. 52: 2.97–3.63 V) |
 | PMUIO2 | GPIO0_B0–D1 | PMUIO2 (1N15) | 1.8 V | vcca1v8_pmu | `pmuio2-supply` = 1.8 V | I2C0, I2C1, I2C2 (every board control part), RP2354A UART, debug UART, wake interrupts | CS43198 control port tolerates VL + 0.3 V only (BOM §4.2); every I2C device meets a 1.8 V pull-up (FUSB302B VIH 1.32 V, FUSB302B/D Rev. 5 p. 16); precedent Quartz64-B and Radxa ZERO 3 (v0 §1.3) |
-| VCCIO1 | GPIO1_A0–B3 | VCCIO1 (1D13) | 3.3 V | vcc3v3_sys | `vccio1-supply` = 3.3 V | HAT SWD and reset, PCIe sidebands, HAT ID enable, RP2354A power enable, spares | HAT interface v1: every low-speed HAT line is 3.3 V (§4.2) |
+| VCCIO1 | GPIO1_A0–B3 | VCCIO1 (1D13) | 3.3 V | vcc3v3_sys | `vccio1-supply` = 3.3 V | HAT extension switch controls (2026-10-24; HAT SWD before), `HAT_RST#`, extension sidebands, HAT ID enable, RP2354A power enable, spares | HAT interface v1: every low-speed HAT line is 3.3 V (§4.2) |
 | VCCIO2 | GPIO1_B4–D4 | VCCIO2 (1C13) | 1.8 V | vcc_1v8 | none: `FLASH_VOL_SEL` high (HDG p. 19) | eMMC HS200, TPM PIRQ, HAT audio translator enable | eMMC 5.1 HS200 at 1.8 V VCCQ |
 | VCCIO3 | GPIO1_D5–GPIO2_A2 | VCCIO3 (1F17) | 1.8 / 3.3 V | vccio_sd (RK809 LDO5) | `vccio3-supply` = vccio_sd, switched by the SD driver | microSD | UHS-I SDR104 needs the 3.3 → 1.8 V switch (BRD-051; HDG p. 52) |
 | VCCIO4 | GPIO2_A3–C6 | VCCIO4 (1E16) | 1.8 V | vcc_1v8 | `vccio4-supply` = 1.8 V | Type 2EL SDIO 3.0 and Bluetooth UART, HAT ID bus (host side), PN7160 VEN and DWL_REQ, radio PDn and BT wake | SDIO 3.0 needs 1.8 V (HDG p. 53); the module VIO and SD_VIO are on vcc_1v8 (BOM v1.8 item 1) |
@@ -153,7 +154,7 @@ Columns: ball; pad (the GPIO name with its reset suffix; the full mux list is in
 | AF1 | GPIO4_B4_d | GPIO out | VCCIO6, 1.8 V, vccio6_1v8 | pull-down: off | `AUDIO_LN_EN` | `blk.audio-supply` | ring, outer | TPS62840 and TPS7A2018 x2 EN directly; TPS7A2031 EN through the SN74LVC1G57 AND with DAC_DIG_1V8 (BOM v1.8 line 135, G3). Gate VCC on vcca1v8_pmu, VIH 0.65 × VCC: a 1.8 V ball drives it |
 | 1L1 | GPIO4_B6_d | GPIO out | VCCIO6, 1.8 V, vccio6_1v8 | pull-down: off | `HPA_SE_EN` | `blk.hpa-se` | core | OPA1622 EN, 3.5 mm group (was on the expander in v0) |
 | AC2 | GPIO4_B7_d | GPIO out | VCCIO6, 1.8 V, vccio6_1v8 | pull-down: off | `HPA_BAL_EN` | `blk.hpa-bal` | ring, inner (gap) | OPA1622 EN, 4.4 mm group (was 1_D0, an FSPI ball, in v0: C5) |
-| AB2 | GPIO4_C0_d | GPIO out | VCCIO6, 1.8 V, vccio6_1v8 | pull-down: off, privacy LED off | `MIC_EN` | `blk.mic-main` | ring, inner (microvia) | TPS22919 ON (MIC_1V8); settles the SoC-or-expander question of the block record |
+| AB2 | GPIO4_C0_d | GPIO out | VCCIO6, 1.8 V, vccio6_1v8 | pull-down: off, privacy LED off | `MIC_EN` | `blk.mic-main` | ring, inner (microvia) | TPS22945 ON (MIC_1V8; TPS22919 until 2026-10-24, BOM v1.11 line 146); settles the SoC-or-expander question of the block record |
 | 1U7 | GPIO4_C2_d | GPIO out | VCCIO7, 3.3 V, vcc3v3_sys | pull-down: oscillator tri-stated | `MCLK441_EN` | `blk.mclk` | core | NSC5083D ST, VIH ≥ 0.7 × 3.1 V = 2.17 V needs a 3.3 V ball (BOM 4.3). Series resistor footprint; ST pin rating against 3.3 V with MCLK_3V1 at 3.1 V or off is UNVERIFIED (G3) |
 | AP12 | GPIO4_C3_d | GPIO out | VCCIO7, 3.3 V, vcc3v3_sys | pull-down: oscillator tri-stated | `MCLK48_EN` | `blk.mclk` | ring, inner (microvia) | As MCLK441_EN; never both high |
 | 1U6 | GPIO4_C5_d | GPIO out | VCCIO7, 3.3 V, vcc3v3_sys | pull-down: off | `HPA_RAIL_EN` | `blk.hpa-rails` | core | TPS65131 ENP and the LMR33630C EN level shifter (3.3 V logic, power tree 5) |
@@ -209,12 +210,12 @@ Columns: ball; pad (the GPIO name with its reset suffix; the full mux list is in
 | AR10 | GPIO3_A2_d | GPIO out | VCCIO5, 3.3 V, vcc3v3_sys | pull-down | `FP_DBI_DC` | `blk.fp-display` | ring, outer | Faceplate contact 23. I2S3_MCLK_M0 not needed by the MAX98357A |
 | 1V3 | GPIO3_A7_d | GPIO out | VCCIO5, 3.3 V, vcc3v3_sys | pull-down: panel in reset | `FP_LCD_RST_N` | `blk.fp-display` | core | Faceplate contact 26 |
 | AR7 | GPIO3_B0_d | GPIO in | VCCIO5, 3.3 V, vcc3v3_sys | pull-down | `FP_LCD_TE` | `blk.fp-display` | ring, outer | Faceplate contact 27 |
-| AP7 | GPIO3_B1_d | PWM8_M0 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down: backlight off | `BL_PWM` | `blk.fp-backlight` | ring, inner (microvia) | TPS61169 CTRL (enable and PWM dimming); board-side, not on the faceplate connector |
+| AP7 | GPIO3_B1_d | PWM8_M0 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down: backlight off | `BL_PWM` | `blk.fp-backlight` | ring, inner (microvia) | TPS61160 CTRL (enable and PWM dimming; TPS61169 until 2026-10-24, BOM v1.11 line 51); board-side, not on the faceplate connector |
 | AR6 | GPIO3_B2_d | GPIO in | VCCIO5, 3.3 V, vcc3v3_sys | pull-down until pinctrl; 4.7 kΩ pull-up on FP_3V3 wins | `FP_ALS_INT_N` | `blk.fp-controls` | ring, outer | Faceplate contact 29, open drain on the faceplate. Was 0_C6 at 1.8 V in v0 (C4). Not a deep-standby wake source |
 | AP6 | GPIO3_B3_d | GPIO in/out | VCCIO5, 3.3 V, vcc3v3_sys | pull-down: GT911 address strap level at reset (G9) | `FP_TP_INT` | `blk.fp-controls` | ring, inner (microvia) | Faceplate contact 24; also the GT911 address strap, keep a board pull-down footprint |
 | 1U3 | GPIO3_B4_d | GPIO out | VCCIO5, 3.3 V, vcc3v3_sys | pull-down: touch in reset | `FP_TP_RST_N` | `blk.fp-controls` | core | Faceplate contact 25 |
-| 1T4 | GPIO3_B5_d | I2C3_SCL_M1 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down until pinctrl; pull-up on FP_3V3 | `FP_I2C_SCL` | `blk.fp-controls` | core | Faceplate contact 17; pull-ups on FP_3V3 (G8) |
-| 1V2 | GPIO3_B6_d | I2C3_SDA_M1 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down until pinctrl; pull-up on FP_3V3 | `FP_I2C_SDA` | `blk.fp-controls` | core | Faceplate contact 18 |
+| 1T4 | GPIO3_B5_d | I2C3_SCL_M1 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down until pinctrl; pull-up on FP_3V3 | `FP_I2C_SCL` | `blk.fp-controls` | core | Faceplate contact 17; pull-ups on FP_3V3 (G8), 2.2 kΩ for 400 kHz with ≤ 100 pF from the faceplate (2026-10-24, BOM v1.11) |
+| 1V2 | GPIO3_B6_d | I2C3_SDA_M1 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down until pinctrl; pull-up on FP_3V3 | `FP_I2C_SDA` | `blk.fp-controls` | core | Faceplate contact 18; 2.2 kΩ pull-up on FP_3V3 |
 | AP4 | GPIO3_C1_d | SPI1_MOSI_M1 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down | `FP_SPI_MOSI` | `blk.fp-controls` | ring, inner (microvia) | Faceplate contact 20 |
 | AP3 | GPIO3_C2_d | SPI1_MISO_M1 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down | `FP_SPI_MISO` | `blk.fp-controls` | ring, inner (gap) | Faceplate contact 21 |
 | AR2 | GPIO3_C3_d | SPI1_CLK_M1 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down | `FP_SPI_SCLK` | `blk.fp-controls` | ring, outer | Faceplate contact 19 |
@@ -235,21 +236,21 @@ Columns: ball; pad (the GPIO name with its reset suffix; the full mux list is in
 |---|---|---|---|---|---|---|---|---|
 | AG37 | GPIO0_A5_d | GPIO in | PMUIO1, 3.3 V fixed, vcc3v3_pmu | pull-down until pinctrl; 4.7 kΩ pull-up to vcc3v3_pmu wins | `HAT_DET_N` | `blk.hat-signals` | ring, inner (microvia) | HAT presence, HAT ties to GND; wake |
 | AJ38 | GPIO0_A6_d | GPIO in | PMUIO1, 3.3 V fixed, vcc3v3_pmu | pull-down until pinctrl; external pull-up wins | `HAT_INT_N` | `blk.hat-signals` | ring, outer | HAT interrupt and wake, open drain on the HAT. Pull-up rail is HAT interface v1 open point 4. GPU_PWREN function not used |
-| A22 | GPIO1_A0_u | GPIO out | VCCIO1, 3.3 V, vcc3v3_sys | pull-up: set to pull-down or none in pinctrl so an unpowered HAT is not fed | `HAT_DBG_SWCLK` | `blk.hat-signals` | ring, outer | HAT interface v1 DBG_SWCLK, bit-banged SWD |
-| B22 | GPIO1_A1_u | GPIO in/out | VCCIO1, 3.3 V, vcc3v3_sys | pull-up: as HAT_DBG_SWCLK | `HAT_DBG_SWDIO` | `blk.hat-signals` | ring, inner (microvia) | HAT interface v1 DBG_SWDIO |
+| A22 | GPIO1_A0_u | GPIO out | VCCIO1, 3.3 V, vcc3v3_sys | pull-up at reset; a 10 kΩ external pull-down wins: SEL low (port A) | `HAT_EXT_SEL` | `blk.hat-signals` | ring, outer | TMUXHS4412 SEL, both packages: low = PCIe (port A), high = CSI-2 (port B) (SLASEW5A §6.4). 2026-10-24: was `HAT_DBG_SWCLK` (interface v1.0) |
+| B22 | GPIO1_A1_u | GPIO out | VCCIO1, 3.3 V, vcc3v3_sys | pull-up at reset, plus a 10 kΩ external pull-up to vcc3v3_sys: switch in standby at reset and in standby (GPIO1 loses state, HDG p. 35) | `HAT_EXT_PD` | `blk.hat-signals` | ring, inner (microvia) | TMUXHS4412 PD, both packages: high = standby, extension disconnected; driven low only after the HAT identity record is read (interface v1.1 §4.4). 2026-10-24: was `HAT_DBG_SWDIO` |
 | B24 | GPIO1_A5_d | GPIO open drain | VCCIO1, 3.3 V, vcc3v3_sys | pull-down: translator off at reset | `HAT_ID_EN` | `blk.hat-signals` | ring, inner (gap) | PCA9306 EN/VREF2 node with 200 kΩ to VREF2 (HAT_3V3); SoC only pulls low or releases (SCPS113O 8.1.2-8.1.3, pp. 10, 12) (C8) |
 | 1A14 | GPIO1_A6_d | GPIO out | VCCIO1, 3.3 V, vcc3v3_sys | pull-down: buffer disabled | `HAT_MCLK_EN` | `blk.hat-audio` | core | Output enable of the HAT I2S_MCLK buffer (BOM line 112, Open); polarity follows the part chosen |
-| 1B13 | GPIO1_B0_d | PCIE20_CLKREQn_M2 | VCCIO1, 3.3 V, vcc3v3_sys | pull-down until pinctrl; external pull-up to 3.3 V wins | `PCIE_CLKREQ_N` | `blk.hat-signals` | core | Same mux group as WAKEn (HDG p. 89) |
-| A26 | GPIO1_B1_d | PCIE20_WAKEn_M2 | VCCIO1, 3.3 V, vcc3v3_sys | pull-down until pinctrl; external pull-up wins | `PCIE_WAKE_N` | `blk.hat-signals` | ring, outer | Not a deep-standby wake source (VCCIO1); HAT_INT_N is |
-| B26 | GPIO1_B2_d | GPIO out | VCCIO1, 3.3 V, vcc3v3_sys | pull-down: PERST# asserted at reset | `SOC_PCIE_PERST_N` | `blk.hat-signals` | ring, inner (microvia) | Into the SN74LVC1G57 PERST# AND HAT power-good gate on vcc3v3_sys (BOM v1.8 line 135, G14), out as PCIE_PERST_N |
+| 1B13 | GPIO1_B0_d | PCIE20_CLKREQn_M2 (PCIe mode) or GPIO (CSI-2 mode) | VCCIO1, 3.3 V, vcc3v3_sys | pull-down until pinctrl; external 4.7 kΩ pull-up to 3.3 V wins | `HAT_EXT_SB1` | `blk.hat-signals` | core | Interface v1.1 `EXT_SB1`: CLKREQ# in PCIe mode, declared camera GPIO in CSI-2 mode; the HAT overlay sets the mux. Same mux group as WAKEn (HDG p. 89). 2026-10-24: was `PCIE_CLKREQ_N` |
+| A26 | GPIO1_B1_d | PCIE20_WAKEn_M2 (PCIe mode) or GPIO (CSI-2 mode) | VCCIO1, 3.3 V, vcc3v3_sys | pull-down until pinctrl; external 4.7 kΩ pull-up wins | `HAT_EXT_SB2` | `blk.hat-signals` | ring, outer | Interface v1.1 `EXT_SB2`: WAKE# in PCIe mode, declared camera GPIO in CSI-2 mode. Not a deep-standby wake source (VCCIO1); HAT_INT_N is. 2026-10-24: was `PCIE_WAKE_N` |
+| B26 | GPIO1_B2_d | GPIO out | VCCIO1, 3.3 V, vcc3v3_sys | pull-down: `EXT_SB0` asserted at reset | `SOC_EXT_SB0` | `blk.hat-signals` | ring, inner (microvia) | Into the SN74LVC1G57 AND HAT power-good gate on vcc3v3_sys (BOM line 135, G14), out as `HAT_EXT_SB0`: PCIe PERST# in PCIe mode, sensor reset in CSI-2 mode, held asserted until HAT power is good in both (interface v1.1 §4.4). 2026-10-24: was `SOC_PCIE_PERST_N` |
 | 1B14 | GPIO1_B3_d | GPIO open drain | VCCIO1, 3.3 V, vcc3v3_sys | pull-down: HAT controller held in reset during SoC boot | `HAT_RST_N` | `blk.hat-signals` | core | HAT interface v1 HAT_RST#; pull-up owner open (interface v1 open point 4) |
 | 1C15 | GPIO1_D4_u | GPIO out | VCCIO2, 1.8 V, vcc_1v8 | pull-up: translators disabled at reset | `HAT_AUD_OE_N` | `blk.hat-audio` | core | OE of SN74AXC4T774 and SN74AXC8T245 (both referenced to VCCA, pull-up to VCCA per SCES898C p. 1, SCES875C p. 1) |
 | A35 | GPIO2_B1_d | I2C4_SDA_M1 | VCCIO4, 1.8 V, vcc_1v8 | pull-down until pinctrl; pull-up to vcc_1v8 wins | `HAT_ID_SDA_1V8` | `blk.hat-signals` | ring, outer | To PCA9306 SDA1; HAT EEPROM 0x50 only |
 | B34 | GPIO2_B2_u | I2C4_SCL_M1 | VCCIO4, 1.8 V, vcc_1v8 | pull-up | `HAT_ID_SCL_1V8` | `blk.hat-signals` | ring, inner (gap) | To PCA9306 SCL1 |
 | AP5 | GPIO3_B7_d | PWM12_M0 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down | `HAT_GPIO0` | `blk.hat-signals` | ring, inner (gap) | Alternate UART3_TX_M1 (UART A TX), DS p. 34 |
 | AR4 | GPIO3_C0_d | PWM13_M0 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down | `HAT_GPIO1` | `blk.hat-signals` | ring, outer | Alternate UART3_RX_M1 (UART A RX) |
-| 1P3 | GPIO3_C4_d | PWM14_M0 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down | `HAT_GPIO2` | `blk.hat-signals` | core | Alternate UART7_TX_M1 (UART B TX) |
-| 1P4 | GPIO3_C5_d | PWM15_IR_M0 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down | `HAT_GPIO3` | `blk.hat-signals` | core | Alternate UART7_RX_M1 (UART B RX) |
+| 1P3 | GPIO3_C4_d | PWM14_M0 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down | `HAT_GPIO2` | `blk.hat-signals` | core | Alternates UART7_TX_M1 (UART B TX) and, from 2026-10-24, bit-banged SWCLK (interface v1.1 L2, mandatory SWD alternate) |
+| 1P4 | GPIO3_C5_d | PWM15_IR_M0 | VCCIO5, 3.3 V, vcc3v3_sys | pull-down | `HAT_GPIO3` | `blk.hat-signals` | core | Alternates UART7_RX_M1 (UART B RX) and, from 2026-10-24, bit-banged SWDIO |
 | AM2 | GPIO3_D2_d | I2S1_SDI0_M1 | VCCIO6, 1.8 V, vccio6_1v8 | pull-down | `HAT_I2S_DIN0_1V8` | `blk.hat-audio` | ring, inner (microvia) | From SN74AXC8T245 |
 | AM1 | GPIO3_D3_d | I2S1_SDI1_M1 | VCCIO6, 1.8 V, vccio6_1v8 | pull-down | `HAT_I2S_DIN1_1V8` | `blk.hat-audio` | ring, outer | From SN74AXC8T245 |
 | 1R2 | GPIO3_D4_d | I2S1_SDI2_M1 | VCCIO6, 1.8 V, vccio6_1v8 | pull-down | `HAT_I2S_DIN2_1V8` | `blk.hat-audio` | core | From SN74AXC8T245 |
@@ -257,22 +258,22 @@ Columns: ball; pad (the GPIO name with its reset suffix; the full mux list is in
 | AD1 | GPIO4_B5_d | I2S1_SDO3_M1 | VCCIO6, 1.8 V, vccio6_1v8 | pull-down | `HAT_I2S_DOUT_1V8` | `blk.hat-audio` | ring, outer | To SN74AXC4T774 (HAT I2S_DOUT on the DAC clock) |
 | AR12 | GPIO4_C7_u | I2C5_SCL_M1 | VCCIO7, 3.3 V, vcc3v3_sys | pull-up | `HAT_I2C_SCL` | `blk.hat-signals` | ring, outer | HAT I2C_SCL and camera CCI. Same balls as HDMITX_SCL (C1) |
 | AP11 | GPIO4_D0_u | I2C5_SDA_M1 | VCCIO7, 3.3 V, vcc3v3_sys | pull-up | `HAT_I2C_SDA` | `blk.hat-signals` | ring, inner (gap) | HAT I2C_SDA |
-| 1U9 | MIPI_CSI_RX_CLK0N | MIPI_CSI_RX_CLK0N | CSI D-PHY, - | - | `HAT_CSI_CLK_N` | `blk.hat-signals` | core |  |
-| 1V9 | MIPI_CSI_RX_CLK0P | MIPI_CSI_RX_CLK0P | CSI D-PHY, - | - | `HAT_CSI_CLK_P` | `blk.hat-signals` | core | 4-lane mode uses CLK0 |
-| AR18 | MIPI_CSI_RX_D0N | MIPI_CSI_RX_D0N | CSI D-PHY, - | - | `HAT_CSI_D0_N` | `blk.hat-signals` | ring, outer |  |
-| AP18 | MIPI_CSI_RX_D0P | MIPI_CSI_RX_D0P | CSI D-PHY, - | - | `HAT_CSI_D0_P` | `blk.hat-signals` | ring, inner (microvia) |  |
-| AP17 | MIPI_CSI_RX_D1N | MIPI_CSI_RX_D1N | CSI D-PHY, - | - | `HAT_CSI_D1_N` | `blk.hat-signals` | ring, inner (microvia) |  |
-| AR17 | MIPI_CSI_RX_D1P | MIPI_CSI_RX_D1P | CSI D-PHY, - | - | `HAT_CSI_D1_P` | `blk.hat-signals` | ring, outer |  |
-| AR15 | MIPI_CSI_RX_D2N | MIPI_CSI_RX_D2N | CSI D-PHY, - | - | `HAT_CSI_D2_N` | `blk.hat-signals` | ring, outer |  |
-| AP15 | MIPI_CSI_RX_D2P | MIPI_CSI_RX_D2P | CSI D-PHY, - | - | `HAT_CSI_D2_P` | `blk.hat-signals` | ring, inner (microvia) |  |
-| AP14 | MIPI_CSI_RX_D3N | MIPI_CSI_RX_D3N | CSI D-PHY, - | - | `HAT_CSI_D3_N` | `blk.hat-signals` | ring, inner (microvia) |  |
-| AR14 | MIPI_CSI_RX_D3P | MIPI_CSI_RX_D3P | CSI D-PHY, - | - | `HAT_CSI_D3_P` | `blk.hat-signals` | ring, outer |  |
-| 1K20 | PCIE20_REFCLKN | PCIE20_REFCLKN | PCIe PHY, - | - | `HAT_PCIE_REFCLK_N` | `blk.hat-signals` | core |  |
-| 1K19 | PCIE20_REFCLKP | PCIE20_REFCLKP | PCIe PHY, - | - | `HAT_PCIE_REFCLK_P` | `blk.hat-signals` | core | 100 Ω differential class (layout rules PCB-I-03) |
-| AB38 | PCIE20_RXN/SATA2_RXN | PCIE20_RXN | PCIe PHY (combphy2), - | - | `HAT_PCIE_RX_N` | `blk.hat-signals` | ring, outer |  |
-| AB37 | PCIE20_RXP/SATA2_RXP | PCIE20_RXP | PCIe PHY (combphy2), - | - | `HAT_PCIE_RX_P` | `blk.hat-signals` | ring, inner (microvia) | RX caps on the HAT |
-| AA38 | PCIE20_TXN/SATA2_TXN | PCIE20_TXN | PCIe PHY (combphy2), - | - | `HAT_PCIE_TX_N` | `blk.hat-signals` | ring, outer | 100 nF series |
-| AA37 | PCIE20_TXP/SATA2_TXP | PCIE20_TXP | PCIe PHY (combphy2), - | - | `HAT_PCIE_TX_P` | `blk.hat-signals` | ring, inner (microvia) | 100 nF series (BOM line 70) |
+| 1U9 | MIPI_CSI_RX_CLK0N | MIPI_CSI_RX_CLK0N | CSI D-PHY, - | - | `HAT_CSI_CLK_N` | `blk.hat-signals` | core | To the TMUXHS4412 first package, port B channel 1 (`EXT1`) (2026-10-24, interface v1.1) |
+| 1V9 | MIPI_CSI_RX_CLK0P | MIPI_CSI_RX_CLK0P | CSI D-PHY, - | - | `HAT_CSI_CLK_P` | `blk.hat-signals` | core | 4-lane mode uses CLK0; to the TMUXHS4412 first package, port B channel 1 (`EXT1`) (2026-10-24, interface v1.1) |
+| AR18 | MIPI_CSI_RX_D0N | MIPI_CSI_RX_D0N | CSI D-PHY, - | - | `HAT_CSI_D0_N` | `blk.hat-signals` | ring, outer | To the TMUXHS4412 first package, port B channel 0 (`EXT0`) (2026-10-24, interface v1.1) |
+| AP18 | MIPI_CSI_RX_D0P | MIPI_CSI_RX_D0P | CSI D-PHY, - | - | `HAT_CSI_D0_P` | `blk.hat-signals` | ring, inner (microvia) | To the TMUXHS4412 first package, port B channel 0 (`EXT0`) (2026-10-24, interface v1.1) |
+| AP17 | MIPI_CSI_RX_D1N | MIPI_CSI_RX_D1N | CSI D-PHY, - | - | `HAT_CSI_D1_N` | `blk.hat-signals` | ring, inner (microvia) | To the TMUXHS4412 first package, port B channel 2 (`EXT2`) (2026-10-24, interface v1.1) |
+| AR17 | MIPI_CSI_RX_D1P | MIPI_CSI_RX_D1P | CSI D-PHY, - | - | `HAT_CSI_D1_P` | `blk.hat-signals` | ring, outer | To the TMUXHS4412 first package, port B channel 2 (`EXT2`) (2026-10-24, interface v1.1) |
+| AR15 | MIPI_CSI_RX_D2N | MIPI_CSI_RX_D2N | CSI D-PHY, - | - | `HAT_CSI_D2_N` | `blk.hat-signals` | ring, outer | To the TMUXHS4412 first package, port B channel 3 (`EXT3`) (2026-10-24, interface v1.1) |
+| AP15 | MIPI_CSI_RX_D2P | MIPI_CSI_RX_D2P | CSI D-PHY, - | - | `HAT_CSI_D2_P` | `blk.hat-signals` | ring, inner (microvia) | To the TMUXHS4412 first package, port B channel 3 (`EXT3`) (2026-10-24, interface v1.1) |
+| AP14 | MIPI_CSI_RX_D3N | MIPI_CSI_RX_D3N | CSI D-PHY, - | - | `HAT_CSI_D3_N` | `blk.hat-signals` | ring, inner (microvia) | To the TMUXHS4412 port B, second package, channel 0 (`EXT4`) (2026-10-24, interface v1.1) |
+| AR14 | MIPI_CSI_RX_D3P | MIPI_CSI_RX_D3P | CSI D-PHY, - | - | `HAT_CSI_D3_P` | `blk.hat-signals` | ring, outer | To the TMUXHS4412 port B, second package, channel 0 (`EXT4`) (2026-10-24, interface v1.1) |
+| 1K20 | PCIE20_REFCLKN | PCIE20_REFCLKN | PCIe PHY, - | - | `HAT_PCIE_REFCLK_N` | `blk.hat-signals` | core | To the TMUXHS4412 first package, port A channel 0 (`EXT0`) (2026-10-24, interface v1.1) |
+| 1K19 | PCIE20_REFCLKP | PCIE20_REFCLKP | PCIe PHY, - | - | `HAT_PCIE_REFCLK_P` | `blk.hat-signals` | core | 100 Ω differential class (layout rules PCB-I-03); to the TMUXHS4412 first package, port A channel 0 (`EXT0`) (2026-10-24, interface v1.1) |
+| AB38 | PCIE20_RXN/SATA2_RXN | PCIE20_RXN | PCIe PHY (combphy2), - | - | `HAT_PCIE_RX_N` | `blk.hat-signals` | ring, outer | To the TMUXHS4412 first package, port A channel 2 (`EXT2`) (2026-10-24, interface v1.1) |
+| AB37 | PCIE20_RXP/SATA2_RXP | PCIE20_RXP | PCIe PHY (combphy2), - | - | `HAT_PCIE_RX_P` | `blk.hat-signals` | ring, inner (microvia) | RX caps on the HAT; to the TMUXHS4412 first package, port A channel 2 (`EXT2`) (2026-10-24, interface v1.1) |
+| AA38 | PCIE20_TXN/SATA2_TXN | PCIE20_TXN | PCIe PHY (combphy2), - | - | `HAT_PCIE_TX_N` | `blk.hat-signals` | ring, outer | 100 nF series; to the TMUXHS4412 first package, port A channel 1 (`EXT1`) through the 100 nF AC caps (2026-10-24, interface v1.1) |
+| AA37 | PCIE20_TXP/SATA2_TXP | PCIE20_TXP | PCIe PHY (combphy2), - | - | `HAT_PCIE_TX_P` | `blk.hat-signals` | ring, inner (microvia) | 100 nF series (BOM line 70); to the TMUXHS4412 first package, port A channel 1 (`EXT1`) through the 100 nF AC caps (2026-10-24, interface v1.1) |
 | 1J20 | USB3_HOST1_DM | USB3_HOST1_DM | USB PHY (usb2phy0 host), - | - | `HAT_USB3_DM` | `blk.hat-signals` | core | 2.2 Ω series |
 | 1J19 | USB3_HOST1_DP | USB3_HOST1_DP | USB PHY (usb2phy0 host), - | - | `HAT_USB3_DP` | `blk.hat-signals` | core | USB 2 half of the HAT port, 2.2 Ω series |
 | V37 | USB3_HOST1_SSRXN/SATA1_RXN | USB3_HOST1_SSRXN | USB3 PHY (combphy1), - | - | `HAT_USB3_SSRX_N` | `blk.hat-signals` | ring, inner (microvia) | Direct |
@@ -303,7 +304,7 @@ VCCI on vcca1v8_pmu, VCCP on vcc3v3_sys (BOM v1.8 line 93); every port is an inp
 
 | Port | Net | Direction | Default (board pull) | Block | Why on the expander |
 |---|---|---|---|---|---|
-| P00 | `FP_IO_EN` | out | low (off) | `blk.fp-connector` | Power tree §5; state kept in suspend if faceplate wake is wanted (B5) |
+| P00 | `FP_IO_EN` | out | low (off) | `blk.fp-connector` | Power tree §5; state kept in suspend if faceplate wake is wanted (B5). From 2026-10-24 (BOM v1.11): ON of the FP_3V3 TPS22950 and of the FP_1V8 and FP_VCI TPS22945 |
 | P01 | `HAT3V3_EN` | out | low (off) | `blk.hat-3v3` | Moved from a SoC GPIO (power tree §5): GPIO1–4 lose their state in standby, and a HAT that wakes the T1 through `HAT_INT#` must stay powered (B3) |
 | P02 | `HAT5V_EN` (= `HAT_SRC_ON`) | out | low (off) | `blk.hat-5v` | Power tree §5; also forces TPS2121 OV2 |
 | P03 | `USB_SRC_ON` | out | low (off) | `blk.usb-vbus-out` | Power tree §5; also forces TPS2121 OV1 |
@@ -345,7 +346,7 @@ The fuel-gauge alert of v0 §2.3 has no source: the BQ28Z610-R1 has no alert pin
 | C1 | I2C5 M1 (HAT I2C) uses the HDMI DDC balls, and HDG p. 64 says HDMITX_SCL/SDA is dedicated to the HDMI controller | HDG p. 64; DS p. 35 lists I2C5_SCL_M1/SDA_M1 as separate mux functions on AR12/AP11; HDG Table 2-16 lists I2C5 M1 on VCCIO7 | Kept: the T1 has no HDMI and the HDG sentence concerns the DDC function, not the I2C5 mux. I2C5 M0 is taken by the touch lines. Open item O1 with a fallback |
 | C2 | Radio host-wake lines on GPIO2_C0/C1 (VCCIO4) cannot wake from standby | HDG pp. 17, 35, 53 ("WIFI/BT control signal should be connected to the GPIO of the PMUIO power domain") | `WL_WAKE_OUT` → GPIO0_B7, `BT_WAKE_OUT` → GPIO0_C6 |
 | C3 | Expander interrupt on an FSPI ball or wired-OR with the RP2354A IRQ; BRD-014 context forbids must functions relayed by the coprocessor | Requirements context (BRD-014) | `EXP_INT_N` on its own PMUIO0 ball (GPIO0_D6); `RP_IRQ` stays the RP2354A's own line |
-| C4 | Faceplate `HID_INT` and `ALS_INT` at 1.8 V (PMUIO2) while the faceplate interface says 3.3 V for the low-speed groups | t1 faceplate interface v0 | `FP_HID_INT_N` → GPIO0_A0 (PMUIO1, 3.3 V, wake); `FP_ALS_INT_N` → GPIO3_B2 (VCCIO5, 3.3 V, not a standby wake source; spec edit in §8.3) |
+| C4 | Faceplate `HID_INT` and `ALS_INT` at 1.8 V (PMUIO2) while the faceplate interface says 3.3 V for the low-speed groups | t1 faceplate interface v0 (v1 since 2026-10-24) | `FP_HID_INT_N` → GPIO0_A0 (PMUIO1, 3.3 V, wake); `FP_ALS_INT_N` → GPIO3_B2 (VCCIO5, 3.3 V, not a standby wake source; spec edit in §8.3) |
 | C5 | FSPI balls (GPIO1_D0–D4) carried the 4.4 mm amplifier enable, the speaker SD_MODE and the RP2354A SWD; the BootROM probes FSPI first at every boot | HDG p. 18 boot order | Only the TPM PIRQ (an input) and the HAT translators' OE (pull-up, a toggle only enables isolated translators with Ioff) remain; FSPI_CLK, FSPI_D0 and FSPI_CS0n are test pads only |
 | C6 | RP2354A BOOTSEL wired to a 1.8 V ball; BOOTSEL is the QSPI chip select, powered by QSPI_IOVDD = RP_3V3 (the internal flash needs 2.7–3.6 V) | RP2350 pp. 18, 340, 1329; BOM line 12 | `RP_BOOTSEL_DRV` (GPIO3_C6) drives the gate of an N-FET that pulls QSPI_SS low; no 3.3 V reaches the SoC (B8) |
 | C7 | Bluetooth PCM reserved through DNP links on I2S2 M0 balls that v0 also gave to RP2354A RUN/BOOTSEL and BT_WAKE | v0 §2.2 | Dropped: Bluetooth audio runs over HCI (ADR 0006). I2S2 M1 balls went to audio enables |
@@ -368,8 +369,8 @@ The fuel-gauge alert of v0 §2.3 has no source: the BQ28Z610-R1 has no alert pin
 | C24 | Status LED PWM (GPIO3_B2) | BOM v1.2 (LP5521) | Ball reused for `FP_ALS_INT_N` |
 | C25 | Fuel-gauge alert line to the expander | SLUSE07B p. 3: no alert pin on the BQ28Z610-R1 | Removed (B7) |
 | C26 | Wake-capable lines needed exceed the free GPIO0 balls when the RP2354A relays nothing | v0 §3.11–3.12 | Faceplate HID interrupt to the free 3.3 V PMUIO1 ball, ALS off the wake set, and the four PMUIO0 balls (C15) |
-| C27 | `HAT_INT#`, `HAT_DET#`, `PCIE_CLKREQ#`, `PCIE_WAKE#` on `_d` balls with "a pull-up on the device" | DS p. 53 | 4.7 kΩ pull-ups (B9); `HAT_RST#` and `PCIE_PERST#` on `_d` balls hold the HAT in reset during SoC boot, which is intended |
-| C28 | HAT SWD balls (GPIO1_A0/A1) are `_u`: at reset they pull an unpowered HAT's SWD pins to 3.3 V through 16–43 kΩ | DS Table 2-1 | Pin controller sets them to pull-down while the HAT is unpowered; pull-up ownership stays interface v1 open point 4 |
+| C27 | `HAT_INT#`, `HAT_DET#`, `PCIE_CLKREQ#`, `PCIE_WAKE#` on `_d` balls with "a pull-up on the device" | DS p. 53 | 4.7 kΩ pull-ups (B9); `HAT_RST#` and `PCIE_PERST#` on `_d` balls hold the HAT in reset during SoC boot, which is intended 2026-10-24: the PCIe sidebands are now `HAT_EXT_SB0`–`SB2` (interface v1.1), same pulls |
+| C28 | HAT SWD balls (GPIO1_A0/A1) are `_u`: at reset they pull an unpowered HAT's SWD pins to 3.3 V through 16–43 kΩ | DS Table 2-1 | Pin controller sets them to pull-down while the HAT is unpowered; pull-up ownership stays interface v1 open point 4 2026-10-24: closed by interface v1.1, the balls now drive the extension switch: A22 with an external pull-down, B22 with an external pull-up (standby), no HAT line on either |
 
 ## 6. The 0.4 mm ring
 
@@ -410,10 +411,10 @@ Every DSI0, CSI and HDMI pair in the ring has one ball on row AP (inner) and its
 | G5 TPM | `TPM_RST_N` on GPIO0_D3 (PMUIO0, vcca1v8_pmu, 2.2 kΩ pull-up: inactive and held through suspend); `TPM_PIRQ_N` on GPIO1_D2 (VCCIO2) with its pull-up on vcc_1v8, so in suspend the line rests at 0 V with no current into either side | BOM v1.8 line 122 |
 | G6 NFC tag | `NFC_FD_N` on GPIO0_D4 (PMUIO0, 1.8 V, wake); pull-up to vcca1v8_pmu, the tag's supply. v1 does not use GPIO0_A0 as G6 proposed: a 3.3 V pull-up on a 1.8 V-supplied tag pin would exceed its supply | BOM v1.8 line 125 |
 | G7 PN7160 | `NFC_IRQ` on GPIO0_D5 (PMUIO0, same rail as VDD(PAD)); `NFC_VEN` on GPIO2_C0 and `NFC_DWL_REQ` on GPIO2_C6 (VCCIO4, 1.8 V, `_d`, board pull-downs, series-resistor footprint on VEN); `NFC_PWR_EN` on expander P05 | BOM v1.8 lines 50, 93, 127 |
-| G8 Faceplate pull-ups | I2C3 pull-ups on FP_3V3; `FP_HID_INT_N` and `FP_ALS_INT_N` now 3.3 V lines with 4.7 kΩ pull-ups on FP_3V3; both masked while FP_3V3 is off | BOM v1.8 item 12 |
+| G8 Faceplate pull-ups | I2C3 pull-ups on FP_3V3 (2.2 kΩ from 2026-10-24, BOM v1.11); `FP_HID_INT_N` and `FP_ALS_INT_N` now 3.3 V lines with 4.7 kΩ pull-ups on FP_3V3; both masked while FP_3V3 is off | BOM v1.8 item 12 |
 | G9 GT911 strap | `FP_TP_INT` on GPIO3_B3 (`_d`) plus a board pull-down footprint; the address the low level selects is read from GT911 v09 pp. 9–10 timing figures, **UNVERIFIED** in text (O7) | — |
 | G10 PDM clocks | Both PDM clock balls `_d`, pinctrl sleep state drives low while MIC_1V8 is off | — |
-| G14 PCIe reset | `SOC_PCIE_PERST_N` on GPIO1_B2 (VCCIO1, 3.3 V, `_d`: asserted at reset) into the SN74LVC1G57 on vcc3v3_sys; `HAT_MCLK_EN` on GPIO1_A6 for the line-112 buffer (Open) | BOM v1.8 line 135 |
+| G14 PCIe reset | `SOC_PCIE_PERST_N` (2026-10-24: `SOC_EXT_SB0`, out of the gate as `HAT_EXT_SB0`) on GPIO1_B2 (VCCIO1, 3.3 V, `_d`: asserted at reset) into the SN74LVC1G57 on vcc3v3_sys; `HAT_MCLK_EN` on GPIO1_A6 for the line-112 buffer (Open) | BOM v1.8 line 135 |
 | G15, G16 | `EXP_INT_N` on PMUIO0; I2C2 on PMUIO2 with pull-ups on vcca1v8_pmu, the same rail as the bank | BOM v1.8 line 93, §4.2 |
 | G20 Haptics | `HAPTIC_EN` on expander P04 | BOM v1.8 line 93 |
 | G21 I2S parking | Same as G2: `_d` balls and a pinctrl sleep state | BOM v1.8 line 134 |
@@ -473,13 +474,13 @@ G11–G13 and G17–G19 need no SoC ball.
 | 37 | GPIO0 | Spare GPIO | `FP_GPIO0` | Expander P13 |
 | 38 | GPIO1 | Spare GPIO | `FP_GPIO1` | Expander P14 |
 | 39 | GND | Ground | GND | — |
-| 40 | MIC_1V8 | Power | `MIC_1V8` | TPS22919 (`MIC_EN`) |
-| 41 | FP_1V8 | Power | `FP_1V8` | TPS22919 (`FP_IO_EN`) |
-| 42 | FP_3V3 | Power | `FP_3V3` | TPS22919 (`FP_IO_EN`) |
+| 40 | MIC_1V8 | Power | `MIC_1V8` | TPS22945 (`MIC_EN`; TPS22919 until 2026-10-24) |
+| 41 | FP_1V8 | Power | `FP_1V8` | TPS22945 (`FP_IO_EN`; TPS22919 until 2026-10-24) |
+| 42 | FP_3V3 | Power | `FP_3V3` | TPS22950 (`FP_IO_EN`; TPS22919 until 2026-10-24) |
 | 43 | FP_3V3 | Power | `FP_3V3` | as 42 |
-| 44 | FP_VCI | Power | `FP_VCI` | RK809 LDO4 |
-| 45 | BL_LEDK | Power | `BL_LEDK` | TPS61169 FB side |
-| 46 | BL_LEDA | Power | `BL_LEDA` | TPS61169 output |
+| 44 | FP_VCI | Power | `FP_VCI` | RK809 LDO4 through a TPS22945 (`FP_IO_EN`; from 2026-10-24) |
+| 45 | BL_LEDK | Power | `BL_LEDK` | TPS61160 FB side (TPS61169 until 2026-10-24) |
+| 46 | BL_LEDA | Power | `BL_LEDA` | TPS61160 output, ≤ 27 V open string (TPS61169 until 2026-10-24) |
 | 47 | Reserved | Reserved | NC | Never a logic line (next to BL_LEDA) |
 | 48–51 | Reserved | Reserved | NC | — |
 
@@ -487,7 +488,7 @@ Counts: 10 DSI + 21 low-speed signals + 7 power + 8 ground + 5 reserved = 51 (RF
 
 ### 8.3 Edit the t1 faceplate interface spec needs
 
-Not made here (the spec belongs to t1). In `docs/specs/faceplate-interface.md`, section "Flat-cable connector, interface v0":
+Not made here (the spec belongs to t1). In `docs/specs/faceplate-interface.md`, section "Flat-cable connector, interface v0" (2026-10-24: the t1 spec is now faceplate interface v1, which carries these positions in its §1.1, t1 commit `e1e18e7`):
 
 1. Replace the sentence "Contact positions are fixed in pinout v1." with "Contact positions are in the table below (board pinout v1 §8)."
 2. Add the table of §8.2 with the columns Contact, Line and Group only (no board nets or SoC balls; the board side stays in the board repository).
@@ -542,6 +543,7 @@ No new level shifter is needed: the master-clock and headphone-rail enables move
 
 ## 10. Open items
 
+- 2026-10-24 (hat-standard interface v1.1, ADR 0005; BOM v1.11): A22 `HAT_DBG_SWCLK` → `HAT_EXT_SEL` (10 kΩ pull-down) and B22 `HAT_DBG_SWDIO` → `HAT_EXT_PD` (10 kΩ pull-up): the extension switch's select and power-down; SWD to the HAT becomes the bit-banged L2 alternate on `HAT_GPIO2` (SWCLK, 1P3) and `HAT_GPIO3` (SWDIO, 1P4); B26 `SOC_PCIE_PERST_N` → `SOC_EXT_SB0` (out of G14 as `HAT_EXT_SB0`), 1B13 `PCIE_CLKREQ_N` → `HAT_EXT_SB1`, A26 `PCIE_WAKE_N` → `HAT_EXT_SB2` (PCIe sideband in PCIe mode, GPIO in CSI-2 mode); the PCIe REFCLK, TX and RX balls go to port A and the CSI-2 balls to port B of the two TMUXHS4412 (CLK0 and D0–D2 in the first package, D3 in the second). `HAT_DET_N` (AG37) is unchanged and sits at position 33 of the single DF40C-100. No line-out ball was ever assigned here (the pin plan v0 §4.3 row stays as history), so nothing is removed. The faceplate interface is v1 (t1 commit `e1e18e7`); contact positions unchanged; sources of contacts 40–46 follow BOM v1.11.
 - 2026-10-24: `MCLK_DIV_RUN` on GPIO4_C4, `WL_PWR_EN` on expander P06 and `WL_PDN_HOLD` on expander P07 through an SN74AXC1T45; GPIO2_B7 becomes a spare (was `WL_PDN`), its 0 Ω option to the translator output kept as a fallback. Closes BOM v1.9 items 39 and 40.
 
 | # | Item | What closes it |

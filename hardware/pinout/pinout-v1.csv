@@ -12,9 +12,9 @@ A15,DDR_DQ12_B/DDR4_DQL7_B/LPDDR4_DQ12_B/DDR3_DQ28/LPDDR3_DQ16,LPDDR4_DQ12_B,DDR
 A17,DDR_DQS1P_B/DDR4_DQSL_P_B/LPDDR4_DQS1P_B/DDR3_DQS3P/LPDDR3_DQS2P,LPDDR4_DQS1P_B,DDR PHY,"0.6 V I/O (DDRPHY_VDDQL, vcc0v6_ddr)",DDR_DQS1P_B,blk.lpddr4x,-,"LPDDR4X, to the same-named DRAM ball per the Rockchip template; DQ and CA order not swapped (HDG p. 22); ring outer (L1)"
 A19,DDR_DQ9_B/DDR4_DQL2_B/LPDDR4_DQ9_B/DDR3_DQ25/LPDDR3_DQ19,LPDDR4_DQ9_B,DDR PHY,"0.6 V I/O (DDRPHY_VDDQL, vcc0v6_ddr)",DDR_DQ9_B,blk.lpddr4x,-,"LPDDR4X, to the same-named DRAM ball per the Rockchip template; DQ and CA order not swapped (HDG p. 22); ring outer (L1)"
 A20,DDR_DQ10_B/DDR4_DQL4_B/LPDDR4_DQ10_B/DDR3_DQ26/LPDDR3_DQ22,LPDDR4_DQ10_B,DDR PHY,"0.6 V I/O (DDRPHY_VDDQL, vcc0v6_ddr)",DDR_DQ10_B,blk.lpddr4x,-,"LPDDR4X, to the same-named DRAM ball per the Rockchip template; DQ and CA order not swapped (HDG p. 22); ring outer (L1)"
-A22,I2C3_SDA_M0/UART3_RX_M0/AUDIOPWM_LOUT_P/GPIO1_A0_u,GPIO out,VCCIO1,3.3 V (vcc3v3_sys),HAT_DBG_SWCLK,blk.hat-signals,"input, pull-up (_u); pull-up: set to pull-down or none in pinctrl so an unpowered HAT is not fed","HAT interface v1 DBG_SWCLK, bit-banged SWD; ring outer (L1)"
+A22,I2C3_SDA_M0/UART3_RX_M0/AUDIOPWM_LOUT_P/GPIO1_A0_u,GPIO out,VCCIO1,3.3 V (vcc3v3_sys),HAT_EXT_SEL,blk.hat-signals,"input, pull-up (_u); a 10 kΩ external pull-down wins: SEL low (port A)","TMUXHS4412 SEL, both packages: low = PCIe (port A), high = CSI-2 (port B) (SLASEW5A §6.4). 2026-10-24: was HAT_DBG_SWCLK (interface v1.0); ring outer (L1)"
 A23,I2S1_MCLK_M0/UART3_RTSn_M0/SCR_CLK/GPIO1_A2_d,GPIO out,VCCIO1,3.3 V (vcc3v3_sys),RP_PWR_EN,blk.rp2354,"input, pull-down (_d); pull-down: RP2354A off at reset (BRD-019)","Both TPS22919 ON pins (ON rated independently of VIN, BOM line 50). Default on or off is power tree open question 6; a board pull-up reverses it. RP rails are off in suspend anyway (RP_IOVDD_1V8 from vcc_1v8); ring outer (L1)"
-A26,I2S1_SDO2_M0/I2S1_SDI2_M0/PDM_SDI2_M0/PCIE20_WAKEn_M2/GPIO1_B1_d,PCIE20_WAKEn_M2,VCCIO1,3.3 V (vcc3v3_sys),PCIE_WAKE_N,blk.hat-signals,"input, pull-down (_d); pull-down until pinctrl; external pull-up wins",Not a deep-standby wake source (VCCIO1); HAT_INT_N is; ring outer (L1)
+A26,I2S1_SDO2_M0/I2S1_SDI2_M0/PDM_SDI2_M0/PCIE20_WAKEn_M2/GPIO1_B1_d,PCIE20_WAKEn_M2 (PCIe mode) or GPIO (CSI-2 mode),VCCIO1,3.3 V (vcc3v3_sys),HAT_EXT_SB2,blk.hat-signals,"input, pull-down (_d); pull-down until pinctrl; external 4.7 kΩ pull-up wins","Interface v1.1 EXT_SB2: WAKE# in PCIe mode, declared camera GPIO in CSI-2 mode. Not a deep-standby wake source (VCCIO1); HAT_INT_N is. 2026-10-24: was PCIE_WAKE_N; ring outer (L1)"
 A27,EMMC_CMD/FLASH_WRn/GPIO1_C4_u,EMMC_CMD,VCCIO2,1.8 V (vcc_1v8),EMMC_CMD,blk.emmc,"input, pull-up (_u); pull-up",10 kΩ pull-up (HDG p. 26); ring outer (L1)
 A29,EMMC_CLKOUT/FLASH_DQS/GPIO1_C5_d,EMMC_CLKOUT,VCCIO2,1.8 V (vcc_1v8),EMMC_CLK,blk.emmc,"input, pull-down (_d); pull-down",22 Ω series at the SoC (HDG p. 26); MaskROM test point (HDG p. 27); ring outer (L1)
 A30,EMMC_D5/FLASH_D5/GPIO1_C1_u,EMMC_D5,VCCIO2,1.8 V (vcc_1v8),EMMC_D5,blk.emmc,"input, pull-up (_u); pull-up",ring outer (L1)
@@ -44,11 +44,11 @@ B18,VSS_9,ground,supply,0 V,GND,blk.soc,-,
 B19,DDR_DQ8_B/DDR4_DQL0_B/LPDDR4_DQ8_B/DDR3_DQ24/LPDDR3_DQ18,LPDDR4_DQ8_B,DDR PHY,"0.6 V I/O (DDRPHY_VDDQL, vcc0v6_ddr)",DDR_DQ8_B,blk.lpddr4x,-,"LPDDR4X, to the same-named DRAM ball per the Rockchip template; DQ and CA order not swapped (HDG p. 22); ring inner, behind A19 (microvia)"
 B20,DDR_DQ11_B/DDR4_DQL6_B/LPDDR4_DQ11_B/DDR3_DQ27/LPDDR3_DQ23,LPDDR4_DQ11_B,DDR PHY,"0.6 V I/O (DDRPHY_VDDQL, vcc0v6_ddr)",DDR_DQ11_B,blk.lpddr4x,-,"LPDDR4X, to the same-named DRAM ball per the Rockchip template; DQ and CA order not swapped (HDG p. 22); ring inner, behind A20 (microvia)"
 B21,VSS_10,ground,supply,0 V,GND,blk.soc,-,
-B22,I2C3_SCL_M0/UART3_TX_M0/AUDIOPWM_LOUT_N/GPIO1_A1_u,GPIO in/out,VCCIO1,3.3 V (vcc3v3_sys),HAT_DBG_SWDIO,blk.hat-signals,"input, pull-up (_u); pull-up: as HAT_DBG_SWCLK","HAT interface v1 DBG_SWDIO; ring inner, behind A22 (microvia)"
+B22,I2C3_SCL_M0/UART3_TX_M0/AUDIOPWM_LOUT_N/GPIO1_A1_u,GPIO out,VCCIO1,3.3 V (vcc3v3_sys),HAT_EXT_PD,blk.hat-signals,"input, pull-up (_u); plus a 10 kΩ external pull-up to vcc3v3_sys: switch in standby at reset and in standby (GPIO1 loses state, HDG p. 35)","TMUXHS4412 PD, both packages: high = standby, extension disconnected; driven low only after the HAT identity record is read (interface v1.1 §4.4). 2026-10-24: was HAT_DBG_SWDIO; ring inner, behind A22 (microvia)"
 B23,I2S1_SCLK_TX_M0/UART3_CTSn_M0/SCR_IO/GPIO1_A3_d,GPIO (spare),VCCIO1,3.3 V (vcc3v3_sys),SPARE_1A3,blk.debug,"input, pull-down (_d); pull-down","Spare 3.3 V GPIO, test pad; ring inner, behind A23 (microvia)"
 B24,I2S1_LRCK_TX_M0/UART4_RTSn_M0/SCR_RST/GPIO1_A5_d,GPIO open drain,VCCIO1,3.3 V (vcc3v3_sys),HAT_ID_EN,blk.hat-signals,"input, pull-down (_d); pull-down: translator off at reset","PCA9306 EN/VREF2 node with 200 kΩ to VREF2 (HAT_3V3); SoC only pulls low or releases (SCPS113O 8.1.2-8.1.3, pp. 10, 12) (C8); ring inner, gap (L1)"
 B25,I2S1_SDO0_M0/UART4_CTSn_M0/SCR_DET/AUDIOPWM_ROUT_N/GPIO1_A7_d,GPIO (spare),VCCIO1,3.3 V (vcc3v3_sys),SPARE_1A7,blk.debug,"input, pull-down (_d); pull-down","Spare 3.3 V GPIO, test pad; ring inner, gap (L1)"
-B26,I2S1_SDO3_M0/I2S1_SDI1_M0/PDM_SDI1_M0/PCIE20_PERSTn_M2/GPIO1_B2_d,GPIO out,VCCIO1,3.3 V (vcc3v3_sys),SOC_PCIE_PERST_N,blk.hat-signals,"input, pull-down (_d); pull-down: PERST# asserted at reset","Into the SN74LVC1G57 PERST# AND HAT power-good gate on vcc3v3_sys (BOM v1.8 line 135, G14), out as PCIE_PERST_N; ring inner, behind A26 (microvia)"
+B26,I2S1_SDO3_M0/I2S1_SDI1_M0/PDM_SDI1_M0/PCIE20_PERSTn_M2/GPIO1_B2_d,GPIO out,VCCIO1,3.3 V (vcc3v3_sys),SOC_EXT_SB0,blk.hat-signals,"input, pull-down (_d); pull-down: EXT_SB0 asserted at reset","Into the SN74LVC1G57 AND HAT power-good gate on vcc3v3_sys (BOM line 135, G14), out as HAT_EXT_SB0: PCIe PERST# in PCIe mode, sensor reset in CSI-2 mode, held asserted until HAT power is good (interface v1.1 §4.4). 2026-10-24: was SOC_PCIE_PERST_N; ring inner, behind A26 (microvia)"
 B27,EMMC_D1/FLASH_D1/GPIO1_B5_u,EMMC_D1,VCCIO2,1.8 V (vcc_1v8),EMMC_D1,blk.emmc,"input, pull-up (_u); pull-up","ring inner, behind A27 (microvia)"
 B28,VSS_11,ground,supply,0 V,GND,blk.soc,-,
 B29,EMMC_D3/FLASH_D3/GPIO1_B7_u,EMMC_D3,VCCIO2,1.8 V (vcc_1v8),EMMC_D3,blk.emmc,"input, pull-up (_u); pull-up","ring inner, behind A29 (microvia)"
@@ -119,12 +119,12 @@ Y1,USB_HOST3_DM,unused,PHY,-,NC,blk.soc,-,"Unused-pin handling per RK3566_PinOut
 Y2,USB_HOST3_DP,unused,PHY,-,NC,blk.soc,-,"Unused-pin handling per RK3566_PinOut, not retrieved (O2); ring inner, behind Y1 (microvia)"
 Y37,AVSS1_5,ground,supply,0 V,GND,blk.soc,-,
 AA2,VSS_18,ground,supply,0 V,GND,blk.soc,-,
-AA37,PCIE20_TXP/SATA2_TXP,PCIE20_TXP,PCIe PHY (combphy2),-,HAT_PCIE_TX_P,blk.hat-signals,-,"100 nF series (BOM line 70); ring inner, behind AA38 (microvia)"
-AA38,PCIE20_TXN/SATA2_TXN,PCIE20_TXN,PCIe PHY (combphy2),-,HAT_PCIE_TX_N,blk.hat-signals,-,100 nF series; ring outer (L1)
+AA37,PCIE20_TXP/SATA2_TXP,PCIE20_TXP,PCIe PHY (combphy2),-,HAT_PCIE_TX_P,blk.hat-signals,-,"100 nF series (BOM line 70); to the TMUXHS4412 first package, port A channel 1 (EXT1) through the 100 nF AC caps (2026-10-24, interface v1.1); ring inner, behind AA38 (microvia)"
+AA38,PCIE20_TXN/SATA2_TXN,PCIE20_TXN,PCIe PHY (combphy2),-,HAT_PCIE_TX_N,blk.hat-signals,-,"100 nF series; to the TMUXHS4412 first package, port A channel 1 (EXT1) through the 100 nF AC caps (2026-10-24, interface v1.1); ring outer (L1)"
 AB1,CIF_CLKIN/EBC_SDCLK/GMAC1_MCLKINOUT_M1/UART1_CTSn_M1/I2S2_SCLK_RX_M1/GPIO4_C1_d,GPIO open drain,VCCIO6,1.8 V (vccio6_1v8),RP_RUN,blk.rp2354,"input, pull-down (_d); pull-down until pinctrl; 4.7 kΩ pull-up to RP_IOVDD_1V8 wins (≥ 1.39 V)","RP2354A RUN, IOVDD domain (RP2350 DS p. 17). SoC pulls low to reset; ring outer (L1)"
-AB2,CIF_CLKOUT/EBC_GDCLK/PWM11_IR_M1/GPIO4_C0_d,GPIO out,VCCIO6,1.8 V (vccio6_1v8),MIC_EN,blk.mic-main,"input, pull-down (_d); pull-down: off, privacy LED off","TPS22919 ON (MIC_1V8); settles the SoC-or-expander question of the block record; ring inner, behind AB1 (microvia)"
-AB37,PCIE20_RXP/SATA2_RXP,PCIE20_RXP,PCIe PHY (combphy2),-,HAT_PCIE_RX_P,blk.hat-signals,-,"RX caps on the HAT; ring inner, behind AB38 (microvia)"
-AB38,PCIE20_RXN/SATA2_RXN,PCIE20_RXN,PCIe PHY (combphy2),-,HAT_PCIE_RX_N,blk.hat-signals,-,ring outer (L1)
+AB2,CIF_CLKOUT/EBC_GDCLK/PWM11_IR_M1/GPIO4_C0_d,GPIO out,VCCIO6,1.8 V (vccio6_1v8),MIC_EN,blk.mic-main,"input, pull-down (_d); pull-down: off, privacy LED off","TPS22945 ON (MIC_1V8; TPS22919 until 2026-10-24, BOM v1.11 line 146); settles the SoC-or-expander question of the block record; ring inner, behind AB1 (microvia)"
+AB37,PCIE20_RXP/SATA2_RXP,PCIE20_RXP,PCIe PHY (combphy2),-,HAT_PCIE_RX_P,blk.hat-signals,-,"RX caps on the HAT; to the TMUXHS4412 first package, port A channel 2 (EXT2) (2026-10-24, interface v1.1); ring inner, behind AB38 (microvia)"
+AB38,PCIE20_RXN/SATA2_RXN,PCIE20_RXN,PCIe PHY (combphy2),-,HAT_PCIE_RX_N,blk.hat-signals,-,"to the TMUXHS4412 first package, port A channel 2 (EXT2) (2026-10-24, interface v1.1); ring outer (L1)"
 AC2,CIF_VSYNC/EBC_SDOE/GMAC1_MDIO_M1/I2S2_SCLK_TX_M1/GPIO4_B7_d,GPIO out,VCCIO6,1.8 V (vccio6_1v8),HPA_BAL_EN,blk.hpa-bal,"input, pull-down (_d); pull-down: off","OPA1622 EN, 4.4 mm group (was 1_D0, an FSPI ball, in v0: C5); ring inner, gap (L1)"
 AC37,VSS_24,ground,supply,0 V,GND,blk.soc,-,
 AD1,I2C2_SCL_M1/EBC_SDSHR/I2S1_SDO3_M1/GPIO4_B5_d,I2S1_SDO3_M1,VCCIO6,1.8 V (vccio6_1v8),HAT_I2S_DOUT_1V8,blk.hat-audio,"input, pull-down (_d); pull-down",To SN74AXC4T774 (HAT I2S_DOUT on the DAC clock); ring outer (L1)
@@ -165,18 +165,18 @@ AP3,VOP_BT1120_D14/SPI1_MISO_M1/UART5_TX_M1/I2S1_SDO3_M2/GPIO3_C2_d,SPI1_MISO_M1
 AP4,VOP_BT1120_D13/SPI1_MOSI_M1/PCIE20_PERSTn_M1/I2S1_SDO2_M2/GPIO3_C1_d,SPI1_MOSI_M1,VCCIO5,3.3 V (vcc3v3_sys),FP_SPI_MOSI,blk.fp-controls,"input, pull-down (_d); pull-down","Faceplate contact 20; ring inner, behind AR4 (microvia)"
 AP5,PWM12_M0/GMAC1_TXEN_M0/UART3_TX_M1/PDM_SDI2_M2/GPIO3_B7_d,PWM12_M0,VCCIO5,3.3 V (vcc3v3_sys),HAT_GPIO0,blk.hat-signals,"input, pull-down (_d); pull-down","Alternate UART3_TX_M1 (UART A TX), DS p. 34; ring inner, gap (L1)"
 AP6,VOP_BT1120_D9/GMAC1_RXDV_CRS_M0/I2C5_SCL_M0/PDM_SDI0_M2/GPIO3_B3_d,GPIO in/out,VCCIO5,3.3 V (vcc3v3_sys),FP_TP_INT,blk.fp-controls,"input, pull-down (_d); pull-down: GT911 address strap level at reset (G9)","Faceplate contact 24; also the GT911 address strap, keep a board pull-down footprint; ring inner, behind AR6 (microvia)"
-AP7,VOP_BT1120_D7/GMAC1_RXD0_M0/UART4_RX_M1/PWM8_M0/GPIO3_B1_d,PWM8_M0,VCCIO5,3.3 V (vcc3v3_sys),BL_PWM,blk.fp-backlight,"input, pull-down (_d); pull-down: backlight off","TPS61169 CTRL (enable and PWM dimming); board-side, not on the faceplate connector; ring inner, behind AR7 (microvia)"
+AP7,VOP_BT1120_D7/GMAC1_RXD0_M0/UART4_RX_M1/PWM8_M0/GPIO3_B1_d,PWM8_M0,VCCIO5,3.3 V (vcc3v3_sys),BL_PWM,blk.fp-backlight,"input, pull-down (_d); pull-down: backlight off","TPS61160 CTRL (enable and PWM dimming; TPS61169 until 2026-10-24, BOM v1.11 line 51); board-side, not on the faceplate connector; ring inner, behind AR7 (microvia)"
 AP8,VSS_22,ground,supply,0 V,GND,blk.soc,-,
 AP9,VOP_BT1120_D4/GMAC1_RXD3_M0/I2S3_SDO_M0/SDMMC2_CMD_M1/GPIO3_A5_d,I2S3_SDO_M0,VCCIO5,3.3 V (vcc3v3_sys),SPK_SDIN,blk.speaker,"input, pull-down (_d); pull-down","Direct; ring inner, behind AR9 (microvia)"
 AP10,VOP_BT1120_D2/GMAC1_TXD3_M0/I2S3_SCLK_M0/SDMMC2_D2_M1/GPIO3_A3_d,I2S3_SCLK_M0,VCCIO5,3.3 V (vcc3v3_sys),SPK_BCLK,blk.speaker,"input, pull-down (_d); pull-down","22 Ω series at the SoC (HDG p. 71); ring inner, behind AR10 (microvia)"
 AP11,HDMITX_SDA/I2C5_SDA_M1/GPIO4_D0_u,I2C5_SDA_M1,VCCIO7,3.3 V (vcc3v3_sys),HAT_I2C_SDA,blk.hat-signals,"input, pull-up (_u); pull-up","HAT I2C_SDA; ring inner, gap (L1)"
 AP12,PWM15_IR_M1/SPI3_MOSI_M1/I2S3_SCLK_M1/GPIO4_C3_d,GPIO out,VCCIO7,3.3 V (vcc3v3_sys),MCLK48_EN,blk.mclk,"input, pull-down (_d); pull-down: oscillator tri-stated","As MCLK441_EN; never both high; ring inner, behind AR12 (microvia)"
 AP13,AVSS_1,ground,supply,0 V,GND,blk.soc,-,
-AP14,MIPI_CSI_RX_D3N,MIPI_CSI_RX_D3N,CSI D-PHY,-,HAT_CSI_D3_N,blk.hat-signals,-,"ring inner, behind AR14 (microvia)"
-AP15,MIPI_CSI_RX_D2P,MIPI_CSI_RX_D2P,CSI D-PHY,-,HAT_CSI_D2_P,blk.hat-signals,-,"ring inner, behind AR15 (microvia)"
+AP14,MIPI_CSI_RX_D3N,MIPI_CSI_RX_D3N,CSI D-PHY,-,HAT_CSI_D3_N,blk.hat-signals,-,"To the TMUXHS4412 port B, second package, channel 0 (EXT4) (2026-10-24, interface v1.1); ring inner, behind AR14 (microvia)"
+AP15,MIPI_CSI_RX_D2P,MIPI_CSI_RX_D2P,CSI D-PHY,-,HAT_CSI_D2_P,blk.hat-signals,-,"to the TMUXHS4412 first package, port B channel 3 (EXT3) (2026-10-24, interface v1.1); ring inner, behind AR15 (microvia)"
 AP16,AVSS_2,ground,supply,0 V,GND,blk.soc,-,
-AP17,MIPI_CSI_RX_D1N,MIPI_CSI_RX_D1N,CSI D-PHY,-,HAT_CSI_D1_N,blk.hat-signals,-,"ring inner, behind AR17 (microvia)"
-AP18,MIPI_CSI_RX_D0P,MIPI_CSI_RX_D0P,CSI D-PHY,-,HAT_CSI_D0_P,blk.hat-signals,-,"ring inner, behind AR18 (microvia)"
+AP17,MIPI_CSI_RX_D1N,MIPI_CSI_RX_D1N,CSI D-PHY,-,HAT_CSI_D1_N,blk.hat-signals,-,"to the TMUXHS4412 first package, port B channel 2 (EXT2) (2026-10-24, interface v1.1); ring inner, behind AR17 (microvia)"
+AP18,MIPI_CSI_RX_D0P,MIPI_CSI_RX_D0P,CSI D-PHY,-,HAT_CSI_D0_P,blk.hat-signals,-,"to the TMUXHS4412 first package, port B channel 0 (EXT0) (2026-10-24, interface v1.1); ring inner, behind AR18 (microvia)"
 AP19,AVSS_3,ground,supply,0 V,GND,blk.soc,-,
 AP20,MIPI_DSI_TX1_D3N,unused,PHY,-,NC,blk.soc,-,"Unused-pin handling per RK3566_PinOut, not retrieved (O2); ring inner, behind AR20 (microvia)"
 AP21,MIPI_DSI_TX1_D2P,unused,PHY,-,NC,blk.soc,-,"Unused-pin handling per RK3566_PinOut, not retrieved (O2); ring inner, behind AR21 (microvia)"
@@ -204,10 +204,10 @@ AR7,VOP_BT1120_D6/ETH1_REFCLKO_25M_M0/SDMMC2_PWREN_M1/GPIO3_B0_d,GPIO in,VCCIO5,
 AR9,VOP_BT1120_D3/GMAC1_RXD2_M0/I2S3_LRCK_M0/SDMMC2_D3_M1/GPIO3_A4_d,I2S3_LRCK_M0,VCCIO5,3.3 V (vcc3v3_sys),SPK_LRCK,blk.speaker,"input, pull-down (_d); pull-down",22 Ω series at the SoC; ring outer (L1)
 AR10,VOP_BT1120_D1/GMAC1_TXD2_M0/I2S3_MCLK_M0/SDMMC2_D1_M1/GPIO3_A2_d,GPIO out,VCCIO5,3.3 V (vcc3v3_sys),FP_DBI_DC,blk.fp-display,"input, pull-down (_d); pull-down",Faceplate contact 23. I2S3_MCLK_M0 not needed by the MAX98357A; ring outer (L1)
 AR12,HDMITX_SCL/I2C5_SCL_M1/GPIO4_C7_u,I2C5_SCL_M1,VCCIO7,3.3 V (vcc3v3_sys),HAT_I2C_SCL,blk.hat-signals,"input, pull-up (_u); pull-up",HAT I2C_SCL and camera CCI. Same balls as HDMITX_SCL (C1); ring outer (L1)
-AR14,MIPI_CSI_RX_D3P,MIPI_CSI_RX_D3P,CSI D-PHY,-,HAT_CSI_D3_P,blk.hat-signals,-,ring outer (L1)
-AR15,MIPI_CSI_RX_D2N,MIPI_CSI_RX_D2N,CSI D-PHY,-,HAT_CSI_D2_N,blk.hat-signals,-,ring outer (L1)
-AR17,MIPI_CSI_RX_D1P,MIPI_CSI_RX_D1P,CSI D-PHY,-,HAT_CSI_D1_P,blk.hat-signals,-,ring outer (L1)
-AR18,MIPI_CSI_RX_D0N,MIPI_CSI_RX_D0N,CSI D-PHY,-,HAT_CSI_D0_N,blk.hat-signals,-,ring outer (L1)
+AR14,MIPI_CSI_RX_D3P,MIPI_CSI_RX_D3P,CSI D-PHY,-,HAT_CSI_D3_P,blk.hat-signals,-,"To the TMUXHS4412 port B, second package, channel 0 (EXT4) (2026-10-24, interface v1.1); ring outer (L1)"
+AR15,MIPI_CSI_RX_D2N,MIPI_CSI_RX_D2N,CSI D-PHY,-,HAT_CSI_D2_N,blk.hat-signals,-,"to the TMUXHS4412 first package, port B channel 3 (EXT3) (2026-10-24, interface v1.1); ring outer (L1)"
+AR17,MIPI_CSI_RX_D1P,MIPI_CSI_RX_D1P,CSI D-PHY,-,HAT_CSI_D1_P,blk.hat-signals,-,"to the TMUXHS4412 first package, port B channel 2 (EXT2) (2026-10-24, interface v1.1); ring outer (L1)"
+AR18,MIPI_CSI_RX_D0N,MIPI_CSI_RX_D0N,CSI D-PHY,-,HAT_CSI_D0_N,blk.hat-signals,-,"to the TMUXHS4412 first package, port B channel 0 (EXT0) (2026-10-24, interface v1.1); ring outer (L1)"
 AR20,MIPI_DSI_TX1_D3P,unused,PHY,-,NC,blk.soc,-,"Unused-pin handling per RK3566_PinOut, not retrieved (O2); ring outer (L1)"
 AR21,MIPI_DSI_TX1_D2N,unused,PHY,-,NC,blk.soc,-,"Unused-pin handling per RK3566_PinOut, not retrieved (O2); ring outer (L1)"
 AR23,MIPI_DSI_TX1_D1P,unused,PHY,-,NC,blk.soc,-,"Unused-pin handling per RK3566_PinOut, not retrieved (O2); ring outer (L1)"
@@ -249,7 +249,7 @@ AR38,VSS_29,ground,supply,0 V,GND,blk.soc,-,
 1B9,DDR_DQ6_B/DDR4_DQU4_B/LPDDR4_DQ6_B/DDR3_DQ22/LPDDR3_DQ7,LPDDR4_DQ6_B,DDR PHY,"0.6 V I/O (DDRPHY_VDDQL, vcc0v6_ddr)",DDR_DQ6_B,blk.lpddr4x,-,"LPDDR4X, to the same-named DRAM ball per the Rockchip template; DQ and CA order not swapped (HDG p. 22); core 0.65 mm"
 1B10,VSS_30,ground,supply,0 V,GND,blk.soc,-,
 1B11,VSS_31,ground,supply,0 V,GND,blk.soc,-,
-1B13,I2S1_SDO1_M0/I2S1_SDI3_M0/PDM_SDI3_M0/PCIE20_CLKREQn_M2/GPIO1_B0_d,PCIE20_CLKREQn_M2,VCCIO1,3.3 V (vcc3v3_sys),PCIE_CLKREQ_N,blk.hat-signals,"input, pull-down (_d); pull-down until pinctrl; external pull-up to 3.3 V wins",Same mux group as WAKEn (HDG p. 89); core 0.65 mm
+1B13,I2S1_SDO1_M0/I2S1_SDI3_M0/PDM_SDI3_M0/PCIE20_CLKREQn_M2/GPIO1_B0_d,PCIE20_CLKREQn_M2 (PCIe mode) or GPIO (CSI-2 mode),VCCIO1,3.3 V (vcc3v3_sys),HAT_EXT_SB1,blk.hat-signals,"input, pull-down (_d); pull-down until pinctrl; external 4.7 kΩ pull-up to 3.3 V wins","Interface v1.1 EXT_SB1: CLKREQ# in PCIe mode, declared camera GPIO in CSI-2 mode; the HAT overlay sets the mux. Same mux group as WAKEn (HDG p. 89). 2026-10-24: was PCIE_CLKREQ_N; core 0.65 mm"
 1B14,I2S1_SDI0_M0/PDM_SDI0_M0/GPIO1_B3_d,GPIO open drain,VCCIO1,3.3 V (vcc3v3_sys),HAT_RST_N,blk.hat-signals,"input, pull-down (_d); pull-down: HAT controller held in reset during SoC boot",HAT interface v1 HAT_RST#; pull-up owner open (interface v1 open point 4); core 0.65 mm
 1B15,VSS_32,ground,supply,0 V,GND,blk.soc,-,
 1B16,EMMC_RSTn/FSPI_D2/FLASH_WPn/GPIO1_C7_d,EMMC_RSTn,VCCIO2,1.8 V (vcc_1v8),EMMC_RST_N,blk.emmc,"input, pull-down (_d); pull-down",Also FSPI_D2: the BootROM FSPI probe may toggle it; core 0.65 mm
@@ -412,8 +412,8 @@ AR38,VSS_29,ground,supply,0 V,GND,blk.soc,-,
 1K16,MULTI_PHY_AVDD_0V9,power,supply,0.9 V,vdda_0v9,blk.hat-signals,-,
 1K17,MULTI_PHY_AVDD_1V8,power,supply,1.8 V,vcca_1v8,blk.hat-signals,-,
 1K18,AVSS1_13,ground,supply,0 V,GND,blk.soc,-,
-1K19,PCIE20_REFCLKP,PCIE20_REFCLKP,PCIe PHY,-,HAT_PCIE_REFCLK_P,blk.hat-signals,-,100 Ω differential class (layout rules PCB-I-03); core 0.65 mm
-1K20,PCIE20_REFCLKN,PCIE20_REFCLKN,PCIe PHY,-,HAT_PCIE_REFCLK_N,blk.hat-signals,-,core 0.65 mm
+1K19,PCIE20_REFCLKP,PCIE20_REFCLKP,PCIe PHY,-,HAT_PCIE_REFCLK_P,blk.hat-signals,-,"100 Ω differential class (layout rules PCB-I-03); to the TMUXHS4412 first package, port A channel 0 (EXT0) (2026-10-24, interface v1.1); core 0.65 mm"
+1K20,PCIE20_REFCLKN,PCIE20_REFCLKN,PCIe PHY,-,HAT_PCIE_REFCLK_N,blk.hat-signals,-,"to the TMUXHS4412 first package, port A channel 0 (EXT0) (2026-10-24, interface v1.1); core 0.65 mm"
 1L1,CIF_HREF/EBC_SDLE/GMAC1_MDC_M1/UART1_RTSn_M1/I2S2_MCLK_M1/GPIO4_B6_d,GPIO out,VCCIO6,1.8 V (vccio6_1v8),HPA_SE_EN,blk.hpa-se,"input, pull-down (_d); pull-down: off","OPA1622 EN, 3.5 mm group (was on the expander in v0); core 0.65 mm"
 1L2,CAM_CLKOUT1/EBC_SDCE2/GMAC1_RXD1_M1/SPI3_MISO_M0/I2S1_SDO1_M1/GPIO4_B0_d,I2S1_SDO1_M1,VCCIO6,1.8 V (vccio6_1v8),DSD_L,blk.audio,"input, pull-down (_d); pull-down: parked low","Reserved for native DSD to DAC L DSDA (blackbird-os ADR 0006). Test pad, RP2354A tap; core 0.65 mm"
 1L3,VSS_93,ground,supply,0 V,GND,blk.soc,-,
@@ -470,8 +470,8 @@ AR38,VSS_29,ground,supply,0 V,GND,blk.soc,-,
 1N20,GPIO0_D5_d,GPIO in,PMUIO0,"1.8 V fixed (vcca1v8_pmu (PMUPLL_AVDD_1V8, 1N18))",NFC_IRQ,blk.nfc-reader,"input, pull-down (_d); pull-down: no IRQ with the PN7160 unfitted",PN7160 IRQ (G7); core 0.65 mm
 1P1,VSS_117,ground,supply,0 V,GND,blk.soc,-,
 1P2,CIF_D11/EBC_SDDO11/GMAC1_RXD2_M1/PDM_SDI1_M1/GPIO4_A1_d,PDM_SDI1_M1,VCCIO6,1.8 V (vccio6_1v8),PDM_DATA1,blk.mic-ambient,"input, pull-down (_d); pull-down: defined level with the microphone unfitted",core 0.65 mm
-1P3,PWM14_M0/VOP_PWM_M1/GMAC1_MDC_M0/UART7_TX_M1/PDM_CLK1_M2/GPIO3_C4_d,PWM14_M0,VCCIO5,3.3 V (vcc3v3_sys),HAT_GPIO2,blk.hat-signals,"input, pull-down (_d); pull-down",Alternate UART7_TX_M1 (UART B TX); core 0.65 mm
-1P4,PWM15_IR_M0/SPDIF_TX_M1/GMAC1_MDIO_M0/UART7_RX_M1/I2S1_LRCK_RX_M2/GPIO3_C5_d,PWM15_IR_M0,VCCIO5,3.3 V (vcc3v3_sys),HAT_GPIO3,blk.hat-signals,"input, pull-down (_d); pull-down",Alternate UART7_RX_M1 (UART B RX); core 0.65 mm
+1P3,PWM14_M0/VOP_PWM_M1/GMAC1_MDC_M0/UART7_TX_M1/PDM_CLK1_M2/GPIO3_C4_d,PWM14_M0,VCCIO5,3.3 V (vcc3v3_sys),HAT_GPIO2,blk.hat-signals,"input, pull-down (_d); pull-down","Alternates UART7_TX_M1 (UART B TX) and, from 2026-10-24, bit-banged SWCLK (interface v1.1 L2, mandatory SWD alternate); core 0.65 mm"
+1P4,PWM15_IR_M0/SPDIF_TX_M1/GMAC1_MDIO_M0/UART7_RX_M1/I2S1_LRCK_RX_M2/GPIO3_C5_d,PWM15_IR_M0,VCCIO5,3.3 V (vcc3v3_sys),HAT_GPIO3,blk.hat-signals,"input, pull-down (_d); pull-down","Alternates UART7_RX_M1 (UART B RX) and, from 2026-10-24, bit-banged SWDIO; core 0.65 mm"
 1P5,VSS_118,ground,supply,0 V,GND,blk.soc,-,
 1P6,VSS_119,ground,supply,0 V,GND,blk.soc,-,
 1P7,VSS_120,ground,supply,0 V,GND,blk.soc,-,
@@ -511,7 +511,7 @@ AR38,VSS_29,ground,supply,0 V,GND,blk.soc,-,
 1T1,CIF_D7/EBC_SDDO7/SDMMC2_PWREN_M0/I2S1_SDI3_M1/VOP_BT656_D7_M1/GPIO3_D5_d,I2S1_SDI3_M1,VCCIO6,1.8 V (vccio6_1v8),HAT_I2S_DIN3_1V8,blk.hat-audio,"input, pull-down (_d); pull-down",From SN74AXC8T245; core 0.65 mm
 1T2,CIF_D0/EBC_SDDO0/SDMMC2_D0_M0/I2S1_MCLK_M1/VOP_BT656_D0_M1/GPIO3_C6_d,GPIO open drain,VCCIO6,1.8 V (vccio6_1v8),RP_BOOTSEL_DRV,blk.rp2354,"input, pull-down (_d); pull-down: FET off, RP2354A boots normally",Gate of an N-FET that pulls RP2354A QSPI_SS low; QSPI_SS is on RP_3V3 (C6). I2S1_MCLK_M1 not needed (the DAC is clock master); core 0.65 mm
 1T3,VSS_127,ground,supply,0 V,GND,blk.soc,-,
-1T4,VOP_BT1120_D11/GMAC1_TXD0_M0/I2C3_SCL_M1/PWM10_M0/GPIO3_B5_d,I2C3_SCL_M1,VCCIO5,3.3 V (vcc3v3_sys),FP_I2C_SCL,blk.fp-controls,"input, pull-down (_d); pull-down until pinctrl; pull-up on FP_3V3",Faceplate contact 17; pull-ups on FP_3V3 (G8); core 0.65 mm
+1T4,VOP_BT1120_D11/GMAC1_TXD0_M0/I2C3_SCL_M1/PWM10_M0/GPIO3_B5_d,I2C3_SCL_M1,VCCIO5,3.3 V (vcc3v3_sys),FP_I2C_SCL,blk.fp-controls,"input, pull-down (_d); pull-down until pinctrl; pull-up on FP_3V3","Faceplate contact 17; pull-ups on FP_3V3 (G8), 2.2 kΩ for 400 kHz with ≤ 100 pF from the faceplate (2026-10-24, BOM v1.11); core 0.65 mm"
 1T5,VSS_128,ground,supply,0 V,GND,blk.soc,-,
 1T6,PWM13_M1/SPI3_CS0_M1/SATA0_ACT_LED/UART9_RX_M1/I2S3_SDI_M1/GPIO4_C6_d,GPIO out,VCCIO7,3.3 V (vcc3v3_sys),HPA_LDO_EN,blk.hpa-rails,"input, pull-down (_d); pull-down: off","LT3045 x2, LT3094 x2 EN/UV, ≥ 10 ms after HPA_RAIL_EN; core 0.65 mm"
 1T7,AVSS_21,ground,supply,0 V,GND,blk.soc,-,
@@ -536,7 +536,7 @@ AR38,VSS_29,ground,supply,0 V,GND,blk.soc,-,
 1U6,PWM12_M1/SPI3_MISO_M1/SATA1_ACT_LED/UART9_TX_M1/I2S3_SDO_M1/GPIO4_C5_d,GPIO out,VCCIO7,3.3 V (vcc3v3_sys),HPA_RAIL_EN,blk.hpa-rails,"input, pull-down (_d); pull-down: off","TPS65131 ENP and the LMR33630C EN level shifter (3.3 V logic, power tree 5); core 0.65 mm"
 1U7,PWM14_M1/SPI3_CLK_M1/I2S3_MCLK_M1/GPIO4_C2_d,GPIO out,VCCIO7,3.3 V (vcc3v3_sys),MCLK441_EN,blk.mclk,"input, pull-down (_d); pull-down: oscillator tri-stated","NSC5083D ST, VIH ≥ 0.7 × 3.1 V = 2.17 V needs a 3.3 V ball (BOM 4.3). Series resistor footprint; ST pin rating against 3.3 V with MCLK_3V1 at 3.1 V or off is UNVERIFIED (G3); core 0.65 mm"
 1U8,MIPI_CSI_RX_CLK1N,unused,PHY,-,NC,blk.soc,-,"Unused-pin handling per RK3566_PinOut, not retrieved (O2); core 0.65 mm"
-1U9,MIPI_CSI_RX_CLK0N,MIPI_CSI_RX_CLK0N,CSI D-PHY,-,HAT_CSI_CLK_N,blk.hat-signals,-,core 0.65 mm
+1U9,MIPI_CSI_RX_CLK0N,MIPI_CSI_RX_CLK0N,CSI D-PHY,-,HAT_CSI_CLK_N,blk.hat-signals,-,"to the TMUXHS4412 first package, port B channel 1 (EXT1) (2026-10-24, interface v1.1); core 0.65 mm"
 1U11,MIPI_DSI_TX1_CLKN,unused,PHY,-,NC,blk.soc,-,"Unused-pin handling per RK3566_PinOut, not retrieved (O2); core 0.65 mm"
 1U12,AVSS_32,ground,supply,0 V,GND,blk.soc,-,
 1U13,AVSS_33,ground,supply,0 V,GND,blk.soc,-,
@@ -547,14 +547,14 @@ AR38,VSS_29,ground,supply,0 V,GND,blk.soc,-,
 1U19,PWM6/SPI0_MISO_M0/GPIO0_C5_d,GPIO in,PMUIO2,1.8 V (vcca1v8_pmu),IMU_INT1,blk.imu,"input, pull-down (_d); pull-down: no wake with the IMU unfitted","LSM6DSV16X INT1, wake on motion (BRD-032); IMU on vcca1v8_pmu (G1); core 0.65 mm"
 1U20,I2C2_SCL_M0/SPI0_CLK_M0/PCIE20_WAKEn_M0/PWM1_M1/GPIO0_B5_u,I2C2_SCL_M0,PMUIO2,1.8 V (vcca1v8_pmu),I2C2_SCL,blk.gpio-expander,"input, pull-up (_u); pull-up","Board control bus: TCA6416A 0x21, PN7160 0x28, TPM 0x2E, CS43198 0x30/0x31 (behind the G2 isolator), LP5521 0x32, AT24C02D 0x50, NTAG 0x55, DRV2605L 0x5A, LSM6DSV16X 0x6A. Pull-ups to vcca1v8_pmu (G16); core 0.65 mm"
 1V1,VSS_130,ground,supply,0 V,GND,blk.soc,-,
-1V2,VOP_BT1120_D12/GMAC1_TXD1_M0/I2C3_SDA_M1/PWM11_IR_M0/GPIO3_B6_d,I2C3_SDA_M1,VCCIO5,3.3 V (vcc3v3_sys),FP_I2C_SDA,blk.fp-controls,"input, pull-down (_d); pull-down until pinctrl; pull-up on FP_3V3",Faceplate contact 18; core 0.65 mm
+1V2,VOP_BT1120_D12/GMAC1_TXD1_M0/I2C3_SDA_M1/PWM11_IR_M0/GPIO3_B6_d,I2C3_SDA_M1,VCCIO5,3.3 V (vcc3v3_sys),FP_I2C_SDA,blk.fp-controls,"input, pull-down (_d); pull-down until pinctrl; pull-up on FP_3V3",Faceplate contact 18; 2.2 kΩ pull-up on FP_3V3; core 0.65 mm
 1V3,VOP_BT1120_D5/GMAC1_RXCLK_M0/SDMMC2_DET_M1/GPIO3_A7_d,GPIO out,VCCIO5,3.3 V (vcc3v3_sys),FP_LCD_RST_N,blk.fp-display,"input, pull-down (_d); pull-down: panel in reset",Faceplate contact 26; core 0.65 mm
 1V4,VSS_131,ground,supply,0 V,GND,blk.soc,-,
 1V5,HDMITX_CEC_M0/SPI3_CS1_M1/GPIO4_D1_u,GPIO (spare),VCCIO7,3.3 V (vcc3v3_sys),SPARE_4D1,blk.debug,"input, pull-up (_u); pull-up","Spare 3.3 V GPIO, test pad; pull-up at reset, so not for an enable; core 0.65 mm"
 1V6,EDP_HPDIN_M0/SPDIF_TX_M2/SATA2_ACT_LED/I2S3_LRCK_M1/GPIO4_C4_d,GPIO out,VCCIO7,3.3 V (vcc3v3_sys),MCLK_DIV_RUN,blk.audio.clock,"input, pull-down (_d); pull-down","Spare 3.3 V GPIO (SPDIF_TX_M2 option), test pad; core 0.65 mm"
 1V7,AVSS_36,ground,supply,0 V,GND,blk.soc,-,
 1V8,MIPI_CSI_RX_CLK1P,unused,PHY,-,NC,blk.soc,-,"Unused-pin handling per RK3566_PinOut, not retrieved (O2); core 0.65 mm"
-1V9,MIPI_CSI_RX_CLK0P,MIPI_CSI_RX_CLK0P,CSI D-PHY,-,HAT_CSI_CLK_P,blk.hat-signals,-,4-lane mode uses CLK0; core 0.65 mm
+1V9,MIPI_CSI_RX_CLK0P,MIPI_CSI_RX_CLK0P,CSI D-PHY,-,HAT_CSI_CLK_P,blk.hat-signals,-,"4-lane mode uses CLK0; to the TMUXHS4412 first package, port B channel 1 (EXT1) (2026-10-24, interface v1.1); core 0.65 mm"
 1V11,MIPI_DSI_TX1_CLKP,unused,PHY,-,NC,blk.soc,-,"Unused-pin handling per RK3566_PinOut, not retrieved (O2); core 0.65 mm"
 1V12,AVSS_37,ground,supply,0 V,GND,blk.soc,-,
 1V13,AVSS_38,ground,supply,0 V,GND,blk.soc,-,

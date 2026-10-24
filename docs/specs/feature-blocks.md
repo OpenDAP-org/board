@@ -3,6 +3,7 @@
 - **Status:** Draft v0 (2026-10-24). Task E10.1 and E10.2 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Written by Claude under the maintainers' delegation, applying [RFC 0011](https://github.com/opendap-project/rfcs/blob/main/text/0011-feature-blocks-and-variants.md) (feature blocks and variants, amended 2026-10-24: promises are fixed, parts are not) and [RFC 0010](https://github.com/opendap-project/rfcs/blob/main/text/0010-quality-levels.md) (quality levels). Nothing here is drawn, built or measured. No decision, priority or requirement status changes here: every proposal below is input for the schematic (E4) and for the maintainers.
 - **Updated 2026-10-24 (BOM v1.9, power tree v0.3):** records `blk.gpio-expander`, `blk.gauge`, `blk.hat-3v3`, `blk.hat-audio`, `blk.fp-connector`, `blk.fp-controls`, `blk.mclk`, `blk.radio` and `blk.rp2354` follow [ADR 0019](../adr/0019-master-clock-divided-from-twice-the-frequency.md), [pinout v1](pinout-v1.md) and three decisions taken under the maintainers' delegation on 2026-10-24 (radio in suspend for item tracking, faceplate supply in suspend, 802.15.4 balls); gaps G3, G8, G13 and G14 updated in §7.
 - **Updated 2026-10-24 (BOM v1.10, power tree v0.4):** [ADR 0020](../adr/0020-battery-connected-through-contacts.md) (battery connected through contacts): the `blk.charger` record takes the six battery contacts (interface, absent state, alternates), and a new should block, `blk.cover-detect` (#50), is added to the catalog and to the three variant files (fitted in each).
+- **Updated 2026-10-24 (BOM v1.11, power tree v0.5):** hat-standard interface v1.1 and its [ADR 0005](https://github.com/opendap-project/hat-standard/blob/main/docs/adr/0005-interface-v1-1-shared-extension-and-contact-reduction.md): `blk.hat-signals` (one DF40C-100, the two extension switches, `EXT_SB0`–`EXT_SB2`, SWD as a GPIO alternate), `blk.hat-5v` and `blk.hat-3v3` (single connector, fault ceilings 3.0 A and 1.5 A). The t1 faceplate interface v1 (t1 ADRs 0004, 0005): `blk.fp-connector`, `blk.fp-display`, `blk.fp-backlight`, `blk.fp-controls` (identity node in the devicetree, I2C3 pull-ups) and `blk.mic-main` (current-limited rail switches, TPS61160). No block is added or removed and no variant state changes, so the variant files are unchanged.
 - **Purpose:** the T1 main board's block catalog: one record per function of [BOM v1.7](bom-v1.md), with what it is bound by, its interface, power domain and switch, measurement point, absent state, swap classes, alternates and software. Then the variant file format and the three T1 variant files, what KiCad 10 offers for variants, a sketch of `odapkit variant`, and the gaps the schematic must close.
 - **Inputs:** [BOM v1.7](bom-v1.md), [power tree v0](power-tree-v0.md), [PCB design constraints](pcb-design-constraints.md) v0.5, [pin multiplexing v0](../research/2026-10-pin-multiplexing-v0.md), [board requirements](../requirements/README.md), [ADR 0013](../adr/0013-production-variant.md) (production variant), [ADR 0016](../adr/0016-front-side-height-under-the-display.md) (front-side height), the system [hardware support spec](https://github.com/opendap-project/system/blob/main/docs/specs/hardware-support.md) (layers H0–H5, device description), the t1 [faceplate interface](https://github.com/opendap-project/t1/blob/main/docs/specs/faceplate-interface.md) and the hat-standard [HAT interface v1](https://github.com/opendap-project/hat-standard/blob/main/docs/specs/interface-v1.md).
 - **Conventions:** "line N" is a BOM v1.7 line. **UNVERIFIED** marks what no primary source in this repository confirms yet; each one names what closes it. "Gap Gn" refers to the table in §7.
@@ -48,14 +49,14 @@ Priority is the requirement's own (must / should) as recorded in its requirement
 | 16 | `blk.usb-vbus-out` | eFuse #C | BRD-034 (must) | eFuse EN | eFuse IMON | fit | fit | fit |
 | 17 | `blk.hat-3v3` | TPS62903 3.3 V, eFuse #B, TVS | BRD-026 (must, Draft) | buck EN + eFuse EN | eFuse IMON | fit | fit | fit |
 | 18 | `blk.current-monitors` | 4 × INA236 and shunts | T1-026 (must) through BOM line 54 (Proposed; ADR 0013 keeps them) | INA236 power-down | — | fit | fit | candidate: VSYS only |
-| 19 | `blk.hat-signals` | DF40 pair, AC caps, ID translator, sidebands | BRD-003, BRD-006, BRD-013, BRD-044, BRD-045 (must), HCS-012 | PCA9306 EN | none | fit | fit | fit |
+| 19 | `blk.hat-signals` | DF40C-100 (one per cable end), extension switches (2 × TMUXHS4412), AC caps, ID translator, sidebands | BRD-003, BRD-006, BRD-013, BRD-042, BRD-044, BRD-045 (must), HCS-012, HCS-026 | PCA9306 EN | none | fit | fit | fit |
 | 20 | `blk.hat-audio` | HAT audio translators, `I2S_MCLK` buffer | HAT interface v1 L2 (T1 at L3) | AXC OE | none | fit | fit | fit |
-| 21 | `blk.fp-connector` | FH35C, low-speed ESD, FP_3V3, FP_1V8 | BRD-048 (must) | `FP_IO_EN` (2 × TPS22919) | display channel (position open) | fit | fit | fit |
-| 22 | `blk.fp-display` | DSI ESD, FP_VCI, panel RST/TE | BRD-048 (must) | RK809 LDO4 | display channel (G11) | fit | fit | fit |
-| 23 | `blk.fp-backlight` | TPS61169, inductor, rectifier | BRD-048 (must) | CTRL (`BL_PWM`) | display channel (G11) | fit | fit | fit |
+| 21 | `blk.fp-connector` | FH35C, low-speed ESD, FP_3V3, FP_1V8 | BRD-048 (must) | `FP_IO_EN` (TPS22950 FP_3V3, TPS22945 FP_1V8; current-limited from BOM v1.11) | display channel (position open) | fit | fit | fit |
+| 22 | `blk.fp-display` | DSI ESD, FP_VCI, panel RST/TE | BRD-048 (must) | RK809 LDO4, and a TPS22945 on `FP_IO_EN` (BOM v1.11) | display channel (G11) | fit | fit | fit |
+| 23 | `blk.fp-backlight` | TPS61160 (BOM v1.11; TPS61169 before), inductor, rectifier | BRD-048 (must) | CTRL (`BL_PWM`) | display channel (G11) | fit | fit | fit |
 | 24 | `blk.fp-controls` | Faceplate I2C, touch INT/RST, HID_INT, ALS_INT, FP_DET# | BRD-048, T1-023 (must), FPT-021 (must) | FP_3V3 | none | fit | fit | fit |
 | 25 | `blk.status-led` | LP5521 | FPT-003, FPT-016 (must), FPT-025 (should) | CHIP_EN (I2C) | none (G12) | fit | fit | fit |
-| 26 | `blk.mic-main` | MIC_1V8 switch, privacy-LED gate, faceplate PDM | BRD-027 (must, Draft) | `MIC_EN` | none (G10) | fit | fit | fit |
+| 26 | `blk.mic-main` | MIC_1V8 switch (TPS22945, current-limited), privacy-LED gate, faceplate PDM | BRD-027 (must, Draft) | `MIC_EN` | none (G10) | fit | fit | fit |
 | 27 | `blk.audio` | Audio converter boundary (parent of 28–33) | T1-040, BRD-011, BRD-022, BRD-023, BRD-040, T1-049, T1-072 (must) | see children | audio channel (G11) | fit | fit | fit |
 | 28 | `blk.audio-supply` | DAC_VP, DAC_DIG_1V8, TPS62840 | as `blk.audio` | `DAC_VP_EN`, `DAC_DIG_EN`, `AUDIO_LN_EN` | audio channel (G11) | fit | fit | fit |
 | 29 | `blk.mclk` | 2 × NSC5083D (45.1584 / 49.152 MHz), TPS7A2031, 2 × SN74AUC1G74, MCLK_1V8 LDO (v1.9) | BRD-023 (must), ADR 0010, ADR 0019 | `AUDIO_LN_EN` AND DAC_DIG_1V8, DAC_DIG_1V8 (dividers), ST pins, `MCLK_DIV_RUN` | none (G12) | fit | fit | fit |
@@ -293,7 +294,7 @@ Field order follows RFC 0011 §1. "Holds" lists the swap classes the interface t
 | Field | Content |
 |---|---|
 | Bound by | BRD-026 (must, Draft), BRD-049, HCS-012; PCB-P-11 [Q3] second limiter |
-| Interface | 5V1_SRC in, HAT_5V out to the DF40 power connector, `HAT5V_EN` (= `HAT_SRC_ON`), fault, IMON |
+| Interface | 5V1_SRC in, HAT_5V out to the single DF40C-100 (`HAT_5V` × 10; BOM v1.11, was the DF40C-50 power connector), `HAT5V_EN` (= `HAT_SRC_ON`), fault, IMON. Hat-standard interface v1.1 fault ceiling 3.0 A either direction: eFuse #A trips at 1.68 A at most (out), the TPS2121 at 2.95 A (in, RILM 45.3 kΩ 0.1 %); copper class `PWR_HAT5V` (PCB-P-20) |
 | Power domain | eFuse #A EN |
 | Measure | eFuse IMON to SARADC (line 44) |
 | Absent state | EN pulled low; HAT_5V held by the TVS0500 and eFuse output discharge; `HAT_SRC_ON` low releases TPS2121 OV2, so a powerbank HAT can feed the T1 |
@@ -321,7 +322,7 @@ Field order follows RFC 0011 §1. "Holds" lists the swap classes the interface t
 | Field | Content |
 |---|---|
 | Bound by | BRD-026 (must, Draft), BRD-049; PCB-P-11 [Q3] |
-| Interface | VSYS in, HAT_3V3 out, `HAT3V3_EN` (expander P01 from BOM v1.9: holds through suspend, so a HAT that wakes the T1 stays powered), fault (expander P16), IMON (SARADC_VIN3) |
+| Interface | VSYS in, HAT_3V3 out to the single DF40C-100 (`HAT_3V3` × 5, BOM v1.11; interface v1.1 fault ceiling 1.5 A, eFuse #B trips at 1.16 A at most), `HAT3V3_EN` (expander P01 from BOM v1.9: holds through suspend, so a HAT that wakes the T1 stays powered), fault (expander P16), IMON (SARADC_VIN3) |
 | Power domain | TPS62903 EN and eFuse #B EN |
 | Measure | eFuse IMON. The INA236 HAT channel sits at the 5.1 V buck input and does not see this rail |
 | Absent state | Both ENs pulled low |
@@ -352,14 +353,14 @@ Shunt positions of the audio and display channels are not defined in the BOM, an
 
 | Field | Content |
 |---|---|
-| Bound by | BRD-003, BRD-004, BRD-006, BRD-013, BRD-042, BRD-044, BRD-045 (must); HCS-012 (must: the device-side piece is fixed to the T1); HAT interface v1, T1 at L3 |
-| Interface | DF40 100-pin signal and 50-pin power connectors (contact positions owned by hat-standard): USB 3 SS and its USB 2 pair, PCIe x1 with REFCLK and sidebands, CSI-2 four lanes, ID I2C (I2C4 via PCA9306), I2C5, `HAT_DET#`, `HAT_INT#`, SWD and `HAT_RST#`, GPIO0–3, reserved |
-| Power domain | Signals only; ID translator EN after `HAT_DET#`; PCIe PHY in SoC `PD_PIPE`, camera PHY on LDO1/LDO9 (HAT overlay) |
+| Bound by | BRD-003, BRD-004, BRD-006, BRD-013, BRD-042, BRD-044, BRD-045 (must); HCS-012 (must: the device-side piece is fixed to the T1); HCS-026 (USB 3 base; the extension carries PCIe or CSI-2 on the same contacts); HAT interface v1.1 and hat-standard [ADR 0005](https://github.com/opendap-project/hat-standard/blob/main/docs/adr/0005-interface-v1-1-shared-extension-and-contact-reduction.md), T1 at L3 |
+| Interface | One DF40C-100 pair per cable end for signals and power (BOM v1.11 line 66; contact positions owned by hat-standard, interface v1.1 §7.2: 87 of 96 usable): USB 3 SS and its USB 2 pair; the extension `EXT0±`–`EXT4±` through two TMUXHS4412 (line 144: port A PCIe REFCLK, TX with its AC caps on the SoC side, RX on `EXT0`–`EXT2`; port B CSI-2 D0, CLK, D1, D2, D3 on `EXT0`–`EXT4`), selected by `HAT_EXT_SEL` and connected by `HAT_EXT_PD`; sidebands `EXT_SB0` (PERST# or sensor reset, through the G14 gate, line 135), `EXT_SB1`, `EXT_SB2` (CLKREQ#/WAKE# or camera GPIO); ID I2C (I2C4 via PCA9306), I2C5, `HAT_DET#` (position 33, proves the single connector mated), `HAT_INT#`, `HAT_RST#`, GPIO0–3 (SWD as the bit-banged alternate on GPIO2/GPIO3), reserved |
+| Power domain | Signals only; ID translator EN after `HAT_DET#`; extension switches on vcc3v3_sys, standby (PD high) until the identity record declares an L3 function; PCIe PHY in SoC `PD_PIPE`, camera PHY on LDO1/LDO9 (HAT overlay) |
 | Measure | Power is measured in `blk.hat-5v` and `blk.hat-3v3` |
-| Absent state | HAT detached (the normal absent state): `HAT_DET#` and `HAT_INT#` pulled up on PMUIO1; `PCIE_PERST#` pulled low and gated with HAT power-good (the gate part is not in the BOM, G14); `PCIE_CLKREQ#`, `PCIE_WAKE#` pulled up to 3.3 V; I2C5 pull-ups on the board side; PCA9306 disabled; GPIO0–3 SoC default pulls; reserved contacts unconnected. A dangling flat cable without a HAT must not load the USB 3 or PCIe pairs (AC caps on the board, ESD on the device-side piece) |
-| Holds / revision | Holds: any HAT that meets the interface (H4). Revision: interface v2, or a second HAT USB 2 port (freed by v1) |
-| Alternates | DF40C-100DP (Digi-Key 0 on 2026-10-22, line 66): stock is the risk, not an alternate |
-| Software | Connector nodes for the H4 overlays; HAT EEPROM read through I2C4 |
+| Absent state | HAT detached (the normal absent state): `HAT_DET#` and `HAT_INT#` pulled up on PMUIO1; **extension switch in standby (`HAT_EXT_PD` pulled up), pairs disconnected from both PHYs, and `HAT_EXT_SB0` asserted** (pulled low and gated with HAT power-good, line 135); `EXT_SB1`, `EXT_SB2` pulled up to 3.3 V; I2C5 pull-ups on the board side; PCA9306 disabled; GPIO0–3 SoC default pulls; reserved contacts unconnected. A dangling flat cable without a HAT must not load the USB 3 pairs (AC caps on the board, ESD on the device-side piece); the extension pairs are isolated by the switch (isolation in standby **UNVERIFIED**, coupon) |
+| Holds / revision | Holds: any HAT that meets the interface (H4); the port A channels of `EXT3`/`EXT4` stay free for the second PCIe lane the interface reserves. Revision: interface v2, PCIe and CSI-2 at once (one moves to USB 3, interface v1.1 §4.4) |
+| Alternates | Extension switch: TMUXHS4412RUAR (0–70 °C, same land), HD3SS3212 × 3 (other land, −3 dB at 8 GHz). DF40C-100DP (Digi-Key 0 on 2026-10-22, line 66): stock is the risk, not an alternate |
+| Software | Connector nodes for the H4 overlays; HAT EEPROM read through I2C4; a `gpio-mux` (or the overlay) drives `HAT_EXT_SEL` and `HAT_EXT_PD`, and the overlay selects the PCIe or CSI-2 node and the sideband pinmux (`EXT_SB1`/`EXT_SB2` as PCIE20 M2 functions or GPIO) by the declared extension function |
 | Level | — / Q1 |
 
 #### 20. `blk.hat-audio`: HAT audio port on the DAC clock
@@ -378,7 +379,7 @@ Shunt positions of the audio and display channels are not defined in the BOM, an
 
 ### 3.4 Faceplate interface
 
-The faceplate interface is the t1 faceplate interface v0 (FH35C-51S, 46 used, 5 reserved). The board blocks are the host side; the faceplate (H3) owns the panel, touch, ALS, HID controller and LEDs.
+The faceplate interface is the t1 [faceplate interface v1](https://github.com/opendap-project/t1/blob/main/docs/specs/faceplate-interface.md) (Draft, 2026-10-24; was v0; FH35C-51S, 46 used, 5 reserved). Its supply classes (t1 ADR 0005) put a fault ceiling on every rail, which the board enforces: FP_3V3 ≤ 0.4 A, FP_1V8, MIC_1V8, FP_VCI and the backlight ≤ 0.2 A, BL_LEDA ≤ 30 V in every state. The board blocks are the host side; the faceplate (H3) owns the panel, touch, ALS, HID controller and LEDs.
 
 #### 21. `blk.fp-connector`: connector and faceplate logic supplies
 
@@ -386,9 +387,9 @@ The faceplate interface is the t1 faceplate interface v0 (FH35C-51S, 46 used, 5 
 |---|---|
 | Bound by | BRD-048 (must) |
 | Interface | FH35C-51S, contact positions in pinout v1 §8 (RFC 0001 group order); FP_3V3 ×2, FP_1V8, `FP_DET#`, 2 spare GPIO (expander), 5 reserved, grounds; low-speed ESD (line 75: 6 × TPD4E05U06 for 21 lines from BOM v1.9) |
-| Power domain | 2 × TPS22919 (FP_3V3 from vcc3v3_sys, FP_1V8 from vcc_1v8), `FP_IO_EN` on expander P00. Suspend (decision 2026-10-24, T1-060): off by default, the T1 wakes from the body buttons; the expander holds `FP_IO_EN`, so FP_3V3 can stay on for a faceplate that must wake the T1; FP_1V8 follows vcc_1v8 |
+| Power domain | Current-limited switches (BOM v1.11 lines 145, 146; 2 × TPS22919 before): TPS22950 for FP_3V3 from vcc3v3_sys (0.22–0.38 A), TPS22945 for FP_1V8 from vcc_1v8 (100–200 mA), `FP_IO_EN` on expander P00. Suspend (decision 2026-10-24, T1-060): off by default, the T1 wakes from the body buttons; the expander holds `FP_IO_EN`, so FP_3V3 can stay on for a faceplate that must wake the T1; FP_1V8 follows vcc_1v8 |
 | Measure | INA236 display channel (position open, G11). Proposed: shunt footprints on FP_3V3 and FP_1V8 at the switch outputs |
-| Absent state | Faceplate detached: `FP_DET#` pulled up (reads "absent"); FP_3V3 and FP_1V8 off with QOD; spares as SoC/expander inputs with pulls; reserved contacts unconnected |
+| Absent state | Faceplate detached: `FP_DET#` pulled up (reads "absent"); FP_3V3 and FP_1V8 off (TPS22950 QOD; the TPS22945 has none, so a 10 kΩ discharge resistor, BOM line 146); spares as SoC/expander inputs with pulls; reserved contacts unconnected |
 | Holds / revision | Holds: FH35C-51S-0.3SHW(99). Revision: another connector family |
 | Alternates | `fh35c-51s-99` |
 | Software | Faceplate overlay (H3) selected from the HID identity (T1-020) |
@@ -399,10 +400,10 @@ The faceplate interface is the t1 faceplate interface v0 (FH35C-51S, 46 used, 5 
 | Field | Content |
 |---|---|
 | Bound by | BRD-048 (must) |
-| Interface | DSI0 CLK± and D0–D3± (or LVDS0 on the same balls; PCB-I-04), common-mode filter positions (PCB-EMC-01), FP_VCI (RK809 LDO4, 2.8 V DT-adjustable, 100 mA design), panel RST and TE |
-| Power domain | LDO4 over I2C; FP_1V8 for IOVCC |
+| Interface | DSI0 CLK± and D0–D3± (or LVDS0 on the same balls; PCB-I-04), common-mode filter positions (PCB-EMC-01), FP_VCI (RK809 LDO4, 2.8 V DT-adjustable, 100 mA design, through a TPS22945 at 100–200 mA on `FP_IO_EN`, BOM v1.11: the datasheet gives LDO4 no trip value and the RK809-5 OTP start-up is unknown), panel RST and TE |
+| Power domain | LDO4 over I2C, and its switch on `FP_IO_EN`; FP_1V8 for IOVCC |
 | Measure | Display channel (G11) |
-| Absent state | LDO4 off; DSI PHY powered down (vdda_0v9 is shared with USB and PCIe PHYs, so it stays up); panel RST low; TE input pulled down |
+| Absent state | LDO4 off and its switch open (contact 44 dead whatever the RK809-5 OTP does); DSI PHY powered down (vdda_0v9 is shared with USB and PCIe PHYs, so it stays up); panel RST low; TE input pulled down |
 | Holds / revision | Holds: any panel on DSI 1–4 lanes or LVDS within the faceplate interface. Revision: parallel RGB (not on the RK3566, pin plan §3.1), a second DSI |
 | Alternates | Display part belongs to the faceplate |
 | Software | Faceplate overlay: `focuslcds,e35gh-i-mw800cb` (`panel-ilitek-ili9488`) on the touch faceplate |
@@ -413,12 +414,12 @@ The faceplate interface is the t1 faceplate interface v0 (FH35C-51S, 46 used, 5 
 | Field | Content |
 |---|---|
 | Bound by | BRD-048, BRD-049 (must) |
-| Interface | VSYS_LV in, BL_LEDA (13–16.5 V, 60 mA) and BL_LEDK to the faceplate, `BL_PWM` (CTRL) |
-| Power domain | TPS61169 CTRL (1 µA off) |
-| Measure | Display channel (G11). Proposed: the display INA236 shunt on the TPS61169 VIN, which carries most of the display power |
-| Absent state | Faceplate detached: CTRL low; with an open string the OVP (≤ 39 V, line 53) bounds the output |
-| Holds / revision | Holds: TPS61160DRVR (26 V OVP; land **UNVERIFIED**, line 51). Revision: a backlight on the faceplate |
-| Alternates | `tps61160` |
+| Interface | VSYS_LV in, BL_LEDA (13–16.5 V on the touch faceplate, 60 mA; strings ≤ 22 V, BL_LEDA ≤ 27 V open string, faceplate interface v1 §2.3) and BL_LEDK to the faceplate, `BL_PWM` (CTRL) |
+| Power domain | TPS61160 CTRL (BOM v1.11; TPS61169 before) |
+| Measure | Display channel (G11). Proposed: the display INA236 shunt on the TPS61160 VIN, which carries most of the display power |
+| Absent state | Faceplate detached: CTRL low; with an open string the open-LED protection (25–27 V at SW, SLVS791E §6.5) bounds the output below the FH35C's 30 V |
+| Holds / revision | Holds: strings ≤ 18 V at 60 mA with ≥ 20 % margin from VSYS_LV, ≤ 22 V at lower currents (power tree §4.5). Revision: a driver on VSYS for longer strings, or a backlight on the faceplate |
+| Alternates | None qualified with an open-LED threshold ≤ 30 V (the TPS61169 no longer qualifies) |
 | Software | `pwm-backlight` |
 | Level | — / Q1 |
 
@@ -430,10 +431,10 @@ The faceplate interface is the t1 faceplate interface v0 (FH35C-51S, 46 used, 5 
 | Interface | Faceplate I2C (I2C3, 3.3 V, VCCIO5), SPI/DBI, touch INT and RST, `HID_INT`, `ALS_INT` (open drain, 4.7 kΩ pull-ups on FP_3V3; `HID_INT` on a PMUIO1 wake ball, `ALS_INT` on VCCIO5, not a wake source; pinout v1 C4), PDM is in `blk.mic-main` |
 | Power domain | FP_3V3 (faceplate side) |
 | Measure | Display channel |
-| Absent state | Faceplate detached or FP_3V3 off: I2C3 pull-ups must sit on FP_3V3, not on an always-on rail, so no faceplate part is back-powered (G8); touch INT is the GT911 address strap: a board pull fixes the default address (G9); HID_INT and ALS_INT pulled up on FP_3V3, so they read low while it is off: masked by software then (pinout v1); SPI lines with SoC pulls |
+| Absent state | Faceplate detached or FP_3V3 off: I2C3 pull-ups (2.2 kΩ, sized for 400 kHz with the faceplate's ≤ 100 pF, BOM v1.11) must sit on FP_3V3, not on an always-on rail, so no faceplate part is back-powered (G8); touch INT is the GT911 address strap: a board pull fixes the default address (G9); HID_INT and ALS_INT pulled up on FP_3V3, so they read low while it is off: masked by software then (pinout v1); SPI lines with SoC pulls |
 | Holds / revision | Holds: any controller on I2C/SPI with these interrupts. Revision: a faceplate that needs USB |
 | Alternates | — |
-| Software | Faceplate overlay: `goodix,gt911`, `i2c-hid`, `vishay,veml6030` |
+| Software | Board devicetree (t1 faceplate interface v1 §4.1, t1 ADR 0004): the identity node on I2C3, `compatible = "hid-over-i2c"`, `reg = <0x2c>`, `hid-descr-addr = <0x0001>`, interrupt `FP_HID_INT_N` level-low (`IRQ_TYPE_LEVEL_LOW`), `vdd-supply` = FP_3V3, `post-power-on-delay-ms = <20>`, wakeup disabled by default (`power/wakeup` off, so `i2c-hid` releases FP_3V3 in suspend). The identity device itself is on the faceplate (faceplate-touch, BC7). Faceplate overlay, selected from the identity: `goodix,gt911`, `vishay,veml6030` |
 | Level | — / Q1 |
 
 #### 25. `blk.status-led`: RGB status LED driver
@@ -455,7 +456,7 @@ The faceplate interface is the t1 faceplate interface v0 (FH35C-51S, 46 used, 5 
 | Field | Content |
 |---|---|
 | Bound by | BRD-027 (must, Draft: the privacy LED cannot light without microphone power) |
-| Interface | MIC_1V8 (TPS22919 from vcc_1v8), `MIC_EN` (SoC GPIO in the power tree, expander in the pin plan: settle in pinout v1), PDM CLK0 and SDI0 to the faceplate, privacy-LED gate (DMG1012T, gate = MIC_1V8, LED anode from FP_3V3) |
+| Interface | MIC_1V8 (TPS22945 from vcc_1v8, 100–200 mA, ≤ 0.2 A ceiling; BOM v1.11, TPS22919 before), `MIC_EN` (SoC GPIO in the power tree, expander in the pin plan: settle in pinout v1), PDM CLK0 and SDI0 to the faceplate, privacy-LED gate (DMG1012T, gate = MIC_1V8, LED anode from FP_3V3) |
 | Power domain | MIC_1V8 switch; also feeds `blk.mic-ambient` |
 | Measure | None (G10) |
 | Absent state | MIC_1V8 off: PDM CLK0 must be parked low (pinctrl sleep state), otherwise it drives an unpowered microphone (G10); privacy LED off by construction |
@@ -875,7 +876,7 @@ Proposed parts come from families already in the BOM where possible; stock figur
 | G11 | `blk.current-monitors`, `blk.audio`, `blk.fp-*`, `blk.pwr-vsys-lv` | Audio and display shunt positions undefined; audio draws from both VSYS (LMR33630C) and VSYS_LV, so one channel cannot attribute it; VSYS_LV itself is unmeasured | Audio INA236 shunt on a dedicated VSYS_LV audio branch (TPS65131, TPS62840, TPS7A2031, DAC_VP), plus a shunt footprint with Kelvin pads on the LMR33630C VIN (or a fifth INA236 if an address is free); display shunt on the TPS61169 VIN, links on FP_3V3, FP_1V8, FP_VCI; a shunt footprint at the VSYS_LV output | INA236AIDDFR (line 54; LCSC 1,938, thin Western stock); fifth-address option (INA236B) **UNVERIFIED**; shunts as line 43's family (Vishay WSL, 1206) or 0603 thin-film (part **UNVERIFIED**) | **Closed** (lines 54, 136, 137; power tree §4.12): audio INA236 on a dedicated VSYS_LV branch (20 mΩ), fifth INA236B at 0x48 on the LMR33630C VIN, display on the TPS61169 VIN, H5 link on VSYS_LV |
 | G12 | 20 blocks without their own measurement | No measurement point on lpddr4x, emmc, microsd, pwr-3v3-sys, vdd-cpu (output), audio-supply, mclk, dac-l/r (VA), hpa-se, hpa-bal, speaker, radio, nfc-tag, nfc-reader, imu, haptics, tpm, rp2354, status-led (several of these share one link) | One measurement link per block supply: a 0603 (or 1206 above 1 A) footprint fitted with a shunt in `full` and 0 Ω in `production`, two Kelvin test pads, on the block side of its switch; low-current blocks (µA–mA) use a 1–10 Ω value for a bench meter, the rest 10–100 mΩ (values per block at schematic capture) | Shunt and 0 Ω parts jellybean; current-sense part numbers **UNVERIFIED** | **Closed** (line 137): 35 links, five classes, shunt in `full`, 0 Ω in `production` (H5 keeps 5 mΩ) |
 | G13 | `blk.radio`, `blk.microsd` | SWOUT1 and SWOUT2 discharge **UNVERIFIED** (power tree §5); radio sequencing and the 1.8 V AVDD18 rail need the Murata datasheet (PCB constraints §9 item 3) | Close with the Murata datasheet; add a discharge resistor footprint on vcc3v3_wl and vcc3v3_sd | Resistors (jellybean) | **Narrowed** (lines 129–131): AVDD18 rail vcc1v8_wl added; discharge footprints DNP on vcc3v3_wl and vcc3v3_sd; module sequencing **UNVERIFIED** (datasheet). BOM v1.9: vcc3v3_wl comes from a TPS22919, whose quick output discharge empties it, so that footprint stays a spare; vcc3v3_sd unchanged |
-| G14 | `blk.hat-signals` | `PCIE_PERST#` = SoC PERST# AND HAT power-good (power tree §6.4) has no part in the BOM; `I2S_MCLK` buffer is Open (line 112) | A single-gate AND at 3.3 V with Ioff; the MCLK buffer as BOM line 112 decides | SN74LVC1G58 family (line 98) or a 1G08 (not in the BOM, stock **UNVERIFIED**) | **Narrowed** (line 135): PERST# AND gate on vcc3v3_sys; `I2S_MCLK` buffer still Open (line 112). BOM v1.9 (ADR 0019): the oscillator net has 1.3 pF left, so the HAT copy needs its own divider or a buffer behind one and a re-run of `sim/mclk-divider`; OE from `HAT_MCLK_EN` (GPIO1_A6) |
+| G14 | `blk.hat-signals` | `PCIE_PERST#` = SoC PERST# AND HAT power-good (power tree §6.4) has no part in the BOM; `I2S_MCLK` buffer is Open (line 112) | A single-gate AND at 3.3 V with Ioff; the MCLK buffer as BOM line 112 decides | SN74LVC1G58 family (line 98) or a 1G08 (not in the BOM, stock **UNVERIFIED**) | **Narrowed** (line 135): PERST# AND gate on vcc3v3_sys; `I2S_MCLK` buffer still Open (line 112). BOM v1.9 (ADR 0019): the oscillator net has 1.3 pF left, so the HAT copy needs its own divider or a buffer behind one and a re-run of `sim/mclk-divider`; OE from `HAT_MCLK_EN` (GPIO1_A6) 2026-10-24 (BOM v1.11): the gate's output is `HAT_EXT_SB0`, PERST# or the sensor reset (hat-standard interface v1.1) |
 | G15 | `blk.gpio-expander` | VCCI rail not named; if vcc_1v8, it is off in suspend while the expander holds enables, and the TCA6416A port state with VCCI off is **UNVERIFIED** | VCCI on vcca1v8_pmu; every expander-driven enable keeps its board pull-down | — | **Closed** (line 93): VCCI on vcca1v8_pmu |
 | G16 | I2C2 bus | Pull-up rail of I2C2 not defined; the bus mixes always-on parts (LP5521 EN on vcca1v8_pmu, expander) with switched ones (DACs, RP2354A) | Pull-ups on vcca1v8_pmu; every switched device behind an isolator (G2) or moved to an always-on rail (G1, G5, G6); the RP2354A off I2C2 unless isolated | — | **Closed** (BOM §4.2 PMUIO2 row): pull-ups on vcca1v8_pmu, every I2C2 device always on or isolated |
 | G17 | `blk.emmc` | The 16 GB production option has no MPN in the BOM | Pick a 16 GB part on the same 153-ball land before the production variant is accepted | **UNVERIFIED** | **Narrowed** (line 138): Samsung KLMAG1JETD-B041 named; land and height **UNVERIFIED** (NDA datasheet) |
@@ -889,5 +890,5 @@ Proposed parts come from families already in the BOM where possible; stock figur
 
 - RFC 0011 (amended 2026-10-24) and RFC 0010, rfcs repository.
 - BOM v1.7 lines 1–128, §4.2, §4.3, §7; power tree v0 §2, §3, §5, §6; PCB design constraints v0.5; pin multiplexing v0 §2, §3.11, §3.12, §4.3; board requirements; ADR 0013, ADR 0016.
-- System hardware support spec (Draft, 2026-10-23); t1 faceplate interface v0; hat-standard HAT interface v1.
+- System hardware support spec (Draft, 2026-10-23); t1 faceplate interface v1 (v0 until 2026-10-24) and t1 ADRs 0004, 0005; hat-standard HAT interface v1.1 and ADR 0005.
 - KiCad 10.0 Schematic Editor manual, "Design variants", docs.kicad.org/10.0/en/eeschema (read 2026-10-24); KiCad 10.0 sources `eeschema/sch_io/kicad_sexpr/sch_io_kicad_sexpr.cpp` and `sch_io_kicad_sexpr_parser.cpp`, `eeschema/schematic_settings.cpp` (gitlab.com/kicad/code/kicad, branch 10.0, read 2026-10-24); `kicad-cli` 10.0.7 help and test exports on the developer machine (2026-10-24).

@@ -320,7 +320,7 @@
 )
 
 # Source: hardware/rules/t1-main-board.kicad_dru
-# sha256: 22841d2939fac488217278f4d9773ef0bb627b071c3b3c7e7934995ae8eeb398
+# sha256: 710affeffbe35be075475001f44cfec449704d60f9c54cce46e8af90a3f9be33
 
 # OpenDAP T1 main board: product rules
 #
@@ -529,7 +529,8 @@
 # (arithmetic). Warnings until the case fixes the screw.
 
 # PCB-H-01: no part under the screw head or washer: the courtyard of every
-# other footprint keeps 1.4 mm from the mounting hole.
+# other footprint keeps 1.4 mm from the mounting hole. UNVERIFIED until the
+# screw is chosen.
 (rule "T1 PCB-H-01 [Q1]: Part under the screw head"
 	(severity warning)
 	(condition "A.memberOfFootprint('H*') && B.Type == 'Footprint' && B.Reference != 'H*'")
@@ -538,7 +539,8 @@
 
 # PCB-H-02: no copper of another net under the head on the outer layers
 # (a plated hole's own net, GND, may be there). Rockchip's high-speed guide
-# also keeps traces away from mounting holes (HSPCB p. 12).
+# also keeps traces away from mounting holes (HSPCB p. 12). The 1.4 mm ring
+# is UNVERIFIED until the screw is chosen.
 (rule "T1 PCB-H-02 [Q1]: Copper under the screw head"
 	(severity warning)
 	(layer outer)
@@ -773,9 +775,9 @@
 
 # PCB-L-02: inside the battery connector area (rule area BATTERY_CONNECTOR),
 # only unfused battery copper (PWR_BAT) and GND: no other net's track or via
-# where a short has no fuse ahead of it.
+# where a short has no fuse ahead of it. A partition decision under BRD-049,
+# with no numeric value: an error.
 (rule "T1 PCB-L-02 [Q0]: Foreign track at the battery connector"
-	(severity warning)
 	(condition "(A.Type == 'Track' || A.Type == 'Via') && A.intersectsArea('BATTERY_CONNECTOR') && !A.hasNetclass('PWR_BAT') && A.NetName != 'GND'")
 	(constraint disallow track via)
 )

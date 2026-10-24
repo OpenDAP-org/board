@@ -66,7 +66,7 @@ C2,DDR4_A11/LPDDR4_A0_A/DDR3_A7/LPDDR3_A8/AC11,LPDDR4_A0_A,DDR PHY,"0.6 V I/O (D
 C37,I2S2_SCLK_TX_M0/UART7_CTSn_M0/SPI2_MISO_M0/GPIO2_C2_d,GPIO (reserved),VCCIO4,1.8 V (vcc_1v8),RSVD_15P4_SPI_MISO,blk.radio,"input, pull-down (_d); pull-down","Kept free: SPI2_MISO_M0 (O6 closed 2026-10-24: unassigned spare reserved for a variant); ring inner, gap (L1)"
 D2,VSS_13,ground,supply,0 V,GND,blk.soc,-,
 D37,I2S2_SDI_M0/UART8_TX_M0/SPI2_CS1_M0/GPIO2_C5_d,GPIO out,VCCIO4,1.8 V (vcc_1v8),BT_WAKE_IN,blk.radio,"input, pull-down (_d); pull-down","Module BT15.4_WAKE_IN (pin 75), host to module. Was 2_C4 in v0; ring inner, behind D38 (microvia)"
-D38,I2S2_SCLK_RX_M0/UART6_RTSn_M0/SPI1_MOSI_M0/GPIO2_B7_d,GPIO out,VCCIO4,1.8 V (vcc_1v8),WL_PDN,blk.radio,"input, pull-down (_d); pull-down: module held in power-down until Linux","Type 2EL PDn (pin 10). Same rail as the module VIO (vcc_1v8, BOM v1.8 item 1), so it never drives an unpowered module; ring outer (L1)"
+D38,I2S2_SCLK_RX_M0/UART6_RTSn_M0/SPI1_MOSI_M0/GPIO2_B7_d,GPIO (spare),VCCIO4,1.8 V (vcc_1v8),SPARE_2B7,blk.radio,"input, pull-down (_d); pull-down: module held in power-down until Linux","Type 2EL PDn (pin 10). Same rail as the module VIO (vcc_1v8, BOM v1.8 item 1), so it never drives an unpowered module; ring outer (L1)"
 E1,DDR_DQ3_A/DDR4_DQL6_A/LPDDR4_DQ3_A/DDR3_DQ3/LPDDR3_DQ9,LPDDR4_DQ3_A,DDR PHY,"0.6 V I/O (DDRPHY_VDDQL, vcc0v6_ddr)",DDR_DQ3_A,blk.lpddr4x,-,"LPDDR4X, to the same-named DRAM ball per the Rockchip template; DQ and CA order not swapped (HDG p. 22); ring outer (L1)"
 E2,DDR4_A8/LPDDR4_ODT0_CA_A/DDR3_A6/LPDDR3_A9/AC8,LPDDR4_ODT0_CA_A,DDR PHY,"0.6 V I/O (DDRPHY_VDDQL, vcc0v6_ddr)",DDR_ODT0_CA_A,blk.lpddr4x,-,"LPDDR4X, to the same-named DRAM ball per the Rockchip template; DQ and CA order not swapped (HDG p. 22); ring inner, behind E1 (microvia)"
 E37,VSS_23,ground,supply,0 V,GND,blk.soc,-,
@@ -551,7 +551,7 @@ AR38,VSS_29,ground,supply,0 V,GND,blk.soc,-,
 1V3,VOP_BT1120_D5/GMAC1_RXCLK_M0/SDMMC2_DET_M1/GPIO3_A7_d,GPIO out,VCCIO5,3.3 V (vcc3v3_sys),FP_LCD_RST_N,blk.fp-display,"input, pull-down (_d); pull-down: panel in reset",Faceplate contact 26; core 0.65 mm
 1V4,VSS_131,ground,supply,0 V,GND,blk.soc,-,
 1V5,HDMITX_CEC_M0/SPI3_CS1_M1/GPIO4_D1_u,GPIO (spare),VCCIO7,3.3 V (vcc3v3_sys),SPARE_4D1,blk.debug,"input, pull-up (_u); pull-up","Spare 3.3 V GPIO, test pad; pull-up at reset, so not for an enable; core 0.65 mm"
-1V6,EDP_HPDIN_M0/SPDIF_TX_M2/SATA2_ACT_LED/I2S3_LRCK_M1/GPIO4_C4_d,GPIO (spare),VCCIO7,3.3 V (vcc3v3_sys),SPARE_4C4,blk.debug,"input, pull-down (_d); pull-down","Spare 3.3 V GPIO (SPDIF_TX_M2 option), test pad; core 0.65 mm"
+1V6,EDP_HPDIN_M0/SPDIF_TX_M2/SATA2_ACT_LED/I2S3_LRCK_M1/GPIO4_C4_d,GPIO out,VCCIO7,3.3 V (vcc3v3_sys),MCLK_DIV_RUN,blk.audio.clock,"input, pull-down (_d); pull-down","Spare 3.3 V GPIO (SPDIF_TX_M2 option), test pad; core 0.65 mm"
 1V7,AVSS_36,ground,supply,0 V,GND,blk.soc,-,
 1V8,MIPI_CSI_RX_CLK1P,unused,PHY,-,NC,blk.soc,-,"Unused-pin handling per RK3566_PinOut, not retrieved (O2); core 0.65 mm"
 1V9,MIPI_CSI_RX_CLK0P,MIPI_CSI_RX_CLK0P,CSI D-PHY,-,HAT_CSI_CLK_P,blk.hat-signals,-,4-lane mode uses CLK0; core 0.65 mm

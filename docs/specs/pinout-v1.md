@@ -180,7 +180,7 @@ Columns: ball; pad (the GPIO name with its reset suffix; the full mux list is in
 | F38 | GPIO2_B4_u | UART1_TX_M0 | VCCIO4, 1.8 V, vcc_1v8 | pull-up | `BT_UART_RXD` | `blk.radio` | ring, outer | To module UART_RX (pin 51) |
 | F37 | GPIO2_B5_u | UART1_RTSn_M0 | VCCIO4, 1.8 V, vcc_1v8 | pull-up | `BT_UART_CTS` | `blk.radio` | ring, inner (microvia) | To module UART_CTS (pin 50) |
 | G37 | GPIO2_B6_u | UART1_CTSn_M0 | VCCIO4, 1.8 V, vcc_1v8 | pull-up | `BT_UART_RTS` | `blk.radio` | ring, inner (microvia) | From module UART_RTS (pin 52) |
-| D38 | GPIO2_B7_d | GPIO out | VCCIO4, 1.8 V, vcc_1v8 | pull-down: module held in power-down until Linux | `WL_PDN` | `blk.radio` | ring, outer | Type 2EL PDn (pin 10). Same rail as the module VIO (vcc_1v8, BOM v1.8 item 1), so it never drives an unpowered module |
+| D38 | GPIO2_B7_d | GPIO out | VCCIO4, 1.8 V, vcc_1v8 | pull-down: module held in power-down until Linux | `SPARE_2B7` (was `WL_PDN`) | `blk.radio` | ring, outer | Type 2EL PDn (pin 10). Same rail as the module VIO (vcc_1v8, BOM v1.8 item 1), so it never drives an unpowered module |
 | A37 | GPIO2_C0_d | GPIO out | VCCIO4, 1.8 V, vcc_1v8 | pull-down: PN7160 disabled | `NFC_VEN` | `blk.nfc-reader` | ring, outer | Native 1.8 V instead of the 3.3 V expander (G7). Never high while the PN7160 VBAT switch is off |
 | D37 | GPIO2_C5_d | GPIO out | VCCIO4, 1.8 V, vcc_1v8 | pull-down | `BT_WAKE_IN` | `blk.radio` | ring, inner (microvia) | Module BT15.4_WAKE_IN (pin 75), host to module. Was 2_C4 in v0 |
 | B38 | GPIO2_C6_d | GPIO out | VCCIO4, 1.8 V, vcc_1v8 | pull-down: PN7160 boots in normal mode | `NFC_DWL_REQ` | `blk.nfc-reader` | ring, outer | Native 1.8 V instead of the 3.3 V expander (G7). CLK32K_OUT1 not needed: the module has no 32.768 kHz input (C21) |
@@ -294,7 +294,7 @@ Columns: ball; pad (the GPIO name with its reset suffix; the full mux list is in
 | C37 | GPIO2_C2_d | VCCIO4, 1.8 V, vcc_1v8 | _d | `RSVD_15P4_SPI_MISO` | Kept free: SPI2_MISO_M0 (O6 closed 2026-10-24: unassigned spare reserved for a variant) |
 | 1D19 | GPIO2_C3_d | VCCIO4, 1.8 V, vcc_1v8 | _d | `RSVD_15P4_SPI_MOSI` | Kept free: SPI2_MOSI_M0 (O6 closed 2026-10-24: unassigned spare reserved for a variant) |
 | 1B20 | GPIO2_C4_d | VCCIO4, 1.8 V, vcc_1v8 | _d | `RSVD_15P4_SPI_CS` | Kept free: SPI2_CS0_M0 (O6 closed 2026-10-24: unassigned spare reserved for a variant) |
-| 1V6 | GPIO4_C4_d | VCCIO7, 3.3 V, vcc3v3_sys | _d | `SPARE_4C4` | Spare 3.3 V GPIO (SPDIF_TX_M2 option), test pad |
+| 1V6 | GPIO4_C4_d | VCCIO7, 3.3 V, vcc3v3_sys | _d, plus 100 kΩ pull-down | `MCLK_DIV_RUN` | Clear of both MCLK dividers (ADR 0019; `blk.audio.clock`). Held low at reset, so the dividers stay cleared until the driver releases them after MCLK_1V8 is up; the SN74AUC1G74 inputs tolerate 3.6 V at any VCC (SCES537D p. 3). Driven high only while MCLK_1V8 is on (Ioff is specified at 2.7 V only). Assigned 2026-10-24, BOM v1.9 item 39 |
 | 1V5 | GPIO4_D1_u | VCCIO7, 3.3 V, vcc3v3_sys | _u | `SPARE_4D1` | Spare 3.3 V GPIO, test pad; pull-up at reset, so not for an enable |
 
 ### Expander lines (TCA6416A, I2C2 0x21)
@@ -309,8 +309,8 @@ VCCI on vcca1v8_pmu, VCCP on vcc3v3_sys (BOM v1.8 line 93); every port is an inp
 | P03 | `USB_SRC_ON` | out | low (off) | `blk.usb-vbus-out` | Power tree §5; also forces TPS2121 OV1 |
 | P04 | `HAPTIC_EN` | out | low (off) | `blk.haptics` | G20, BOM v1.8 line 93 |
 | P05 | `NFC_PWR_EN` | out | low (off) | `blk.nfc-reader` | G7, BOM v1.8 line 50 (TPS22919 smart ON pull-down) |
-| P06 | spare | — | low | — | — |
-| P07 | spare | — | low | — | — |
+| P06 | `WL_PWR_EN` | `blk.radio` | low (radio off) | Radio 3.3 V load switch and, through it, AVDD18; holds through suspend when Bluetooth tracking is on (BOM v1.9 decision a) | — |
+| P07 | `WL_PDN_HOLD` | `blk.radio` | low (power-down) | Radio PDn through an SN74AXC1T45 (A = expander 3.3 V, B = `vcc1v8_wl`, DIR high), so PDn holds through suspend; with the radio rail off the B port is unpowered and Ioff protects it (SCES882E). Replaces GPIO2_B7 for PDn (BOM v1.9 item 40) | — |
 | P10 | `HP_DET_SE` | in | jack switch pull-up | `blk.jack-se` | BRD-052; interrupt latency in milliseconds is enough |
 | P11 | `HP_DET_BAL` | in | jack switch pull-up | `blk.jack-bal` | BRD-052 |
 | P12 | `FP_DET_N` | in | pull-up (absent) | `blk.fp-connector` | Faceplate contact 36 |
@@ -541,6 +541,8 @@ For the owner of `bom-v1.md` and `power-tree-v0.md`; nothing here edits them.
 No new level shifter is needed: the master-clock and headphone-rail enables move to native 3.3 V balls, the PN7160 and TPM controls to native 1.8 V balls, and the faceplate stays at 3.3 V on its own bank.
 
 ## 10. Open items
+
+- 2026-10-24: `MCLK_DIV_RUN` on GPIO4_C4, `WL_PWR_EN` on expander P06 and `WL_PDN_HOLD` on expander P07 through an SN74AXC1T45; GPIO2_B7 becomes a spare (was `WL_PDN`), its 0 Ω option to the translator output kept as a fallback. Closes BOM v1.9 items 39 and 40.
 
 | # | Item | What closes it |
 |---|---|---|

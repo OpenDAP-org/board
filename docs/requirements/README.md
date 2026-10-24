@@ -63,6 +63,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 | BRD-057 | The T1 should have NFC, for tap-to-pair and tap-to-hand-off with the listener's other devices. | should | Confirmed |
 | BRD-058 | The T1 should have a haptic actuator, for eyes-free confirmation of actions. | should | Confirmed |
 | BRD-059 | The T1 should have a hardware key holder for the keystore (OS-032), so device and pairing keys are protected even from root. | should | Confirmed |
+| BRD-060 | The board shall have a PCB design-constraints specification derived from the product, part and fab requirements, and its own design rules composed on top of the fab's, so DRC enforces every constraint a tool can check. | must | Confirmed |
 
 ## Open questions
 
@@ -70,6 +71,7 @@ Electrical and system requirements for the OpenDAP T1 main board.
 
 ## Context
 
+- BRD-060 (maintainers, 2026-10-24): constraints with limits, maximum and minimum values, and an own DRC complementing PCBWay's that fits the project's quality requirements. Specification: [`../specs/pcb-design-constraints.md`](../specs/pcb-design-constraints.md); plan tasks E2 and E3 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Priority must set by Claude; to confirm.
 - BRD-057 to BRD-059 parts (2026-10-23): [BOM v1.7](../specs/bom-v1.md) lines 122–128, decided by Claude under delegation: TPM 2.0 SLB9673 (key holder), DRV2605L with a coin LRA (haptics), an NTAG I2C plus dynamic tag for tap-to-pair and the PN7160 reader as a population option for T1-to-T1 hand-off.
 - BRD-059 (maintainers, 2026-10-23): the research showed no mainline OP-TEE on the RK3566 and a read-only OTP ([RFC 0004](https://github.com/opendap-project/rfcs/blob/main/text/0004-opendap-protocol.md) §5), so the keystore needs a chip of its own to be hardware-backed. Direction proposed by Claude: a discrete TPM 2.0 (SPI or I²C), the most standard choice on Linux: mainline drivers `tpm_tis_spi` and `tpm_tis_i2c`, and the standard user-space stack (`tpm2-tss`, PKCS#11, systemd). Secure elements (for example NXP SE050, Microchip ATECC608) and the RP2350 are the alternatives. Part, bus and cost to be chosen in the BOM (BRD-053); availability **UNVERIFIED**.
 - BRD-057, BRD-058 (maintainers, 2026-10-23), from the [ecosystem experience research](https://github.com/opendap-project/t1/blob/main/docs/research/ux/2026-10-ecosystem-experience.md) §12.3: yes, as soon as suitable parts are available; the short pairing code stays the baseline without NFC.

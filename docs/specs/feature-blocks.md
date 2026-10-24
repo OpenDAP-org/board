@@ -1,6 +1,7 @@
 # Main board feature blocks
 
 - **Status:** Draft v0 (2026-10-24). Task E10.1 and E10.2 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Written by Claude under the maintainers' delegation, applying [RFC 0011](https://github.com/opendap-project/rfcs/blob/main/text/0011-feature-blocks-and-variants.md) (feature blocks and variants, amended 2026-10-24: promises are fixed, parts are not) and [RFC 0010](https://github.com/opendap-project/rfcs/blob/main/text/0010-quality-levels.md) (quality levels). Nothing here is drawn, built or measured. No decision, priority or requirement status changes here: every proposal below is input for the schematic (E4) and for the maintainers.
+- **Updated 2026-10-24 (BOM v1.9, power tree v0.3):** records `blk.gpio-expander`, `blk.gauge`, `blk.hat-3v3`, `blk.hat-audio`, `blk.fp-connector`, `blk.fp-controls`, `blk.mclk`, `blk.radio` and `blk.rp2354` follow [ADR 0019](../adr/0019-master-clock-divided-from-twice-the-frequency.md), [pinout v1](pinout-v1.md) and three decisions taken under the maintainers' delegation on 2026-10-24 (radio in suspend for item tracking, faceplate supply in suspend, 802.15.4 balls); gaps G3, G8, G13 and G14 updated in §7.
 - **Purpose:** the T1 main board's block catalog: one record per function of [BOM v1.7](bom-v1.md), with what it is bound by, its interface, power domain and switch, measurement point, absent state, swap classes, alternates and software. Then the variant file format and the three T1 variant files, what KiCad 10 offers for variants, a sketch of `odapkit variant`, and the gaps the schematic must close.
 - **Inputs:** [BOM v1.7](bom-v1.md), [power tree v0](power-tree-v0.md), [PCB design constraints](pcb-design-constraints.md) v0.5, [pin multiplexing v0](../research/2026-10-pin-multiplexing-v0.md), [board requirements](../requirements/README.md), [ADR 0013](../adr/0013-production-variant.md) (production variant), [ADR 0016](../adr/0016-front-side-height-under-the-display.md) (front-side height), the system [hardware support spec](https://github.com/opendap-project/system/blob/main/docs/specs/hardware-support.md) (layers H0–H5, device description), the t1 [faceplate interface](https://github.com/opendap-project/t1/blob/main/docs/specs/faceplate-interface.md) and the hat-standard [HAT interface v1](https://github.com/opendap-project/hat-standard/blob/main/docs/specs/interface-v1.md).
 - **Conventions:** "line N" is a BOM v1.7 line. **UNVERIFIED** marks what no primary source in this repository confirms yet; each one names what closes it. "Gap Gn" refers to the table in §7.
@@ -56,7 +57,7 @@ Priority is the requirement's own (must / should) as recorded in its requirement
 | 26 | `blk.mic-main` | MIC_1V8 switch, privacy-LED gate, faceplate PDM | BRD-027 (must, Draft) | `MIC_EN` | none (G10) | fit | fit | fit |
 | 27 | `blk.audio` | Audio converter boundary (parent of 28–33) | T1-040, BRD-011, BRD-022, BRD-023, BRD-040, T1-049, T1-072 (must) | see children | audio channel (G11) | fit | fit | fit |
 | 28 | `blk.audio-supply` | DAC_VP, DAC_DIG_1V8, TPS62840 | as `blk.audio` | `DAC_VP_EN`, `DAC_DIG_EN`, `AUDIO_LN_EN` | audio channel (G11) | fit | fit | fit |
-| 29 | `blk.mclk` | 2 × NSC5083D, TPS7A2031, attenuator | BRD-023 (must), ADR 0010 | `AUDIO_LN_EN`, ST pins | none (G12) | fit | fit | fit |
+| 29 | `blk.mclk` | 2 × NSC5083D (45.1584 / 49.152 MHz), TPS7A2031, 2 × SN74AUC1G74, MCLK_1V8 LDO (v1.9) | BRD-023 (must), ADR 0010, ADR 0019 | `AUDIO_LN_EN` AND DAC_DIG_1V8, DAC_DIG_1V8 (dividers), ST pins, `MCLK_DIV_RUN` | none (G12) | fit | fit | fit |
 | 30 | `blk.dac-l` | CS43198 (left) and its VA LDO | BRD-022 (must), ADR 0001 | `DAC_DIG_EN`, `AUDIO_LN_EN`, `DAC_VP_EN` | none (G12) | fit | fit | fit |
 | 31 | `blk.dac-r` | CS43198 (right) and its VA LDO | as `blk.dac-l` | as `blk.dac-l` | none (G12) | fit | fit | fit |
 | 32 | `blk.hpa-rails` | TPS65131 boost, LMR33630C, 2 × LT3045, 2 × LT3094 | BRD-022, BRD-049 (must), ADR 0012, ADR 0015 | `HPA_RAIL_EN`, `HPA_LDO_EN` | none (G11) | fit | fit | fit |
@@ -66,7 +67,7 @@ Priority is the requirement's own (must / should) as recorded in its requirement
 | 36 | `blk.jack-bal` | 4.4 mm jack, ESD, detect | BRD-011, BRD-024, BRD-052 (must) | — (passive) | — | fit | fit | fit |
 | 37 | `blk.speaker` | MAX98357A, speaker contacts | BRD-012 (must) | SD_MODE | none (G12) | fit | fit | fit |
 | 38 | `blk.mic-ambient` | Body PDM microphone | BRD-031 (should) | `MIC_EN` (shared) | none (G10) | fit | fit | candidate dnp |
-| 39 | `blk.radio` | Murata Type 2EL (IW612) | BRD-025, BRD-029 (must) | RK809 SWOUT1, PDn | none (G12) | fit | fit | fit |
+| 39 | `blk.radio` | Murata Type 2EL (IW612) | BRD-025, BRD-029 (must), BRD-030 (should) | TPS22919 on expander `WL_PWR_EN` (v1.9; RK809 SWOUT1 before), PDn | none (G12) | fit | fit | fit |
 | 40 | `blk.antennas` | 2 × U.FL, matching, 2 × antenna | BRD-025, BRD-029 (must) | — (passive) | — | fit | fit | fit |
 | 41 | `blk.nfc-tag` | NTAG I2C plus, loop antenna | BRD-057 (should) | none (G6) | none (G12) | fit | fit | fit |
 | 42 | `blk.nfc-reader` | PN7160, matching, clock | BRD-057 (should) | VEN | none (G12) | fit | open (BOM: DNP option) | dnp |
@@ -79,7 +80,7 @@ Priority is the requirement's own (must / should) as recorded in its requirement
 | 49 | `blk.debug` | UART pads, I2S/DSD pads, rail test points, RP SWD pads, measurement links | BRD-040, BRD-047 (must), T1-026 | — | — | fit | fit (links 0 Ω) | fit (links 0 Ω) |
 | — | `blk.shields` | Shield-can frames (DNP footprints) | BOM line 90, PCB-T-06, PCB-EMC-03 | — | — | dnp | dnp | dnp |
 
-`blk.shields` is listed for completeness: it is a mechanical footprint set, not a function, and is not counted among the 49. Item tracking (BRD-030, line 103) has no hardware block yet: it stays **Open** in the BOM.
+`blk.shields` is listed for completeness: it is a mechanical footprint set, not a function, and is not counted among the 49. Item tracking (BRD-030, line 103) has no hardware block of its own: from BOM v1.9 it is `blk.radio` kept powered in suspend while the listener enables it (decision 2026-10-24); tracking with the T1 off stays open.
 
 ## 3. Block records
 
@@ -162,8 +163,8 @@ Field order follows RFC 0011 §1. "Holds" lists the swap classes the interface t
 | Field | Content |
 |---|---|
 | Bound by | BRD-008, BRD-019 (must): every enable it holds defaults off with the SoC unconfigured |
-| Interface | I2C2 at 0x21, INT, VCCI (1.8 V), VCCP (vcc3v3_sys); 16 port lines (enables, detects, spares) |
-| Power domain | Always on. VCCI rail is not named: if it is vcc_1v8, it is off in suspend while the expander holds enables (G15) |
+| Interface | I2C2 at 0x21, INT (`EXP_INT_N`, PMUIO0), VCCI (1.8 V), VCCP (vcc3v3_sys); 16 port lines. BOM v1.9 port map: P00 `FP_IO_EN`, P01 `HAT3V3_EN`, P02 `HAT5V_EN`, P03 `USB_SRC_ON`, P04 `HAPTIC_EN`, P05 `NFC_PWR_EN`, P06 `WL_PWR_EN`, P07 spare; P10–P11 jack detects, P12 `FP_DET_N`, P13–P14 faceplate GPIO, P15–P17 eFuse faults |
+| Power domain | Always on: VCCI on vcca1v8_pmu (BOM v1.8 line 93, G15), VCCP on vcc3v3_sys. Outputs hold through suspend |
 | Measure | None needed |
 | Absent state | Not applicable (never omitted). Every output it drives has a board pull-down to its off state, since the TCA6416A ports power up as inputs |
 | Holds / revision | Holds: PCAL6416A (same driver, line 93). Revision: an expander of another pin count |
@@ -192,9 +193,9 @@ Field order follows RFC 0011 §1. "Holds" lists the swap classes the interface t
 | Field | Content |
 |---|---|
 | Bound by | BRD-049 (must), ADR 0014 |
-| Interface | I2C1 at 0x55, VC1 (mid-cell tap), VC2 (BAT+), SRP/SRN, TS1 (board NTC), alert line to the expander |
+| Interface | I2C1 at 0x55, VC1 (mid-cell tap), VC2 (BAT+), SRP/SRN, TS1 (board NTC); no alert line: the BQ28Z610-R1 has no alert pin (SLUSE07B p. 3; pinout v1 C25, BOM v1.9 line 42) |
 | Power domain | Pack, always on |
-| Measure | Its own 5 mΩ sense resistor (line 43) |
+| Measure | Its own sense resistor (line 43; 3 mΩ from BOM v1.8, ADR 0017) |
 | Absent state | Not applicable (never omitted) |
 | Holds / revision | Holds: BQ28Z610 data-flash variants. Revision: BQ40Z50-R2 (other package, line 42) |
 | Alternates | None same-land |
@@ -318,7 +319,7 @@ Field order follows RFC 0011 §1. "Holds" lists the swap classes the interface t
 | Field | Content |
 |---|---|
 | Bound by | BRD-026 (must, Draft), BRD-049; PCB-P-11 [Q3] |
-| Interface | VSYS in, HAT_3V3 out, `HAT3V3_EN`, fault, IMON |
+| Interface | VSYS in, HAT_3V3 out, `HAT3V3_EN` (expander P01 from BOM v1.9: holds through suspend, so a HAT that wakes the T1 stays powered), fault (expander P16), IMON (SARADC_VIN3) |
 | Power domain | TPS62903 EN and eFuse #B EN |
 | Measure | eFuse IMON. The INA236 HAT channel sits at the 5.1 V buck input and does not see this rail |
 | Absent state | Both ENs pulled low |
@@ -365,9 +366,9 @@ Shunt positions of the audio and display channels are not defined in the BOM, an
 |---|---|
 | Bound by | HAT interface v1 L2 (the T1 implements L3; hat-standard ADR 0003); T1-040: the tap must not load or add jitter to the DAC clock (ADR 0010) |
 | Interface | From `blk.audio`: BCLK, FS taps, I2S1 SDO3, I2S1 SDI0–3, active MCLK tap; to the HAT: `I2S_BCLK`, `I2S_FS`, `I2S_DOUT`, `I2S_DIN0`–`3`, `I2S_MCLK` at 3.3 V; OE |
-| Power domain | AXC translators on vcc_1v8 / 3.3 V with OE; MCLK buffer (line 112, Open) |
+| Power domain | AXC translators on vcc_1v8 (A side) and HAT_3V3 (B side, BOM v1.9 line 95) with OE; MCLK copy (line 112, Open): the oscillator net of ADR 0019 has 1.3 pF left of its 15 pF, so the copy needs its own divider or a buffer behind one, at 3.3 V |
 | Measure | None (mA) |
-| Absent state | OE low while no HAT at L2 is detected: translators isolate both sides (Ioff); the tap branch on the DAC nets stays a short passive stub |
+| Absent state | OE high (`HAT_AUD_OE_N`, pulled up to VCCA) while no HAT at L2 is detected: translators isolate both sides, and with HAT_3V3 off Ioff holds the B side; the tap branch on the DAC nets stays a short passive stub |
 | Holds / revision | Holds: other AXC parts with OE and Ioff. Revision: a HAT clock domain of its own (interface v0) |
 | Alternates | SN74AXC4T774RSVR, a 4-bit SN74AXC4T245 for DIN (line 95; stock not checked) |
 | Software | Part of the HAT audio DAI link in the board devicetree, enabled by the HAT overlay |
@@ -382,8 +383,8 @@ The faceplate interface is the t1 faceplate interface v0 (FH35C-51S, 46 used, 5 
 | Field | Content |
 |---|---|
 | Bound by | BRD-048 (must) |
-| Interface | FH35C-51S; FP_3V3 ×2, FP_1V8, `FP_DET#`, 2 spare GPIO (expander), 5 reserved, grounds; low-speed ESD (line 75) |
-| Power domain | 2 × TPS22919 (FP_3V3 from vcc3v3_sys, FP_1V8 from vcc_1v8), `FP_IO_EN` on the expander |
+| Interface | FH35C-51S, contact positions in pinout v1 §8 (RFC 0001 group order); FP_3V3 ×2, FP_1V8, `FP_DET#`, 2 spare GPIO (expander), 5 reserved, grounds; low-speed ESD (line 75: 6 × TPD4E05U06 for 21 lines from BOM v1.9) |
+| Power domain | 2 × TPS22919 (FP_3V3 from vcc3v3_sys, FP_1V8 from vcc_1v8), `FP_IO_EN` on expander P00. Suspend (decision 2026-10-24, T1-060): off by default, the T1 wakes from the body buttons; the expander holds `FP_IO_EN`, so FP_3V3 can stay on for a faceplate that must wake the T1; FP_1V8 follows vcc_1v8 |
 | Measure | INA236 display channel (position open, G11). Proposed: shunt footprints on FP_3V3 and FP_1V8 at the switch outputs |
 | Absent state | Faceplate detached: `FP_DET#` pulled up (reads "absent"); FP_3V3 and FP_1V8 off with QOD; spares as SoC/expander inputs with pulls; reserved contacts unconnected |
 | Holds / revision | Holds: FH35C-51S-0.3SHW(99). Revision: another connector family |
@@ -424,10 +425,10 @@ The faceplate interface is the t1 faceplate interface v0 (FH35C-51S, 46 used, 5 
 | Field | Content |
 |---|---|
 | Bound by | BRD-048, T1-023, T1-024 (must), FPT-021 (must) |
-| Interface | Faceplate I2C (I2C3, 3.3 V, VCCIO5), SPI/DBI, touch INT and RST, `HID_INT`, `ALS_INT` (open-drain, 1.8 V pull-ups on PMUIO2, wake), PDM is in `blk.mic-main` |
+| Interface | Faceplate I2C (I2C3, 3.3 V, VCCIO5), SPI/DBI, touch INT and RST, `HID_INT`, `ALS_INT` (open drain, 4.7 kΩ pull-ups on FP_3V3; `HID_INT` on a PMUIO1 wake ball, `ALS_INT` on VCCIO5, not a wake source; pinout v1 C4), PDM is in `blk.mic-main` |
 | Power domain | FP_3V3 (faceplate side) |
 | Measure | Display channel |
-| Absent state | Faceplate detached or FP_3V3 off: I2C3 pull-ups must sit on FP_3V3, not on an always-on rail, so no faceplate part is back-powered (G8); touch INT is the GT911 address strap: a board pull fixes the default address (G9); HID_INT and ALS_INT pulled up (read "no event"); SPI lines with SoC pulls |
+| Absent state | Faceplate detached or FP_3V3 off: I2C3 pull-ups must sit on FP_3V3, not on an always-on rail, so no faceplate part is back-powered (G8); touch INT is the GT911 address strap: a board pull fixes the default address (G9); HID_INT and ALS_INT pulled up on FP_3V3, so they read low while it is off: masked by software then (pinout v1); SPI lines with SoC pulls |
 | Holds / revision | Holds: any controller on I2C/SPI with these interrupts. Revision: a faceplate that needs USB |
 | Alternates | — |
 | Software | Faceplate overlay: `goodix,gt911`, `i2c-hid`, `vishay,veml6030` |
@@ -497,14 +498,14 @@ The faceplate interface is the t1 faceplate interface v0 (FH35C-51S, 46 used, 5 
 
 | Field | Content |
 |---|---|
-| Bound by | BRD-023 (must), T1-040; ADR 0010; MCLK acceptance criteria (BOM §4.3) |
-| Interface | VSYS_LV in, MCLK_3V1 (TPS7A2031, `AUDIO_LN_EN`), `MCLK441_EN` and `MCLK48_EN` (ST pins, 3.3 V logic), one shared MCLK net through the compensated attenuator to both XTI pins (sim/mclk-attenuator), HAT tap |
-| Power domain | `AUDIO_LN_EN`; one oscillator enabled at a time |
-| Measure | Proposed: shunt footprint on MCLK_3V1 (G12) |
-| Absent state | Both ST pins pulled down (outputs tri-stated). Back-powering: with MCLK_3V1 on and DAC_DIG_1V8 off, the attenuated clock drives an unpowered XTI pin (G3); with MCLK_3V1 off and an ST line high, the 3.3 V logic drives an unpowered oscillator (pull-down plus ordering rule) |
-| Holds / revision | Holds: any 2520 3.3 V oscillator with tri-state that meets the acceptance criteria. Revision: 1.8 V oscillators without the attenuator, a PLL-based clock |
-| Alternates | Crystek CCHD-957 class (stock **UNVERIFIED**, line 20) |
-| Software | `fixed-clock` nodes gated by GPIO (`gpio-gate-clock`), selected by the card driver per rate family |
+| Bound by | BRD-023 (must), T1-040; ADR 0010 amended by ADR 0019; MCLK acceptance criteria (BOM §4.3) |
+| Interface | VSYS_LV in, MCLK_3V1 (TPS7A2031, EN = `AUDIO_LN_EN` AND DAC_DIG_1V8), AUDIO_2V2 in for MCLK_1V8 (TPS7A2018, EN = DAC_DIG_1V8), `MCLK441_EN` and `MCLK48_EN` (ST pins, 3.3 V balls), `MCLK_DIV_RUN` (both CLR̅); one oscillator net (45.1584 / 49.152 MHz, 33 Ω per oscillator, 100 kΩ pull-down) into one SN74AUC1G74 per DAC, each Q through 27 Ω to its XTI at 22.5792 / 24.576 MHz ([ADR 0019](../adr/0019-master-clock-divided-from-twice-the-frequency.md), `sim/mclk-divider`); HAT copy (line 112, Open) |
+| Power domain | `AUDIO_LN_EN` AND DAC_DIG_1V8 (oscillators), DAC_DIG_1V8 (dividers); one oscillator enabled at a time |
+| Measure | Links 27 (TPS7A2031 input) and 36 (MCLK_1V8 LDO input), power tree §4.12 |
+| Absent state | Both ST pins pulled down (outputs tri-stated); `MCLK_DIV_RUN` pulled down (dividers held). Neither the oscillators nor the dividers can run without DAC_DIG_1V8, so no clock reaches an unpowered XTI (G3); with MCLK_3V1 off and an ST line high, the 3.3 V logic drives an unpowered oscillator (pull-down, series footprint and ordering rule; ST rating **UNVERIFIED**, pinout O11) |
+| Holds / revision | Holds: any 2520 3.3 V oscillator at 45.1584 / 49.152 MHz with tri-state that meets the acceptance criteria; the AUC1G74 in YZP or RSE packages with their own land. Revision: the ADR 0019 fallback (1.8 V KC2520K with a buffer per DAC), a PLL-based clock |
+| Alternates | None qualified at 45.1584 / 49.152 MHz (line 20) |
+| Software | `fixed-clock` nodes gated by GPIO (`gpio-gate-clock` with ST and `MCLK_DIV_RUN`), selected by the card driver per rate family; the CS43198 still sees 22.5792 or 24.576 MHz |
 | Level | — / Q1 |
 
 #### 30–31. `blk.dac-l`, `blk.dac-r`: one CS43198 per channel
@@ -597,10 +598,10 @@ The faceplate interface is the t1 faceplate interface v0 (FH35C-51S, 46 used, 5 
 
 | Field | Content |
 |---|---|
-| Bound by | BRD-025, BRD-029 (must); T1-077 (certified variants carry granted parts only) |
-| Interface | SDIO 3.0 (SDMMC1), UART1 with RTS/CTS (Bluetooth), PCM (I2S2 M0 balls, reserved by DNP 0 Ω), `WL_PDn`, `WL_HOST_WAKE`, `BT_HOST_WAKE`, `BT_WAKE`, 32.768 kHz (option), vcc3v3_wl (RK809 SWOUT1), VIO 1.8 V, 1.8 V power rail (AVDD18, Murata note; power tree gap), RF ports ANT0, ANT1 |
-| Power domain | SWOUT1 over I2C, PDn |
-| Measure | Proposed: shunt footprint on vcc3v3_wl (G12) |
+| Bound by | BRD-025, BRD-029 (must), BRD-030 (should: item tracking, T1-069 protections); T1-077 (certified variants carry granted parts only; 802.15.4 disabled while not wired) |
+| Interface | SDIO 3.0 (SDMMC1), UART1 with RTS/CTS (Bluetooth), `WL_PDN`, `WL_WAKE_OUT` and `BT_WAKE_OUT` (PMUIO2 wake balls), `BT_WAKE_IN`, vcc3v3_wl (AVDD33), vcc1v8_wl (AVDD18, BOM line 129), VIO and SD_VIO 1.8 V (vcc_1v8, VCCIO4), RF ports ANT0, ANT1. PCM and the 32.768 kHz input are dropped (pinout v1 C7, C18). The 802.15.4 SPI (module pins 4–8) is not connected; the four SPI2 M0 balls stay unassigned spares reserved for a variant (decision 2026-10-24, T1-077) |
+| Power domain | vcc3v3_wl from a TPS22919 (BOM v1.9 line 50; RK809 SWOUT1 before), vcc1v8_wl following it; both from expander P06 `WL_PWR_EN`, which holds through suspend. Decision 2026-10-24: off in suspend by default; on in suspend only while the listener enables item tracking, and then vcc_1v8 (VIO, SD_VIO, VCCIO4) stays on too. Suspend draw **UNVERIFIED** until measured on M-RF; `WL_PDN` hold through standby open (BOM §7 item 40) |
+| Measure | Links 11 (vcc3v3_wl) and 12 (vcc1v8_wl), power tree §4.12 |
 | Absent state | Module unfitted or off: PDn pulled low; host-wake lines pulled to "no wake"; SDIO and UART lines with SoC pulls and parked low before VBAT is removed (module sequencing **UNVERIFIED**: datasheet not retrieved) |
 | Holds / revision | Holds: u-blox MAYA-W271-00B (same chip, line 55; land **UNVERIFIED**) and any module behind SDIO, UART, PCM, the same supplies and two RF ports. Revision: PCIe or USB radios, a module that needs another supply |
 | Alternates | `maya-w271` |
@@ -699,7 +700,7 @@ The faceplate interface is the t1 faceplate interface v0 (FH35C-51S, 46 used, 5 
 | Interface | UART0, IRQ/wake (0_C7), RUN, BOOTSEL (open-drain), SWD, USB (EHCI host 2), passive taps on I2S1 SCLK, LRCK, SDO0–SDO2 (BRD-041), optional I2C2 |
 | Power domain | RP_3V3 and RP_IOVDD_1V8 (2 × TPS22919, `RP_PWR_EN`; default an open question, power tree §8) |
 | Measure | Proposed shunt footprints on RP_3V3 and RP_IOVDD_1V8 (G12) |
-| Absent state | Unfitted or off: the I2S taps drive an unpowered part whenever audio plays (G4); UART0 TX from the SoC parked; IRQ pulled to "no wake"; RUN and BOOTSEL open-drain with pull-ups on RP_IOVDD_1V8 |
+| Absent state | Unfitted or off: the I2S taps reach FT pins only (G4); UART0 TX from the SoC parked; IRQ pulled down ("no wake"); RUN open drain with 4.7 kΩ to RP_IOVDD_1V8; BOOTSEL (QSPI_SS, on RP_3V3) pulled low only through an N-FET whose gate is a 1.8 V ball with a pull-down (pinout v1 C6, BOM v1.9 line 35) |
 | Holds / revision | Holds: RP2350A with external QSPI flash (other BOM, line 12). Revision: RP2354B (QFN-80) |
 | Alternates | `rp2350a-qspi` |
 | Software | Flashed from Blackbird OS (BRD-015); serial node on UART0; description component |
@@ -847,18 +848,18 @@ Proposed parts come from families already in the BOM where possible; stock figur
 |---|---|---|---|---|---|
 | G1 | `blk.imu` | IMU on vcc_1v8, which is off in suspend (power tree §3), yet it is the wake-on-motion source in suspend (§6.5) | Supply the IMU (VDD, VDDIO) from vcca1v8_pmu (always on) through a 0 Ω link with a shunt footprint; I2C2 pull-ups on the same rail (G16) | 0 Ω 0402 (jellybean) | **Closed** (BOM v1.8 line 59; link line 137): IMU on vcca1v8_pmu |
 | G2 | `blk.dac-l`, `blk.dac-r` | Both CS43198 sit on the shared 1.8 V I2C2 while DAC_DIG_1V8 is switched; their control pins tolerate only VL + 0.3 V (BOM §4.2), so a live bus back-powers an unpowered DAC; same for `DAC_INT` if pulled up to an always-on rail and for the I2S data lines | An I2C isolator between I2C2 and the two DACs, enabled from DAC_DIG_1V8, with 0 Ω bypass footprints (fit the bypass only if the CS43198 control pins prove fail-safe); `DAC_INT` pull-up on DAC_DIG_1V8; series-resistor footprints on SDO0–SDO2 and DSD clock at the DAC side; driver rule: park I2S low first | TI TCA9406DCUR (BOM line 94 second source; LCSC 11,196); same-voltage operation on both sides **UNVERIFIED** until its datasheet is read; CS43198 fail-safe behaviour **UNVERIFIED** | **Closed in hardware** (line 133: SN74LVC2G66 controlled by DAC_DIG_1V8, bypass DNP; line 134 series footprints); CS43198 fail-safe **UNVERIFIED** decides bypass vs switch (BOM §7 item 34). TCA9406 rejected: VCCB ≥ 2.3 V |
-| G3 | `blk.mclk` | MCLK_3V1 (`AUDIO_LN_EN`) and DAC_DIG_1V8 (`DAC_DIG_EN`) are separate enables: the attenuated clock can drive an unpowered XTI | Hardware interlock: `AUDIO_LN_EN` gated by DAC_DIG_1V8 power-good (AND), or a single enable for both; ST lines with pull-downs (kept) | SN74LVC1G58 (configurable gate, BOM line 98; LCSC 11,461) at the right logic level | **Closed** (line 135: SN74LVC1G57 AND, TPS7A2031 EN = `AUDIO_LN_EN` AND DAC_DIG_1V8; the 1G58 has no plain AND) |
+| G3 | `blk.mclk` | MCLK_3V1 (`AUDIO_LN_EN`) and DAC_DIG_1V8 (`DAC_DIG_EN`) are separate enables: the attenuated clock can drive an unpowered XTI | Hardware interlock: `AUDIO_LN_EN` gated by DAC_DIG_1V8 power-good (AND), or a single enable for both; ST lines with pull-downs (kept) | SN74LVC1G58 (configurable gate, BOM line 98; LCSC 11,461) at the right logic level | **Closed** (line 135: SN74LVC1G57 AND, TPS7A2031 EN = `AUDIO_LN_EN` AND DAC_DIG_1V8; the 1G58 has no plain AND). BOM v1.9 ([ADR 0019](../adr/0019-master-clock-divided-from-twice-the-frequency.md)): the attenuator is replaced by dividers on MCLK_1V8, whose EN is DAC_DIG_1V8, so the clock path to XTI is off whenever the DACs are |
 | G4 | `blk.rp2354` | Passive I2S taps (BRD-041), UART0 and wake lines reach the RP2354A while RP_3V3 / RP_IOVDD_1V8 can be off: IO into an unpowered part whenever audio plays | Series-resistor footprints at the tap branch (stub ≤ 1 mm, PCB-A-12) sized to the RP2350's injection limit, or a rule that the RP rails are on whenever I2S1 runs; RP2350 GPIO behaviour unpowered **UNVERIFIED** | Resistors (jellybean); value **UNVERIFIED** | **Narrowed** (line 134): RP2350 FT pins accept 3.63 V at IOVDD = 0 V (absolute maximum), taps on FT GPIO0–25 only (pinout v1); 0 Ω tap footprints; injection into an unpowered pad **UNVERIFIED** |
 | G5 | `blk.tpm` | No supply rail, reset or PIRQ line assigned | Supply from vcc_1v8 through a 0 Ω link + shunt footprint; reset on a spare expander line with a pull to inactive; PIRQ to a free 1.8 V GPIO (balls freed by interface v1, pin plan §4.3) or polled (`tpm_tis_i2c` polling **UNVERIFIED**) | 0 Ω (jellybean) | **Closed for supply and measure** (line 122: vcca1v8_pmu, 0.1 Ω link line 137); reset and PIRQ on native 1.8 V GPIO left to pinout v1; current **UNVERIFIED** |
 | G6 | `blk.nfc-tag` | No VCC rail and no field-detect GPIO assigned; pin behaviour with VCC off on a live I2C2 **UNVERIFIED** | VCC from vcca1v8_pmu (so the bus never sees it unpowered) through a 0 Ω link + shunt; FD to the wake-capable 0_A0 freed by interface v1 (pin plan §4.3, owner choice) | 0 Ω (jellybean) | **Narrowed** (line 125: VCC on vcca1v8_pmu, 10 Ω link line 137); FD GPIO to pinout v1; tag supply range **UNVERIFIED** (NXP data sheet not retrieved) |
 | G7 | `blk.nfc-reader` | VBAT "from the battery path" is 6.0–8.8 V on the 2S tree; DWL_REQ planned on a 3.3 V expander line into a 1.65–1.95 V pin | VBAT from VSYS_LV (3.8 V) behind a load switch, with a shunt footprint; DWL_REQ and VEN on native 1.8 V GPIO or through a level shifter; PN7160 VBAT range and peak current **UNVERIFIED** until its datasheet is read | TI TPS22919DCKR (line 50; LCSC 42,715, Mouser 21,679), 1.5 A rating against the PN7160 peak **UNVERIFIED** | **Closed** (lines 50, 127): NFC_VBAT from VSYS_LV via an eighth TPS22919 (290 mA max = 19 %); VBAT 2.8–5.5 V, 6 V absolute (PN7160 Rev. 3.4); VDD(PAD) 1.8 V on vcca1v8_pmu; VEN, DWL_REQ on native 1.8 V GPIO (pinout v1) |
-| G8 | `blk.fp-controls` | I2C3 pull-up rail not defined; an always-on rail back-powers touch, ALS and HID parts when FP_3V3 is off; HID_INT and ALS_INT are pulled up to 1.8 V while their open-drain sources may be unpowered | I2C3 pull-ups on FP_3V3; interrupt pull-ups kept on PMUIO2 only if the faceplate parts' INT pins tolerate it unpowered (VEML6030, GT911 **UNVERIFIED**), else gate them | Resistors (jellybean) | **Narrowed** (BOM §4.2 VCCIO5 row): I2C3 pull-ups on FP_3V3; INT pull-up tolerance of VEML6030 and GT911 unpowered still **UNVERIFIED** |
+| G8 | `blk.fp-controls` | I2C3 pull-up rail not defined; an always-on rail back-powers touch, ALS and HID parts when FP_3V3 is off; HID_INT and ALS_INT are pulled up to 1.8 V while their open-drain sources may be unpowered | I2C3 pull-ups on FP_3V3; interrupt pull-ups kept on PMUIO2 only if the faceplate parts' INT pins tolerate it unpowered (VEML6030, GT911 **UNVERIFIED**), else gate them | Resistors (jellybean) | **Narrowed** (BOM §4.2 VCCIO5 row): I2C3 pull-ups on FP_3V3; INT pull-up tolerance of VEML6030 and GT911 unpowered still **UNVERIFIED**. BOM v1.9 (pinout v1 C4): `HID_INT` and `ALS_INT` are 3.3 V lines with 4.7 kΩ pull-ups on FP_3V3, so nothing pulls them up while the faceplate is off (line 141) |
 | G9 | `blk.fp-controls` | Touch INT is the GT911 address strap; with no faceplate or a different controller its level at reset is undefined | A board pull on touch INT to the default address level, value from the GT911 sheet (**UNVERIFIED**); a `strap` net role for the check | Resistor (jellybean) | **Open**: pull footprint on touch INT for the schematic; value from the GT911 sheet (**UNVERIFIED**); not a power item |
 | G10 | `blk.mic-main`, `blk.mic-ambient` | One switch for both microphones (correct for BRD-027) but no per-microphone measurement; PDM clocks can drive unpowered microphones | 0 Ω link + shunt footprint per microphone branch; PDM pins in a pinctrl sleep state driving low while MIC_1V8 is off | 0 Ω (jellybean) | **Closed** (line 137, links 34–35, power tree §4.12); PDM CLK sleep state is a pinctrl rule |
 | G11 | `blk.current-monitors`, `blk.audio`, `blk.fp-*`, `blk.pwr-vsys-lv` | Audio and display shunt positions undefined; audio draws from both VSYS (LMR33630C) and VSYS_LV, so one channel cannot attribute it; VSYS_LV itself is unmeasured | Audio INA236 shunt on a dedicated VSYS_LV audio branch (TPS65131, TPS62840, TPS7A2031, DAC_VP), plus a shunt footprint with Kelvin pads on the LMR33630C VIN (or a fifth INA236 if an address is free); display shunt on the TPS61169 VIN, links on FP_3V3, FP_1V8, FP_VCI; a shunt footprint at the VSYS_LV output | INA236AIDDFR (line 54; LCSC 1,938, thin Western stock); fifth-address option (INA236B) **UNVERIFIED**; shunts as line 43's family (Vishay WSL, 1206) or 0603 thin-film (part **UNVERIFIED**) | **Closed** (lines 54, 136, 137; power tree §4.12): audio INA236 on a dedicated VSYS_LV branch (20 mΩ), fifth INA236B at 0x48 on the LMR33630C VIN, display on the TPS61169 VIN, H5 link on VSYS_LV |
 | G12 | 20 blocks without their own measurement | No measurement point on lpddr4x, emmc, microsd, pwr-3v3-sys, vdd-cpu (output), audio-supply, mclk, dac-l/r (VA), hpa-se, hpa-bal, speaker, radio, nfc-tag, nfc-reader, imu, haptics, tpm, rp2354, status-led (several of these share one link) | One measurement link per block supply: a 0603 (or 1206 above 1 A) footprint fitted with a shunt in `full` and 0 Ω in `production`, two Kelvin test pads, on the block side of its switch; low-current blocks (µA–mA) use a 1–10 Ω value for a bench meter, the rest 10–100 mΩ (values per block at schematic capture) | Shunt and 0 Ω parts jellybean; current-sense part numbers **UNVERIFIED** | **Closed** (line 137): 35 links, five classes, shunt in `full`, 0 Ω in `production` (H5 keeps 5 mΩ) |
-| G13 | `blk.radio`, `blk.microsd` | SWOUT1 and SWOUT2 discharge **UNVERIFIED** (power tree §5); radio sequencing and the 1.8 V AVDD18 rail need the Murata datasheet (PCB constraints §9 item 3) | Close with the Murata datasheet; add a discharge resistor footprint on vcc3v3_wl and vcc3v3_sd | Resistors (jellybean) | **Narrowed** (lines 129–131): AVDD18 rail vcc1v8_wl added; discharge footprints DNP on vcc3v3_wl and vcc3v3_sd; module sequencing **UNVERIFIED** (datasheet) |
-| G14 | `blk.hat-signals` | `PCIE_PERST#` = SoC PERST# AND HAT power-good (power tree §6.4) has no part in the BOM; `I2S_MCLK` buffer is Open (line 112) | A single-gate AND at 3.3 V with Ioff; the MCLK buffer as BOM line 112 decides | SN74LVC1G58 family (line 98) or a 1G08 (not in the BOM, stock **UNVERIFIED**) | **Narrowed** (line 135): PERST# AND gate on vcc3v3_sys; `I2S_MCLK` buffer still Open (line 112) |
+| G13 | `blk.radio`, `blk.microsd` | SWOUT1 and SWOUT2 discharge **UNVERIFIED** (power tree §5); radio sequencing and the 1.8 V AVDD18 rail need the Murata datasheet (PCB constraints §9 item 3) | Close with the Murata datasheet; add a discharge resistor footprint on vcc3v3_wl and vcc3v3_sd | Resistors (jellybean) | **Narrowed** (lines 129–131): AVDD18 rail vcc1v8_wl added; discharge footprints DNP on vcc3v3_wl and vcc3v3_sd; module sequencing **UNVERIFIED** (datasheet). BOM v1.9: vcc3v3_wl comes from a TPS22919, whose quick output discharge empties it, so that footprint stays a spare; vcc3v3_sd unchanged |
+| G14 | `blk.hat-signals` | `PCIE_PERST#` = SoC PERST# AND HAT power-good (power tree §6.4) has no part in the BOM; `I2S_MCLK` buffer is Open (line 112) | A single-gate AND at 3.3 V with Ioff; the MCLK buffer as BOM line 112 decides | SN74LVC1G58 family (line 98) or a 1G08 (not in the BOM, stock **UNVERIFIED**) | **Narrowed** (line 135): PERST# AND gate on vcc3v3_sys; `I2S_MCLK` buffer still Open (line 112). BOM v1.9 (ADR 0019): the oscillator net has 1.3 pF left, so the HAT copy needs its own divider or a buffer behind one and a re-run of `sim/mclk-divider`; OE from `HAT_MCLK_EN` (GPIO1_A6) |
 | G15 | `blk.gpio-expander` | VCCI rail not named; if vcc_1v8, it is off in suspend while the expander holds enables, and the TCA6416A port state with VCCI off is **UNVERIFIED** | VCCI on vcca1v8_pmu; every expander-driven enable keeps its board pull-down | — | **Closed** (line 93): VCCI on vcca1v8_pmu |
 | G16 | I2C2 bus | Pull-up rail of I2C2 not defined; the bus mixes always-on parts (LP5521 EN on vcca1v8_pmu, expander) with switched ones (DACs, RP2354A) | Pull-ups on vcca1v8_pmu; every switched device behind an isolator (G2) or moved to an always-on rail (G1, G5, G6); the RP2354A off I2C2 unless isolated | — | **Closed** (BOM §4.2 PMUIO2 row): pull-ups on vcca1v8_pmu, every I2C2 device always on or isolated |
 | G17 | `blk.emmc` | The 16 GB production option has no MPN in the BOM | Pick a 16 GB part on the same 153-ball land before the production variant is accepted | **UNVERIFIED** | **Narrowed** (line 138): Samsung KLMAG1JETD-B041 named; land and height **UNVERIFIED** (NDA datasheet) |

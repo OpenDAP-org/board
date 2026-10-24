@@ -290,10 +290,10 @@ Columns: ball; pad (the GPIO name with its reset suffix; the full mux list is in
 | 1A15 | GPIO1_D0_d | VCCIO2, 1.8 V, vcc_1v8 | _d | `SPARE_1D0` | FSPI_CLK: driven by the BootROM FSPI probe (HDG p. 18 boot order), so no load; test pad only (C5) |
 | 1A17 | GPIO1_D1_u | VCCIO2, 1.8 V, vcc_1v8 | _u | `SPARE_1D1` | FSPI_D0: driven by the BootROM FSPI probe, so no load; test pad only (C5) |
 | 1B17 | GPIO1_D3_u | VCCIO2, 1.8 V, vcc_1v8 | _u | `SPARE_1D3` | FSPI_CS0n: driven by the BootROM, so no load; test pad only (C5) |
-| B36 | GPIO2_C1_d | VCCIO4, 1.8 V, vcc_1v8 | _d | `RSVD_15P4_SPI_CLK` | Kept free: SPI2_CLK_M0, the only 1.8 V SPI that can reach the module 802.15.4 SPI (pins 4-8). Not connected in v1 (open item O6) |
-| C37 | GPIO2_C2_d | VCCIO4, 1.8 V, vcc_1v8 | _d | `RSVD_15P4_SPI_MISO` | Kept free: SPI2_MISO_M0 (O6) |
-| 1D19 | GPIO2_C3_d | VCCIO4, 1.8 V, vcc_1v8 | _d | `RSVD_15P4_SPI_MOSI` | Kept free: SPI2_MOSI_M0 (O6) |
-| 1B20 | GPIO2_C4_d | VCCIO4, 1.8 V, vcc_1v8 | _d | `RSVD_15P4_SPI_CS` | Kept free: SPI2_CS0_M0 (O6) |
+| B36 | GPIO2_C1_d | VCCIO4, 1.8 V, vcc_1v8 | _d | `RSVD_15P4_SPI_CLK` | Kept free: SPI2_CLK_M0, the only 1.8 V SPI that can reach the module 802.15.4 SPI (pins 4-8). Not connected in v1 (O6 closed 2026-10-24: unassigned spare reserved for a variant) |
+| C37 | GPIO2_C2_d | VCCIO4, 1.8 V, vcc_1v8 | _d | `RSVD_15P4_SPI_MISO` | Kept free: SPI2_MISO_M0 (O6 closed 2026-10-24: unassigned spare reserved for a variant) |
+| 1D19 | GPIO2_C3_d | VCCIO4, 1.8 V, vcc_1v8 | _d | `RSVD_15P4_SPI_MOSI` | Kept free: SPI2_MOSI_M0 (O6 closed 2026-10-24: unassigned spare reserved for a variant) |
+| 1B20 | GPIO2_C4_d | VCCIO4, 1.8 V, vcc_1v8 | _d | `RSVD_15P4_SPI_CS` | Kept free: SPI2_CS0_M0 (O6 closed 2026-10-24: unassigned spare reserved for a variant) |
 | 1V6 | GPIO4_C4_d | VCCIO7, 3.3 V, vcc3v3_sys | _d | `SPARE_4C4` | Spare 3.3 V GPIO (SPDIF_TX_M2 option), test pad |
 | 1V5 | GPIO4_D1_u | VCCIO7, 3.3 V, vcc3v3_sys | _u | `SPARE_4D1` | Spare 3.3 V GPIO, test pad; pull-up at reset, so not for an enable |
 
@@ -521,22 +521,22 @@ For the owner of `bom-v1.md` and `power-tree-v0.md`; nothing here edits them.
 
 | # | Document | Change | Reason |
 |---|---|---|---|
-| B1 | Power tree §3 | Add a `vccio6_1v8` row: vcc_1v8 through a ferrite-bead footprint (0 Ω option) with 100 nF per VCCIO6 ball (1L4, 1L5) | The audio IO bank (I2S1, PDM) shares nothing with the radio and eMMC banks' switching currents; ripple limit ±5 % (HDG p. 32). Value of the filter **UNVERIFIED** |
-| B2 | Power tree §3 | Add the IO-domain table of §1 (domain → rail → voltage → `pmu_io_domains` value); the vcc_1v8 row says "IO banks" without naming them | Domain mismatch damages pads (IOD p. 2) |
-| B3 | Power tree §5 | `HAT3V3_EN` from "SoC GPIO" to expander P01 | GPIO1–4 lose state in standby (HDG p. 35); a HAT that wakes the T1 must stay powered |
-| B4 | Power tree §6.5, BOM line 103 | Decide whether the radio stays powered in suspend. With VIO on vcc_1v8 (off in suspend) it cannot, so wake-on-WLAN and the BLE item-tracking baseline fail | v1.8 item 1 versus line 103 |
-| B5 | Power tree §6.5 | Decide whether FP_3V3 stays on in suspend: faceplate-button wake needs the HID controller powered and `FP_HID_INT_N` pulled up | BRD-009; T1-023 |
-| B6 | BOM line 44 | "IMON to SoC SARADC" holds for eFuse #A (VIN2) and #B (VIN3); #C goes to a test pad | C10 |
-| B7 | BOM line 42 note, feature-blocks `blk.gauge` | Remove the gauge alert line to the expander | C25 |
-| B8 | BOM | Add: one more DMG1012T-7 (line 35, qty +1) as the BOOTSEL driver; 200 kΩ from PCA9306 EN/VREF2 to HAT_3V3 (SCPS113O Figure 8-1); pull-up from `HAT_AUD_OE_N` to vcc_1v8 (SCES898C, SCES875C); series-resistor footprints on the two ST lines; the MAX98357A SD_MODE select resistor (its Table 6); a VBUS divider into `USB_OTG0_VBUSDET` (HDG p. 59, Table 2-13; values per the reference schematic, **UNVERIFIED**) | C6, C8, C9, C12; HDG |
-| B9 | BOM §5 (passives) | Pulls: external pull-downs on every enable in §3 and P00–P05 (PCB-P-18); pull-ups ≤ 4.7 kΩ on `HAT_DET_N`, `HAT_INT_N`, `FP_HID_INT_N`, `FP_ALS_INT_N`, `ACTION_BTN_N`, `CHG_INT_N`, `USBC_INT_N`, `NFC_FD_N`, `EXP_INT_N`, `DAC_INT_N`, `TPM_PIRQ_N`, `PCIE_CLKREQ_N`, `PCIE_WAKE_N`, `CLK32K_PMIC`; 2.2 kΩ on `TPM_RST_N`; 4.7 kΩ on `RP_RUN`; pull-up on `FLASH_VOL_SEL` to vcc3v3_pmu; pull-downs on `RP_IRQ`, `FP_TP_INT`, `FP_LCD_TE`, `NFC_DWL_REQ`; pull-up on `FP_SPI_CS_N` to FP_3V3 | C20, C21, C27; DS p. 53 |
-| B10 | BOM §5 | Series parts per HDG: 22 Ω on I2S3 SCLK and LRCK, PDM CLK0 and CLK1, SDMMC0 D0–D3, CMD, CLK, SDMMC1 CLK, eMMC CLK; 22 Ω on BCLK and LRCK at the DAC (the source; HDG p. 70); 100 Ω on `SD_DET_N`; 2.2 Ω on six USB 2 lines (OTG0, HOST1 USB 2 half, HOST2); 120 Ω 1 % `DDR_RZQ`; 24 MHz network (2 × 18 pF matched to CL, 22 Ω, 1 MΩ); 100 nF on nPOR; 1 nF on SARADC VIN0–3, 10 kΩ on VIN0; eMMC 10 kΩ on D0 and CMD, DS pull-down | HDG pp. 16–17, 25–26, 52, 54, 59–60, 70–72 |
-| B11 | BOM line 93 | The expander port map of §3 | — |
-| B12 | BOM line 2 | RK809 codec unused: tie MCLK, BCLK, LRCLK, SDI, PDMCLK and HP_SNS to ground; SDO/PDMDATA, CPn/CPp, VCC_CPVDD/CPVSS, HPL/HPR_OUT, SPK_OUTn/p, MIC1p/n may float | HDG p. 73 |
-| B13 | BOM §4.2 table | Replace the IO-domain table with §1 (adds PMUIO0; VCCIO1 now also `RP_PWR_EN` and `HAT_ID_EN`; VCCIO2 no longer carries OPA1622 EN, SD_MODE or RP SWD; VCCIO4 carries the PN7160 controls; VCCIO7 the MCLK and HP-rail enables) | §1, §3 |
-| B14 | BOM line 95 | The AXC translators' B side on HAT_3V3, so Ioff isolates them with the HAT unpowered | Feature blocks `blk.hat-audio` absent state |
-| B15 | BOM line 12 note | BOOTSEL: N-FET to QSPI_SS (QSPI_IOVDD on RP_3V3); RUN with 4.7 kΩ to RP_IOVDD_1V8 | C6, C20 |
-| B16 | Power tree §3 | `USB_AVDD1_3V3`/`USB_AVDD2_3V3` rail: vcc3v3_sys assumed, reference schematic source **UNVERIFIED** | CSV supply rows |
+| B1 | Power tree §3 | Add a `vccio6_1v8` row: vcc_1v8 through a ferrite-bead footprint (0 Ω option) with 100 nF per VCCIO6 ball (1L4, 1L5). **Closed** in power tree v0.3 §3 and BOM v1.9 line 141 (0 Ω link, bead option) | The audio IO bank (I2S1, PDM) shares nothing with the radio and eMMC banks' switching currents; ripple limit ±5 % (HDG p. 32). Value of the filter **UNVERIFIED** |
+| B2 | Power tree §3 | Add the IO-domain table of §1 (domain → rail → voltage → `pmu_io_domains` value); the vcc_1v8 row says "IO banks" without naming them. **Closed** in power tree v0.3 §3.1 | Domain mismatch damages pads (IOD p. 2) |
+| B3 | Power tree §5 | `HAT3V3_EN` from "SoC GPIO" to expander P01. **Closed** in power tree v0.3 §5 and BOM v1.9 lines 38, 93 | GPIO1–4 lose state in standby (HDG p. 35); a HAT that wakes the T1 must stay powered |
+| B4 | Power tree §6.5, BOM line 103 | Decide whether the radio stays powered in suspend. With VIO on vcc_1v8 (off in suspend) it cannot, so wake-on-WLAN and the BLE item-tracking baseline fail. **Closed** by the decision of 2026-10-24 (BOM v1.9 item 2): the radio can stay powered in suspend for item tracking; its rails switch from expander P06 `WL_PWR_EN`, off in suspend by default, with vcc_1v8 kept on while tracking. Follow-up for this pinout: `WL_PWR_EN` on P06 and the `WL_PDN` hold (BOM §7 item 40) | v1.8 item 1 versus line 103 |
+| B5 | Power tree §6.5 | Decide whether FP_3V3 stays on in suspend: faceplate-button wake needs the HID controller powered and `FP_HID_INT_N` pulled up. **Closed** by the decision of 2026-10-24 (BOM v1.9 item 3): FP_3V3 off in suspend by default, wake from the body buttons; `FP_IO_EN` on P00 can keep it on | BRD-009; T1-023 |
+| B6 | BOM line 44 | "IMON to SoC SARADC" holds for eFuse #A (VIN2) and #B (VIN3); #C goes to a test pad. **Closed** in BOM v1.9 line 44 | C10 |
+| B7 | BOM line 42 note, feature-blocks `blk.gauge` | Remove the gauge alert line to the expander. **Closed** in BOM v1.9 line 42 and the `blk.gauge` record | C25 |
+| B8 | BOM | Add: one more DMG1012T-7 (line 35, qty +1) as the BOOTSEL driver; 200 kΩ from PCA9306 EN/VREF2 to HAT_3V3 (SCPS113O Figure 8-1); pull-up from `HAT_AUD_OE_N` to vcc_1v8 (SCES898C, SCES875C); series-resistor footprints on the two ST lines; the MAX98357A SD_MODE select resistor (its Table 6); a VBUS divider into `USB_OTG0_VBUSDET` (HDG p. 59, Table 2-13; values per the reference schematic, **UNVERIFIED**). **Closed** in BOM v1.9 lines 35, 141 (VBUS divider values stay **UNVERIFIED**, BOM §7 item 41) | C6, C8, C9, C12; HDG |
+| B9 | BOM §5 (passives) | Pulls: external pull-downs on every enable in §3 and P00–P05 (PCB-P-18); pull-ups ≤ 4.7 kΩ on `HAT_DET_N`, `HAT_INT_N`, `FP_HID_INT_N`, `FP_ALS_INT_N`, `ACTION_BTN_N`, `CHG_INT_N`, `USBC_INT_N`, `NFC_FD_N`, `EXP_INT_N`, `DAC_INT_N`, `TPM_PIRQ_N`, `PCIE_CLKREQ_N`, `PCIE_WAKE_N`, `CLK32K_PMIC`; 2.2 kΩ on `TPM_RST_N`; 4.7 kΩ on `RP_RUN`; pull-up on `FLASH_VOL_SEL` to vcc3v3_pmu; pull-downs on `RP_IRQ`, `FP_TP_INT`, `FP_LCD_TE`, `NFC_DWL_REQ`; pull-up on `FP_SPI_CS_N` to FP_3V3. **Closed** in BOM v1.9 line 141 | C20, C21, C27; DS p. 53 |
+| B10 | BOM §5 | Series parts per HDG: 22 Ω on I2S3 SCLK and LRCK, PDM CLK0 and CLK1, SDMMC0 D0–D3, CMD, CLK, SDMMC1 CLK, eMMC CLK; 22 Ω on BCLK and LRCK at the DAC (the source; HDG p. 70); 100 Ω on `SD_DET_N`; 2.2 Ω on six USB 2 lines (OTG0, HOST1 USB 2 half, HOST2); 120 Ω 1 % `DDR_RZQ`; 24 MHz network (2 × 18 pF matched to CL, 22 Ω, 1 MΩ); 100 nF on nPOR; 1 nF on SARADC VIN0–3, 10 kΩ on VIN0; eMMC 10 kΩ on D0 and CMD, DS pull-down. **Closed** in BOM v1.9 line 141 | HDG pp. 16–17, 25–26, 52, 54, 59–60, 70–72 |
+| B11 | BOM line 93 | The expander port map of §3. **Closed** in BOM v1.9 line 93 (with P06 `WL_PWR_EN`) | — |
+| B12 | BOM line 2 | RK809 codec unused: tie MCLK, BCLK, LRCLK, SDI, PDMCLK and HP_SNS to ground; SDO/PDMDATA, CPn/CPp, VCC_CPVDD/CPVSS, HPL/HPR_OUT, SPK_OUTn/p, MIC1p/n may float. **Closed** in BOM v1.9 line 2 | HDG p. 73 |
+| B13 | BOM §4.2 table | Replace the IO-domain table with §1 (adds PMUIO0; VCCIO1 now also `RP_PWR_EN` and `HAT_ID_EN`; VCCIO2 no longer carries OPA1622 EN, SD_MODE or RP SWD; VCCIO4 carries the PN7160 controls; VCCIO7 the MCLK and HP-rail enables). **Closed** in BOM v1.9 §4.2 | §1, §3 |
+| B14 | BOM line 95 | The AXC translators' B side on HAT_3V3, so Ioff isolates them with the HAT unpowered. **Closed** in BOM v1.9 lines 94, 95 and power tree v0.3 | Feature blocks `blk.hat-audio` absent state |
+| B15 | BOM line 12 note | BOOTSEL: N-FET to QSPI_SS (QSPI_IOVDD on RP_3V3); RUN with 4.7 kΩ to RP_IOVDD_1V8. **Closed** in BOM v1.9 line 12 | C6, C20 |
+| B16 | Power tree §3 | `USB_AVDD1_3V3`/`USB_AVDD2_3V3` rail: vcc3v3_sys assumed, reference schematic source **UNVERIFIED**. **Closed** in power tree v0.3 §3 (rail still **UNVERIFIED** against the reference schematic) | CSV supply rows |
 
 No new level shifter is needed: the master-clock and headphone-rail enables move to native 3.3 V balls, the PN7160 and TPM controls to native 1.8 V balls, and the faceplate stays at 3.3 V on its own bank.
 
@@ -549,10 +549,10 @@ No new level shifter is needed: the master-clock and headphone-rail enables move
 | O3 | Rockchip IO Power Domain Checklist (HDG pp. 4, 31) | Retrieve and fill in from §1 |
 | O4 | I2S1 RX on the TX clocks | HDG p. 69 states that SDI lines referring to one clock group use SCLKTX/LRCKTX by default, which supports it; the DNP links to GPIO4_A6/A7 stay until the first prototype |
 | O5 | Native DSD on SDO1/SDO2 | v0 §3.4, unchanged |
-| O6 | The Type 2EL 802.15.4 SPI (pins 4–8) is not connected; SPI2 M0 (GPIO2_C1–C4, VCCIO4) is kept free because it is the only 1.8 V SPI that reaches it | A maintainers' decision on 802.15.4; no requirement names it today |
+| O6 | The Type 2EL 802.15.4 SPI (pins 4–8) is not connected; SPI2 M0 (GPIO2_C1–C4, VCCIO4) is kept free because it is the only 1.8 V SPI that reaches it | **Closed** by the decision of 2026-10-24 (BOM v1.9 item 4): the four balls stay unassigned spares reserved for a variant; no requirement asks for 802.15.4 and T1-077 keeps it disabled while it is not wired |
 | O7 | GT911 address selected by INT low at reset | GT911 v09 timing figures (pp. 9–10) read as images |
 | O8 | FH35C contact voltage rating against BL_LEDA (16.5 V) | RFC 0001 open question |
-| O9 | Radio wake from standby | B4 |
+| O9 | Radio wake from standby | B4. **Power side closed** by the decision of 2026-10-24 (BOM v1.9 item 2, power tree v0.3 §6.5): the radio can stay powered in suspend while item tracking is enabled. Open: `WL_PWR_EN` on expander P06 to record in §3, and `WL_PDN` on a line that holds through standby (BOM §7 item 40) |
 | O10 | PN7160 VEN back-powering if VEN is high while NFC_VBAT is off | Driver order (VBAT first, §10.5.2.1 of the PN7160 sheet per BOM line 127), plus the series-resistor footprint |
 | O11 | NSC5083D ST pin rating at 3.3 V drive with MCLK_3V1 at 3.1 V or off | NDK datasheet |
 | O12 | Type 2EL WL_WAKE_IN, IND_RST_WL/BT, SD_INT and wake polarity | Module datasheet (missing, plan E1.11) |

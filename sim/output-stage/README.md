@@ -22,7 +22,9 @@ are in [`docs/research/2026-10-output-stage-simulation.md`](../../docs/research/
 ## Vendor models (not in this repository)
 
 Two netlists need TI models, which are TI copyright with all rights reserved, so they
-are not redistributed here. Put them in `models/` (ignored by git):
+are not redistributed here. `odapkit sim fetch` downloads both through the parts-lib manifest
+(`kind = "spice"`; the links serve SBOM958D and SNVMBG5A without login), checks the hashes in
+`checks.toml` and puts them in `models/` (ignored by git); or place them there by hand:
 
 | Netlist | Model | File to place in `models/` | Copy used on 2026-10-22 (sha256 of the zip) |
 |---|---|---|---|

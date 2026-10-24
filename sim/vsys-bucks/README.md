@@ -20,15 +20,17 @@ Results and their limits are in
 | `tps62136-3v8-step.cir` | TPS62136 load step 0.1 → 2.0 → 0.1 A with TI's transient model. |
 | `tps62136-3v8-loop.cir` | TPS62136 loop gain at one frequency with TI's transient model. |
 | `generic-check-step.cir`, `generic-check-loop.cir` | The generic model with TPS62136 values, for comparison with TI's model. |
-| `run.py` | Runs the corner sets and prints the tables of the research note. |
+| `run.py` | Runs the corner sets and prints the tables of the research note; `--json` prints one JSON document (one case per line) that `checks.toml` reads. |
 | `.spiceinit` | ngspice PSpice compatibility mode, needed by TI's model. |
 
 ## Vendor model (not in this repository)
 
 `tps62136-3v8-*.cir` need TI's **TPS62136 PSpice Unencrypted Transient Model**,
-[SLVMC09](https://www.ti.com/lit/zip/SLVMC09) (model "Final 1.1", 20MAR2017). It is TI
-copyright, all rights reserved, so it is not redistributed. Unzip it and copy
-`TPS62136_PSPICE_TRANS/TPS62136_TRANS.lib` to `models/` (ignored by git). The copy used on
+[SLVMC09](https://www.ti.com/lit/zip/SLVMC09) (model "Final 1.1", 20MAR2017; the link serves
+revision SLVMC09A without login). It is TI copyright, all rights reserved, so it is not
+redistributed. `odapkit sim fetch` downloads it through the parts-lib manifest (`kind = "spice"`),
+checks both hashes and places `TPS62136_PSPICE_TRANS/TPS62136_TRANS.lib` in `models/` (ignored
+by git); or unzip it by hand. The copy used on
 2026-10-22: `SLVMC09.zip` sha256 `764f65e3e817b73ef0690637fb1a08ab7fa04ec5a1858b203dc7cf555a04ad99`,
 `TPS62136_TRANS.lib` sha256 `252dce79505a414bd31e4bd2209334de90761d277894c759c3f88da003439a56`.
 
@@ -43,6 +45,8 @@ applies:
 ngspice -b tps62903-5v1-step.cir     # one case; edit the .param line; writes step.dat
 JOBS=2 uv run run.py step903 loop903 check
 JOBS=2 uv run run.py step136 loop136 # TI model, about 2-4 min per case
+uv run run.py --json step903         # the same results as JSON
+odapkit sim run .                    # the regression checks
 ```
 
 `JOBS` sets how many ngspice processes run at once (default 2; keep it low on a shared

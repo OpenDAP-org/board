@@ -7,12 +7,16 @@ Usage (from this folder):
     uv run run.py loop136      # TPS62136 loop gain (TI model, needs models/)
     uv run run.py check        # generic model with TPS62136 values (calibration)
     uv run run.py all
+    uv run run.py --json step903 loop136   # one JSON document instead of the tables
 
-JOBS=n sets how many ngspice processes run at once (default 2). Results go to
+--json prints {"schema": "opendap.sim-vsys-bucks/v1", "cases": [...]}, one case object per
+line ("group" and "case" first, then the metrics in SI units: V, A, s, Hz, deg), so that
+odapkit sim checks can match a case and a metric on one line. JOBS=n sets how many ngspice processes run at once (default 2). Results go to
 results/ (ignored by git); a case whose .dat file exists is not run again.
 """
 
 import concurrent.futures as cf
+import json
 import math
 import os
 import re
@@ -159,6 +163,47 @@ def loop_point(path, f, t0, t1, skip=2):
     return 20 * math.log10(abs(T)), math.degrees(math.atan2(T.imag, T.real))
 
 
+def step_rows(group, cases):
+    rows = []
+    for _, name, _, _ in cases:
+        p = RES / f"{name}.dat"
+        if not p.exists():
+            rows.append(dict(group=group, case=name, missing=True))
+            continue
+        r = step_metrics(p)
+        rows.append(dict(
+            group=group, case=name,
+            v_lo_v=r["v_lo"], v_hi_v=r["v_hi"], v_min_v=r["v_min"], v_max_v=r["v_max"],
+            undershoot_v=r["v_hi"] - r["v_min"], overshoot_v=r["v_max"] - r["v_hi"],
+            ripple_lo_v=r["rip_lo"], ripple_hi_v=r["rip_hi"],
+            settle_up_s=r["ts_up"], settle_down_s=r["ts_dn"],
+            il_pk_a=r["il_pk"], il_ss_a=r["il_ss"],
+        ))
+    return rows
+
+
+def loop_rows(group, cases):
+    pts = {}
+    for _, name, p, _ in cases:
+        key = name.rsplit("_f", 1)[0]
+        path = RES / f"{name}.dat"
+        if path.exists():
+            pts.setdefault(key, []).append((p["FINJ"], *loop_point(path, p["FINJ"], p["TSTART"], p["TSTOP"])))
+    rows = []
+    for key, pp in pts.items():
+        pp.sort()
+        row = dict(group=group, case=key, crossover_hz=None, phase_margin_deg=None,
+                   points=[dict(f_hz=f, gain_db=g, phase_deg=ph) for f, g, ph in pp])
+        for (f1, g1, p1), (f2, g2, p2) in zip(pp, pp[1:]):
+            if g1 > 0 >= g2:
+                fc = f1 * (f2 / f1) ** (g1 / (g1 - g2))
+                pc = p1 + (p2 - p1) * math.log(fc / f1) / math.log(f2 / f1)
+                row["crossover_hz"], row["phase_margin_deg"] = fc, 180 + pc
+                break
+        rows.append(row)
+    return rows
+
+
 def print_steps(cases):
     print(f"{'case':24s} {'Vlo':>6s} {'Vhi':>6s} {'Vmin':>6s} {'Vmax':>6s} {'under mV':>8s} {'over mV':>8s} {'rip lo':>7s} {'rip hi':>7s}"
           f" {'ts up us':>8s} {'ts dn us':>8s} {'IL pk':>6s} {'IL ss':>6s}")
@@ -194,22 +239,33 @@ def print_loops(cases):
 
 def main():
     RES.mkdir(exist_ok=True)
-    groups = list(GROUPS) if sys.argv[1:] == ["all"] else sys.argv[1:]
+    args = sys.argv[1:]
+    as_json = "--json" in args
+    args = [a for a in args if a != "--json"]
+    groups = list(GROUPS) if args == ["all"] else args
     if not groups or any(g not in GROUPS for g in groups):
         print(__doc__)
         sys.exit(1)
     jobs = int(os.environ.get("JOBS", "2"))
+    rows = []
     for g in groups:
         cases = GROUPS[g]()
         with cf.ThreadPoolExecutor(max_workers=jobs) as ex:
             list(ex.map(run_one, cases))
-        print(f"### {g}")
         steps = [c for c in cases if c[3] is not None]
         loops = [c for c in cases if c[3] is None]
+        if as_json:
+            rows += step_rows(g, steps) + loop_rows(g, loops)
+            continue
+        print(f"### {g}")
         if steps:
             print_steps(steps)
         if loops:
             print_loops(loops)
+    if as_json:
+        print('{"schema": "opendap.sim-vsys-bucks/v1", "cases": [')
+        print(",\n".join("  " + json.dumps(r, default=float) for r in rows))
+        print("]}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,116 @@
+# OpenDAP T1 main board: net classes
+#
+# The contract between the schematic and the product rules
+# (t1-main-board.kicad_dru): a net in one of these classes gets the
+# constraints listed with it. IDs refer to docs/specs/pcb-design-constraints.md.
+# Impedance-controlled classes get their widths and gaps from the stackup
+# (E3.6); until then they carry only their target and the constraint IDs.
+# The KiCad project's net classes are generated from this file (E4.1).
+
+version = 1
+
+[[class]]
+name = "PWR_BAT"
+signals = "Battery connector P+ through the fuse to the BQ25798 BAT pins; P- through the sense resistor to GND"
+design_current_a = 5.0
+constraints = ["PCB-P-01"]
+
+[[class]]
+name = "PWR_VSYS"
+signals = "VSYS 6.0-8.8 V trunk from the BQ25798 SYS pins"
+design_current_a = 3.2
+constraints = ["PCB-P-02"]
+
+[[class]]
+name = "PWR_VBUS"
+signals = "USB-C VBUS through the TVS2200 and the TPS2121 to the BQ25798 VBUS"
+design_current_a = 3.0
+constraints = ["PCB-P-03"]
+
+[[class]]
+name = "PWR_5V1"
+signals = "5.1 V TPS62903 output and the eFuse #A (HAT_5V) and #C (USB-C source) paths"
+design_current_a = 1.66
+constraints = ["PCB-P-04"]
+
+[[class]]
+name = "PWR_HAT3V3"
+signals = "HAT 3.3 V TPS62903 output and the eFuse #B path"
+design_current_a = 1.0
+constraints = ["PCB-P-05"]
+
+[[class]]
+name = "PWR_AMP"
+signals = "Amplifier pre-rails +7 V / -7 V and the +6 V / -6 V LDO outputs"
+design_current_a = 0.3
+constraints = ["PCB-P-06", "PCB-A-07"]
+
+[[class]]
+name = "SW_NODE"
+signals = "Switch node of every converter (BQ25798, TPS62136, TPS62903 x2, LMR33630C, TPS65131, RK809, RK860-0, TPS62840)"
+constraints = ["PCB-P-07", "PCB-P-08", "PCB-A-06"]
+
+[[class]]
+name = "AUDIO_ANALOG"
+signals = "CS43198 analog outputs, OPA1622 inputs and outputs, output networks, jack signal pins"
+constraints = ["PCB-A-06", "PCB-A-07", "PCB-A-10"]
+
+[[class]]
+name = "AUDIO_REF"
+signals = "CS43198 REFA and REFB, routed independently to each headphone connector's ground pin"
+constraints = ["PCB-A-03", "PCB-A-07"]
+
+[[class]]
+name = "MCLK"
+signals = "22.5792 MHz and 24.576 MHz oscillator outputs, the attenuator, CS43198 XTI"
+impedance_ohm = 50
+constraints = ["PCB-I-09"]
+
+[[class]]
+name = "I2S_DSD"
+signals = "SoC to CS43198 ASP: SCLK, LRCK, SDIN"
+impedance_ohm = 50
+constraints = ["PCB-I-08", "PCB-A-12"]
+
+[[class]]
+name = "USB2_90D"
+signals = "Main USB-C D+/D- (OTG0), HAT USB3_D+/D-"
+differential_ohm = 90
+constraints = ["PCB-I-01"]
+
+[[class]]
+name = "USB3_90D"
+signals = "HAT USB3_SSTX+/-, USB3_SSRX+/-"
+differential_ohm = 90
+constraints = ["PCB-I-02"]
+
+[[class]]
+name = "PCIE_85D"
+signals = "HAT PCIE_TX+/-, PCIE_RX+/-, PCIE_REFCLK+/-"
+differential_ohm = 85
+constraints = ["PCB-I-03"]
+
+[[class]]
+name = "MIPI_100D"
+signals = "Faceplate DSI lanes, HAT CSI-2 lanes"
+differential_ohm = 100
+constraints = ["PCB-I-04"]
+
+[[class]]
+name = "DDR"
+signals = "LPDDR4X DQ, DQS, CA, CK"
+impedance_ohm = 40
+differential_ohm = 80
+constraints = ["PCB-I-05"]
+
+[[class]]
+name = "EMMC_SD_50"
+signals = "eMMC HS200 and microSD SDR104 clock, command and data"
+impedance_ohm = 50
+constraints = ["PCB-I-06"]
+
+[[class]]
+name = "RF_50"
+signals = "Radio module RF pins to the U.FL connectors"
+impedance_ohm = 50
+constraints = ["PCB-I-07", "PCB-R-01"]

@@ -1,0 +1,27 @@
+{
+  "board_setup_checks": {},
+  "pass_column_starts_at_mm": 50.0,
+  "rules": {
+    "T1 PCB-A-06: Switch node to analog audio": 1,
+    "T1 PCB-A-07: Foreign track in the analog audio area": 1,
+    "T1 PCB-G-01: Copper clearance": 1,
+    "T1 PCB-G-01: Track width": 1,
+    "T1 PCB-G-02: Copper clearance in the BGA escape": 1,
+    "T1 PCB-G-02: Track width in the BGA escape": 1,
+    "T1 PCB-G-03: Microvia diameter": 1,
+    "T1 PCB-G-04: Mechanical via diameter": 1,
+    "T1 PCB-G-05: Copper to board edge": 1,
+    "T1 PCB-I-09: Master clock to other nets": 1,
+    "T1 PCB-P-01: Battery path track width (inner)": 1,
+    "T1 PCB-P-01: Battery path track width (outer)": 1,
+    "T1 PCB-P-02: VSYS track width (inner)": 1,
+    "T1 PCB-P-02: VSYS track width (outer)": 1,
+    "T1 PCB-P-03: VBUS input track width (inner)": 1,
+    "T1 PCB-P-03: VBUS input track width (outer)": 1,
+    "T1 PCB-P-04: 5.1 V source track width (inner)": 1,
+    "T1 PCB-P-04: 5.1 V source track width (outer)": 1,
+    "T1 PCB-P-05: HAT 3.3 V track width (inner)": 1,
+    "T1 PCB-P-05: HAT 3.3 V track width (outer)": 1,
+    "T1 PCB-P-06: Amplifier rail track width": 1
+  }
+}

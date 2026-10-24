@@ -1,0 +1,159 @@
+(version 1)
+# OpenDAP T1 main board: product rules
+#
+# The T1's own limits, composed on top of the PCBWay HDI fab rule set
+# (kicad-lib design-rules/pcbway-hdi) into the project's <project>.kicad_dru.
+# Every rule names the constraint it enforces in
+# docs/specs/pcb-design-constraints.md (Draft v0.1). The net classes the
+# conditions use are listed in netclasses.toml, next to this file.
+#
+# Severity: a constraint whose value has a source is an error; a constraint
+# whose value is still UNVERIFIED in the specification is a warning, so it is
+# seen at every DRC run without blocking a commit. A warning becomes an error
+# when its value is confirmed.
+#
+# KiCad applies the LAST matching rule for a constraint: general rules first,
+# area and net-class overrides after them.
+
+
+# --- Geometry (PCB-G) ---
+
+# PCB-G-01: general track and space 0.1 / 0.1 mm, margin over the fab minimum.
+(rule "T1 PCB-G-01: Copper clearance"
+	(constraint clearance (min 0.1mm))
+)
+
+(rule "T1 PCB-G-01: Track width"
+	(constraint track_width (min 0.1mm))
+)
+
+# PCB-G-02: inside the RK3566 escape area (rule area named BGA_ESCAPE), the
+# HDI floor 0.065 mm applies [P3]; it overrides PCB-G-01 there.
+(rule "T1 PCB-G-02: Copper clearance in the BGA escape"
+	(condition "A.intersectsArea('BGA_ESCAPE')")
+	(constraint clearance (min 0.065mm))
+)
+
+(rule "T1 PCB-G-02: Track width in the BGA escape"
+	(condition "A.intersectsArea('BGA_ESCAPE')")
+	(constraint track_width (min 0.065mm))
+)
+
+# PCB-G-03: laser microvia land 0.25 mm (0.10 mm drill keeps the 3 mil ring).
+(rule "T1 PCB-G-03: Microvia diameter"
+	(condition "A.Type == 'Via' && A.Via_Type == 'Micro'")
+	(constraint via_diameter (min 0.25mm))
+)
+
+# PCB-G-04: mechanical via pad 0.45 mm minimum (0.20 mm drill).
+(rule "T1 PCB-G-04: Mechanical via diameter"
+	(condition "A.Type == 'Via' && A.Via_Type != 'Micro'")
+	(constraint via_diameter (min 0.45mm))
+)
+
+# PCB-G-05: copper to board edge 0.30 mm (fab 0.20 mm plus the outline
+# tolerance).
+(rule "T1 PCB-G-05: Copper to board edge"
+	(constraint edge_clearance (min 0.3mm))
+)
+
+
+# --- Power (PCB-P) ---
+# Track minimums from the IPC-2221 formula at a 10 degC rise: outer layers at
+# 35 um finished copper, inner layers at 18 um (HDI base copper). Pours are
+# the intended conductors for PCB-P-01 to PCB-P-03; these rules catch a thin
+# track on those nets.
+
+(rule "T1 PCB-P-01: Battery path track width (outer)"
+	(layer outer)
+	(condition "A.hasNetclass('PWR_BAT')")
+	(constraint track_width (min 2.8mm))
+)
+
+(rule "T1 PCB-P-01: Battery path track width (inner)"
+	(layer inner)
+	(condition "A.hasNetclass('PWR_BAT')")
+	(constraint track_width (min 14.0mm))
+)
+
+(rule "T1 PCB-P-02: VSYS track width (outer)"
+	(layer outer)
+	(condition "A.hasNetclass('PWR_VSYS')")
+	(constraint track_width (min 1.5mm))
+)
+
+(rule "T1 PCB-P-02: VSYS track width (inner)"
+	(layer inner)
+	(condition "A.hasNetclass('PWR_VSYS')")
+	(constraint track_width (min 7.6mm))
+)
+
+(rule "T1 PCB-P-03: VBUS input track width (outer)"
+	(layer outer)
+	(condition "A.hasNetclass('PWR_VBUS')")
+	(constraint track_width (min 1.4mm))
+)
+
+(rule "T1 PCB-P-03: VBUS input track width (inner)"
+	(layer inner)
+	(condition "A.hasNetclass('PWR_VBUS')")
+	(constraint track_width (min 6.9mm))
+)
+
+(rule "T1 PCB-P-04: 5.1 V source track width (outer)"
+	(layer outer)
+	(condition "A.hasNetclass('PWR_5V1')")
+	(constraint track_width (min 0.6mm))
+)
+
+(rule "T1 PCB-P-04: 5.1 V source track width (inner)"
+	(layer inner)
+	(condition "A.hasNetclass('PWR_5V1')")
+	(constraint track_width (min 3.1mm))
+)
+
+(rule "T1 PCB-P-05: HAT 3.3 V track width (outer)"
+	(layer outer)
+	(condition "A.hasNetclass('PWR_HAT3V3')")
+	(constraint track_width (min 0.3mm))
+)
+
+(rule "T1 PCB-P-05: HAT 3.3 V track width (inner)"
+	(layer inner)
+	(condition "A.hasNetclass('PWR_HAT3V3')")
+	(constraint track_width (min 1.5mm))
+)
+
+# PCB-P-06: amplifier rails, 0.3 mm on every layer (the current needs less;
+# the width keeps the rail impedance low).
+(rule "T1 PCB-P-06: Amplifier rail track width"
+	(condition "A.hasNetclass('PWR_AMP')")
+	(constraint track_width (min 0.3mm))
+)
+
+
+# --- Audio (PCB-A) and clocks (PCB-I-09) ---
+
+# PCB-A-06: switch nodes and power inductors away from the analog audio
+# copper. 5 mm is UNVERIFIED until the power and audio test board (E5.2).
+(rule "T1 PCB-A-06: Switch node to analog audio"
+	(severity warning)
+	(condition "(A.hasNetclass('SW_NODE') && B.hasNetclass('AUDIO_ANALOG')) || (B.hasNetclass('SW_NODE') && A.hasNetclass('AUDIO_ANALOG'))")
+	(constraint clearance (min 5mm))
+)
+
+# PCB-A-07: no digital or switching track inside the analog audio area (rule
+# area named AUDIO_ANALOG). Allowed there: analog audio, amplifier rails,
+# DAC references and ground.
+(rule "T1 PCB-A-07: Foreign track in the analog audio area"
+	(condition "A.Type == 'Track' && A.intersectsArea('AUDIO_ANALOG') && !A.hasNetclass('AUDIO_ANALOG') && !A.hasNetclass('AUDIO_REF') && !A.hasNetclass('PWR_AMP') && A.NetName != 'GND'")
+	(constraint disallow track)
+)
+
+# PCB-I-09: master clock guarded from every other signal. 0.3 mm (three times
+# a 0.1 mm track) is UNVERIFIED until the stackup sets the clock trace width.
+(rule "T1 PCB-I-09: Master clock to other nets"
+	(severity warning)
+	(condition "(A.hasNetclass('MCLK') && !B.hasNetclass('MCLK') && B.NetName != 'GND') || (B.hasNetclass('MCLK') && !A.hasNetclass('MCLK') && A.NetName != 'GND')")
+	(constraint clearance (min 0.3mm))
+)

@@ -2,7 +2,7 @@
 
 - **Status:** Draft v0.1 (2026-10-24). Task E2.1 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Nothing here is laid out or measured yet.
 - **Purpose:** every limit the main-board layout must respect, derived from the product requirements, the parts and the fab, in one place. Each constraint has an ID, a minimum, a target and a maximum where they apply, its source, and the mechanism that enforces it.
-- **Enforced by:** `DRC` = the T1 product rule set composed on top of the PCBWay fab rule set (E3.4); `NC` = KiCad net class or custom rule generated from the data file (E2.4); `CHK` = a script check on the layout (E4.5); `SIM` = a simulation in `sim/` (E4.4); `REV` = a review item with its checklist line, because no tool can check it.
+- **Enforced by:** `DRC` = the T1 product rules ([`hardware/rules/`](../../hardware/rules/)), composed on top of the PCBWay HDI fab rule set (E3.4); a rule whose value is still **UNVERIFIED** is a DRC warning, the others are errors; `NC` = net class in [`hardware/rules/netclasses.toml`](../../hardware/rules/netclasses.toml) (E2.4); `CHK` = a script check on the layout (E4.5); `SIM` = a simulation in `sim/` (E4.4); `REV` = a review item with its checklist line, because no tool can check it.
 - **Values:** a value with no source is not used. **UNVERIFIED** marks values taken from a sibling part, an assumption, or a source not yet retrieved; each one names what closes it. Arithmetic is shown as such.
 
 ## 0. Summary
@@ -89,14 +89,16 @@ Impedance tolerance on the board is PCBWay's ±10 % [P1]. A class whose standard
 
 Widths are the IPC-2221 external/internal formula at ΔT = 10 °C (conservative, arithmetic: I = k·ΔT^0.44·A^0.725), as provisional minimums for the net classes; sign-off uses IPC-2152 at layout (E4.5). Currents are the protection rating or the worst continuous case, whichever is higher (BRD-049).
 
-| ID | Path | Design current | Min width, 35 µm outer | Min width, 35 µm inner | Source | Enforced by |
+Outer layers are taken at 35 µm finished (18 µm base plus plating, **UNVERIFIED** until the PCBWay stackup) and inner layers at 18 µm, the HDI base copper [P3].
+
+| ID | Path | Design current | Min width, outer (35 µm) | Min width, inner (18 µm) | Source | Enforced by |
 |---|---|---|---|---|---|---|
-| PCB-P-01 | Battery: connector → fuse → BQ25798 BAT; P− → sense resistor → GND | 5.0 A (fuse) | 2.8 mm or a pour | 7.2 mm or a pour on two layers | BOM lines 43, 47, 104; ADR 0014 | NC, CHK (copper area per net) |
-| PCB-P-02 | VSYS (6.0–8.8 V) trunk | 3.2 A worst continuous | 1.5 mm or a pour | 3.9 mm | Power tree §4.7, BOM §7 item 17 | NC, CHK |
-| PCB-P-03 | VBUS → TPS2121 → BQ25798 | 3.0 A (TPS2121 ILM max) | 1.4 mm | 3.6 mm | Power tree line VBUS_CHG | NC |
-| PCB-P-04 | HAT_5V and USB-C source (5.1 V) | 1.66 A (eFuse ILIM max) | 0.6 mm | 1.6 mm | Power tree §4.6 | NC |
-| PCB-P-05 | HAT_3V3 | 1.0 A (ILIM) | 0.3 mm | 0.8 mm | Power tree §4.6 | NC |
-| PCB-P-06 | Amplifier rails ±7 V / ±6 V | 0.3 A per rail (275 mA design case) | 0.15 mm (use ≥ 0.3 mm for impedance) | 0.3 mm | Power tree §4.10.1, ADR 0015 | NC |
+| PCB-P-01 | Battery: connector → fuse → BQ25798 BAT; P− → sense resistor → GND | 5.0 A (fuse) | 2.8 mm or a pour | 14.0 mm, so a pour on two or more layers | BOM lines 43, 47, 104; ADR 0014 | DRC (`PWR_BAT`), CHK (copper area per net) |
+| PCB-P-02 | VSYS (6.0–8.8 V) trunk | 3.2 A worst continuous | 1.5 mm or a pour | 7.6 mm or a pour | Power tree §4.7, BOM §7 item 17 | DRC (`PWR_VSYS`), CHK |
+| PCB-P-03 | VBUS → TPS2121 → BQ25798 | 3.0 A (TPS2121 ILM max) | 1.4 mm | 6.9 mm or a pour | Power tree line VBUS_CHG | DRC (`PWR_VBUS`) |
+| PCB-P-04 | HAT_5V and USB-C source (5.1 V) | 1.66 A (eFuse ILIM max) | 0.6 mm | 3.1 mm | Power tree §4.6 | DRC (`PWR_5V1`) |
+| PCB-P-05 | HAT_3V3 | 1.0 A (ILIM) | 0.3 mm | 1.5 mm | Power tree §4.6 | DRC (`PWR_HAT3V3`) |
+| PCB-P-06 | Amplifier rails ±7 V / ±6 V | 0.3 A per rail (275 mA design case) | 0.3 mm (the current needs 0.06 mm; the width keeps the rail impedance low) | 0.3 mm | Power tree §4.10.1, ADR 0015 | DRC (`PWR_AMP`) |
 | PCB-P-07 | Switching loops (BQ25798, TPS62136, TPS62903 ×2, LMR33630C, TPS65131, RK809, RK860, TPS62840) | — | Input capacitor, switch node and inductor on one side, loop area per each datasheet layout example | — | Each part's datasheet layout section (parts-lib) | REV |
 | PCB-P-08 | Switch-node copper | — | Smallest area that carries the current; no other net under it on the adjacent layer except ground | — | Standard practice, datasheets | REV |
 | PCB-P-09 | Vias per amp of plane change | — | ≥ 1 via (0.25 mm) per 0.5 A **UNVERIFIED**; for laser microvias per the PCBWay copper fill | — | Rule of thumb, to replace with an IPC-2152 via calculation (E4.5) | CHK |

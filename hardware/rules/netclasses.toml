@@ -6,6 +6,8 @@
 # Impedance-controlled classes get their widths and gaps from the stackup
 # (E3.6); until then they carry only their target and the constraint IDs.
 # The KiCad project's net classes are generated from this file (E4.1).
+# Rules also rely on footprint references, fields, pad properties and rule
+# areas; those conventions are in README.md ("Conventions the rules rely on").
 
 version = 1
 

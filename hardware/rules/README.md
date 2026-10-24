@@ -1,12 +1,41 @@
 # Main board rules
 
-The T1 main board's own design rules, from the [PCB design constraints](../../docs/specs/pcb-design-constraints.md) (BRD-060).
+The T1 main board's own design rules, from the [PCB design constraints](../../docs/specs/pcb-design-constraints.md) (BRD-060) and the [DFM and reliability rules research](../../docs/research/2026-10-pcb-dfm-reliability-rules.md).
 
-- `t1-main-board.kicad_dru`: the product rules. Each rule is named after the constraint it enforces (`T1 PCB-…`). A value still **UNVERIFIED** in the specification is a warning; a value with a source is an error.
+- `t1-main-board.kicad_dru`: the product rules. Each rule is named after the constraint it enforces and the lowest quality level at which it is mandatory ([RFC 0010](https://github.com/opendap-project/rfcs/blob/main/text/0010-quality-levels.md)): `T1 PCB-H-01 [Q1]: …`.
 - `netclasses.toml`: the net classes the rules and the schematic share, with their constraint IDs, design currents and impedance targets.
 - `test/`: a test board with one failing and one passing object per rule, built by `make_test_board.py` on kicad-lib's test-board tools (submodule `../lib/opendap`).
 
 The KiCad project's `<project>.kicad_dru` is the composition of the PCBWay HDI fab rules (kicad-lib `design-rules/pcbway-hdi`) and these product rules, made and checked with `odapkit dru` (E3.5).
+
+## Severity
+
+- A rule at Q0 or Q1 whose value has a source is an **error**.
+- A rule at Q2 to Q4 is a **warning**, whatever its source (RFC 0010: items above the build's target level are debt, not blockers).
+- A rule whose value is still **UNVERIFIED** is a **warning** at any level, and becomes an error when the value is sourced and the level is Q0 or Q1.
+
+Each rule's comment in the `.kicad_dru` names its source; the research note lists primary and secondary sources per rule.
+
+## Conventions the rules rely on
+
+The rules find objects by reference prefix, footprint field, pad fabrication property and rule-area name. The schematic symbols and footprints carry them; a footprint that does not follow them escapes its rules.
+
+| Object | Convention | Rules |
+|---|---|---|
+| Mounting hole | Footprint reference `H*` (`H1`…`H4`); one pad, NPTH or plated | PCB-H-01 to H-06 |
+| Ceramic capacitor (MLCC) | Reference `C*`. A capacitor that is not an MLCC still gets the MLCC rules, which only cost distance | PCB-H-05, PCB-B-03 |
+| Edge-mounted part | Reference `J*` (connectors) or `SW*` (side buttons): exempt from the part-to-edge rule, may overhang the edge | PCB-B-01 |
+| BGA needing rework access | Footprint field `Rework` = `BGA` (RK3566, LPDDR4X, eMMC) | PCB-D-01 |
+| BGA ball pads | Pad fabrication property "BGA pad" (also used by the fab rules) | PCB-H-06 |
+| Fiducial | Reference `FID*`; pad fabrication property "Fiducial, global to board" or "Fiducial, local to footprint" | PCB-D-02 to D-04 |
+| Test point | Reference `TP*`; pad fabrication property "Test point pad" | PCB-D-06 to D-09 |
+| Via in a pad | Via property Filling = Filled and Capping = Capped (IPC-4761 type VII) | PCB-D-10 |
+| Heat source | Footprint field `Thermal` = `hot` (converters, eFuses, charger, SoC, PMIC) | PCB-L-01 |
+| Battery pocket | Rule area `BATTERY_POCKET`: the pocket's footprint on the board, grown by a 3 mm margin (**UNVERIFIED**) | PCB-L-01 |
+| Battery connector | Rule area `BATTERY_CONNECTOR` around the Micro-Fit connector and its unfused copper | PCB-L-02 |
+| Panel break tab | Rule area `BREAK_TAB` around each tab or mouse-bite position on the outline, reaching at least 5.08 mm (PCB-B-03) into the board | PCB-B-02, B-03 |
+| RK3566 escape | Rule area `BGA_ESCAPE` (existing) | PCB-G-02, W-01, V-01 |
+| Analog audio | Rule area `AUDIO_ANALOG` (existing) | PCB-A-07 |
 
 ## Check
 
@@ -18,6 +47,10 @@ python3 hardware/lib/opendap/design-rules/tools/check_drc.py hardware/rules/test
 
 Every rule fires exactly once in the FAIL column and nothing fires in the PASS column.
 
+Rules that overlap the fab and craft rule sets are left to them: silkscreen to pads and vias, silk sizes, 45° routing, acute angles (CRAFT-41, 135° minimum), short segments and the via set live in kicad-lib `opendap-craft`. The composition `pcbway-hdi` + `opendap-craft` + these rules compiles under KiCad 10.0.7 with every T1 rule still firing on the test board.
+
 ## Not checked by DRC
 
-Impedance, length matching and skew (PCB-I), height zones (PCB-Z), copper area per net and via counts (PCB-P-01 to PCB-P-03, PCB-P-09), ESD distance (PCB-E-01) and test-pad coverage (PCB-T-02) are layout checks (E4.5). Review items are listed in the specification.
+Impedance, length matching and skew (PCB-I), height zones (PCB-Z), copper area per net and via counts for current (PCB-P-01 to PCB-P-03, PCB-P-09), ESD distance (PCB-E-01) and test-pad coverage (PCB-T-02) are layout checks (E4.5). Review items are listed in the specification.
+
+KiCad 10.0.7 can express two more rules, thermal-relief spoke count (`min_resolved_spokes`) and differential-pair uncoupled length (`diff_pair_uncoupled`), but its report does not name the rule for them ("zone min spoke count", "(<rule> maximum uncoupled length"), so `check_drc.py` cannot attribute them. They wait for a kicad-lib `check_drc.py` that reads those messages; until then they are CHK items in the research note, with the other checks DRC cannot make.

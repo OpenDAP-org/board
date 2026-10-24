@@ -175,6 +175,58 @@
         "track_width": 0.0,
         "via_diameter": 0.4,
         "via_drill": 0.2
+      },
+      {
+        "clearance": 0.0,
+        "diff_pair_gap": 0.1,
+        "diff_pair_via_gap": 0.1,
+        "diff_pair_width": 0.1,
+        "microvia_diameter": 0.2,
+        "microvia_drill": 0.1,
+        "name": "USB2_90D",
+        "priority": 10,
+        "track_width": 0.0,
+        "via_diameter": 0.4,
+        "via_drill": 0.2
+      },
+      {
+        "clearance": 0.0,
+        "diff_pair_gap": 0.1,
+        "diff_pair_via_gap": 0.1,
+        "diff_pair_width": 0.1,
+        "microvia_diameter": 0.2,
+        "microvia_drill": 0.1,
+        "name": "USB3_90D",
+        "priority": 11,
+        "track_width": 0.0,
+        "via_diameter": 0.4,
+        "via_drill": 0.2
+      },
+      {
+        "clearance": 0.0,
+        "diff_pair_gap": 0.1,
+        "diff_pair_via_gap": 0.1,
+        "diff_pair_width": 0.1,
+        "microvia_diameter": 0.2,
+        "microvia_drill": 0.1,
+        "name": "PCIE_85D",
+        "priority": 12,
+        "track_width": 0.0,
+        "via_diameter": 0.4,
+        "via_drill": 0.2
+      },
+      {
+        "clearance": 0.0,
+        "diff_pair_gap": 0.1,
+        "diff_pair_via_gap": 0.1,
+        "diff_pair_width": 0.1,
+        "microvia_diameter": 0.2,
+        "microvia_drill": 0.1,
+        "name": "MIPI_100D",
+        "priority": 13,
+        "track_width": 0.0,
+        "via_diameter": 0.4,
+        "via_drill": 0.2
       }
     ],
     "meta": {
@@ -220,6 +272,22 @@
       {
         "netclass": "MCLK",
         "pattern": "MCLK_*"
+      },
+      {
+        "netclass": "USB2_90D",
+        "pattern": "USB2_90D_*"
+      },
+      {
+        "netclass": "USB3_90D",
+        "pattern": "USB3_90D_*"
+      },
+      {
+        "netclass": "PCIE_85D",
+        "pattern": "PCIE_85D_*"
+      },
+      {
+        "netclass": "MIPI_100D",
+        "pattern": "MIPI_100D_*"
       }
     ]
   }

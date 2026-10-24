@@ -1,6 +1,6 @@
 # Main board PCB design constraints
 
-- **Status:** Draft v0.3 (2026-10-24; v0.2 applies ADR 0016, v0.3 Rockchip's layout rules). Task E2.1 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Nothing here is laid out or measured yet.
+- **Status:** Draft v0.4 (2026-10-24; v0.2 applies ADR 0016, v0.3 Rockchip's layout rules, v0.4 Murata's 2EL notes and the interface standards). Task E2.1 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Nothing here is laid out or measured yet.
 - **Purpose:** every limit the main-board layout must respect, derived from the product requirements, the parts and the fab, in one place. Each constraint has an ID, a minimum, a target and a maximum where they apply, its source, and the mechanism that enforces it.
 - **Enforced by:** `DRC` = the T1 product rules ([`hardware/rules/`](../../hardware/rules/)), composed on top of the PCBWay HDI fab rule set (E3.4); a rule whose value is still **UNVERIFIED** is a DRC warning, the others are errors; `NC` = net class in [`hardware/rules/netclasses.toml`](../../hardware/rules/netclasses.toml) (E2.4); `CHK` = a script check on the layout (E4.5); `SIM` = a simulation in `sim/` (E4.4); `REV` = a review item with its checklist line, because no tool can check it.
 - **Values:** a value with no source is not used. **UNVERIFIED** marks values taken from a sibling part, an assumption, or a source not yet retrieved; each one names what closes it. Arithmetic is shown as such.
@@ -125,8 +125,9 @@ Outer layers are taken at 35 µm finished (18 µm base plus plating, **UNVERIFIE
 
 | ID | Constraint | Source | Enforced by |
 |---|---|---|---|
-| PCB-R-01 | Radio module footprint, ground and keep-out exactly per Murata's Type 2EL hardware design guide, to keep the pre-certification | BRD-025; guide not retrieved (**UNVERIFIED**, LBES5PL2EL-923 sheet) | DRC (keep-out from the footprint), REV |
-| PCB-R-02 | U.FL connectors and π networks in the top band; 0402 C0G, DNP by default | BOM lines 56–58 | REV |
+| PCB-R-01 | Radio module land, ground and keep-out per Murata's Type 2EL hardware application note E2B-09-1413 Rev. 9.0 and footprint drawing; the datasheet (supply ranges, sequencing, keep-out under the module) is still **UNVERIFIED** (Murata's link refused) | BRD-025; LBES5PL2EL-923 sheet | DRC (keep-out from the footprint), REV |
+| PCB-R-02 | Two antenna paths: ANT0 (pin 15) for Wi-Fi and ANT1 (pin 23) for Bluetooth / 802.15.4, each with a U.FL and a π network in 0402 C0G, DNP by default, in the top band | E2B-09-1413; BOM lines 56–58 | REV |
+| PCB-R-03 | RF trace: 50 Ω coplanar, 230–240 µm from the trace to its coplanar ground (8–15 mil allowed by the certification note), 7–25 mm long; no copper under the U.FL (≥ 0.8 mm recommended); with the HDI's thin dielectrics, ground cut-outs under the RF path set the impedance | E2B-09-1413, CER-0248 ([interface standards](../research/2026-10-interface-standards-layout.md)) | DRC (keep-out area), REV |
 | PCB-E-01 | ESD protection at every external connector (USB-C, jacks, HAT DF40, faceplate FH35C, microSD), placed between the connector and everything else, ≤ 3 mm from the connector pins **UNVERIFIED** | BRD-007; BOM ESD lines | CHK (distance), REV |
 | PCB-E-02 | USB-C VBUS: TVS2200 at the connector, TPS2121 next | Power tree (VBUS surge note) | REV |
 | PCB-E-03 | Each HAT rail behind its eFuse | BRD-026 | schematic |
@@ -141,7 +142,7 @@ Outer layers are taken at 35 µm finished (18 µm base plus plating, **UNVERIFIE
 
 1. **Front-side height (PCB-Z-03):** decided by [ADR 0016](../adr/0016-front-side-height-under-the-display.md). Still open from its study: package heights of the RK3566, LPDDR4X and eMMC; the back bands at 104–123 % of their area with today's tall parts (4020 inductors, haptic motor, microSD socket); the microSD socket fits neither the top band nor the zone under the battery. Both go to placement (E7.1).
 2. **Rockchip documents** retrieved (E1.11 part 1). Still missing: the RK3566 edition of the high-speed guide, RK3566 DDR templates, package pin lengths, a land pattern (Rockchip publishes none: the footprint is drawn from the package drawing and checked by a second reading) and IBIS models. LPDDR4X needs 1.10 V (VDD2) besides 0.60 V (VDDQ) at the SoC: check against the power tree.
-3. **Murata Type 2EL hardware design guide** (footprint, keep-out, RF pins): before placement (PCB-R-01).
-4. **Standards' tolerance windows** (USB 2.0, USB 3.x, PCIe, MIPI D-PHY): add the texts or a secondary source to the docs.
+3. **Murata Type 2EL:** application note, footprint and certification note retrieved ([interface standards](../research/2026-10-interface-standards-layout.md)); the datasheet is still missing. Findings for the power tree and the product: the module needs a 1.8 V power rail (AVDD18, 323–390 mA typical in Bluetooth/802.15.4 transmit, peaks above 1 A on the carrier datasheet) besides 3.3 V; the US and Canada modular approvals cover mobile use at ≥ 20 cm only, so the handheld T1 needs SAR and a permissive change through Murata; the Molex 146187 antenna is on Japan's list only (with a ≥ 50 mm cable). Plan tasks E1.12, E1.13.
+4. **Standards** ([interface standards](../research/2026-10-interface-standards-layout.md)): USB 2.0 and USB 3.2 texts retrieved (USB 2.0 allows ±15 %, the board keeps PCBWay's ±10 %; USB 3 AC caps 75–265 nF); PCIe and MIPI from vendor guides only (member-only specs); the eMMC 5.1 text and SD SDR104 timing are still missing.
 5. **Case inputs**: walls, bosses, clearances (PCB-M-02, PCB-M-08) through the t1 interface files (E4.6).
 6. **PCBWay**: HDI stackup, microvia land, shielding frames, fiducial practice (E3.6).

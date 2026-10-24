@@ -1,6 +1,6 @@
 # Main board PCB design constraints
 
-- **Status:** Draft v0.2 (2026-10-24; v0.2 applies ADR 0016). Task E2.1 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Nothing here is laid out or measured yet.
+- **Status:** Draft v0.3 (2026-10-24; v0.2 applies ADR 0016, v0.3 Rockchip's layout rules). Task E2.1 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Nothing here is laid out or measured yet.
 - **Purpose:** every limit the main-board layout must respect, derived from the product requirements, the parts and the fab, in one place. Each constraint has an ID, a minimum, a target and a maximum where they apply, its source, and the mechanism that enforces it.
 - **Enforced by:** `DRC` = the T1 product rules ([`hardware/rules/`](../../hardware/rules/)), composed on top of the PCBWay HDI fab rule set (E3.4); a rule whose value is still **UNVERIFIED** is a DRC warning, the others are errors; `NC` = net class in [`hardware/rules/netclasses.toml`](../../hardware/rules/netclasses.toml) (E2.4); `CHK` = a script check on the layout (E4.5); `SIM` = a simulation in `sim/` (E4.4); `REV` = a review item with its checklist line, because no tool can check it.
 - **Values:** a value with no source is not used. **UNVERIFIED** marks values taken from a sibling part, an assumption, or a source not yet retrieved; each one names what closes it. Arithmetic is shown as such.
@@ -8,8 +8,8 @@
 ## 0. Summary
 
 1. **Front side under the display: parts up to 1.0 mm; the body grows to 25 mm** ([ADR 0016](../adr/0016-front-side-height-under-the-display.md)). The thickness stack gave 0.3 mm between the display and the board, while about 2,100–3,700 mm² of parts must sit under the display. The extra 1.0 mm comes from body thickness (T1-031 maximum), not from the battery, whose energy is the limit of T1-039. No thickness margin is left within 25 mm.
-2. **High-speed layout values wait for Rockchip's RK3566 hardware design guide.** LPDDR4X impedance, length and skew limits are not in any retrieved document. They are marked **UNVERIFIED** with the usual values as placeholders, and retrieving the guide is a blocker before routing (§9 item 2).
-3. **The main board is an HDI build.** The 0.4 mm part of the RK3566 ball field needs laser microvias in the pads ([PCBWay capabilities](https://github.com/opendap-project/kicad-lib/blob/main/docs/research/2026-10-pcbway-capabilities.md) §2.1); the build order follows the ball map.
+2. **High-speed values come from Rockchip's documents** ([RK3566 layout rules](../research/2026-10-rk3566-layout-rules.md): RK3566 Hardware Design Guide V1.1.0 and the RK3568 High Speed PCB Design Guide V1.0.0, which covers the same interface blocks). LPDDR4X is 50 Ω single-ended and 100 Ω differential; the PCIe reference clock is 100 Ω, a class of its own. Where Rockchip is looser than a standard or than the T1's need, the T1 keeps the tighter value and says why.
+3. **The main board is an HDI build, without via-in-pad as a requirement.** The RK3566 has 343 core balls at 0.65 mm and a two-row ring of 222 balls at 0.4 mm. Laser microvias as dog-bones in the 0.825–0.875 mm channel between the ring and the core escape every inner-ring ball (arithmetic on the package drawing, [RK3566 layout rules](../research/2026-10-rk3566-layout-rules.md) §3); through vias do not fit there. Rockchip itself uses 4–6 layers, so the T1's 8–10 layers rest on its own density, double-sided z budget and audio partition, to be confirmed by an escape study.
 4. **Copper for power is sized for the protection rating, not the typical draw** (BRD-049): the battery path carries the 5 A fuse rating continuously with ≤ 10 °C rise.
 5. **Audio rules come from the CS43198 and OPA1622 datasheets** and from the decided topology (ADR 0010, 0012, 0015): split nothing, partition everything.
 
@@ -46,8 +46,8 @@ Heights are above the board surface. "Front" is +z (towards the display), "back"
 | ID | Constraint | Min | Target | Max | Source | Enforced by |
 |---|---|---|---|---|---|---|
 | PCB-S-01 | Board thickness | 1.0 mm | 1.0–1.2 mm | 1.2 mm (z stack) | Battery selection §2.2 (1.2 mm); PCBWay HDI example 8 layers 1.0 ± 0.1 mm [P3] | fab notes, export |
-| PCB-S-02 | Build | 1+N+1 | 2+N+2 (stacked or staggered, copper-filled) | any-layer only if the ball map needs it | 0.4 mm field escape needs via-in-pad microvias (PCBWay research §2.1); RK3566 ball map **UNVERIFIED** | stackup, DRC (via types) |
-| PCB-S-03 | Layer count | 8 | 8–10 | 10 (1.2 mm limit, PCBWay 10-layer HDI example is 1.3 mm [P3]) | LPDDR4X + RK3566 escape + audio planes; final count from the escape study | stackup |
+| PCB-S-02 | Build | 1+N+1 | 1+N+1 or 2+N+2 (copper-filled microvias), via-in-pad only where the escape study needs it | any-layer only if the escape study needs it | [RK3566 layout rules](../research/2026-10-rk3566-layout-rules.md) §3: microvias needed for the 0.4 mm ring, not necessarily in the pad | stackup, DRC (via types) |
+| PCB-S-03 | Layer count | 8 | 8–10 | 10 (1.2 mm limit, PCBWay 10-layer HDI example is 1.3 mm [P3]) | T1 density, double-sided z budget, audio planes; Rockchip's templates use 4–6 ([RK3566 layout rules](../research/2026-10-rk3566-layout-rules.md) §2); escape study (E4) | stackup |
 | PCB-S-04 | Reference planes | — | Every high-speed and every analog-audio layer adjacent to a solid ground plane | — | Standard practice; CS43198 §8 (DS1156F2 p. 121) | REV |
 | PCB-S-05 | Dielectric | 50 µm (impedance) | per PCBWay stackup | — | [P2, P12] | stackup (E3.6 asks PCBWay) |
 | PCB-S-06 | Material | Tg 170 FR-4 | Tg 170, high-speed class 1–5 G if the USB 3 / PCIe loss budget needs it | — | PCBWay materials [P2, P16]; loss budget E4.5 | stackup |
@@ -75,12 +75,12 @@ Impedance tolerance on the board is PCBWay's ±10 % [P1]. A class whose standard
 
 | ID | Net class | Signals | Impedance | Length and skew | Source | Enforced by |
 |---|---|---|---|---|---|---|
-| PCB-I-01 | `USB2_90D` | Main USB-C D± (OTG0), HAT `USB3_D±` | 90 Ω differential | Intra-pair skew ≤ 0.15 mm **UNVERIFIED** | HAT interface v1 §L1; USB 2.0 tolerance **UNVERIFIED** | NC, CHK |
-| PCB-I-02 | `USB3_90D` | HAT `USB3_SSTX±`, `USB3_SSRX±` | 90 Ω differential | Intra-pair ≤ 0.1 mm **UNVERIFIED**; AC caps on TX near the source | HAT interface v1 §L1 | NC, CHK |
-| PCB-I-03 | `PCIE_85D` | HAT `PCIE_TX±`, `PCIE_RX±`, `PCIE_REFCLK±` | 85 Ω differential (85–100 Ω allowed, **UNVERIFIED**) | Intra-pair ≤ 0.1 mm **UNVERIFIED**; AC caps on TX | HAT interface v1 §L3 | NC, CHK |
-| PCB-I-04 | `MIPI_100D` | Faceplate DSI, HAT CSI-2 | 100 Ω differential | Intra-pair ≤ 0.1 mm, lane-to-clock ≤ 1 mm **UNVERIFIED** | HAT interface v1 §L3; faceplate interface | NC, CHK |
-| PCB-I-05 | `DDR_DQ`, `DDR_CA`, `DDR_CK` | LPDDR4X | 40 Ω single-ended, 80 Ω differential (CK, DQS) **UNVERIFIED** | Byte-lane and CA matching per the Rockchip guide **UNVERIFIED** | RK3566 hardware design guide, not retrieved (§9 item 2) | NC, CHK |
-| PCB-I-06 | `EMMC_SD_50` | eMMC (HS200), microSD (SDR104, BRD-051) | 50 Ω single-ended | CLK to data ≤ 2 mm **UNVERIFIED** | BRD-051; Rockchip guide **UNVERIFIED** | NC, CHK |
+| PCB-I-01 | `USB2_90D` | Main USB-C D± (OTG0), HAT `USB3_D±` | 90 Ω ±10 % differential | Intra-pair skew ≤ 0.15 mm (T1; Rockchip allows 0.51 mm); ≤ 152 mm; ≤ 4 vias; 2.2 Ω series at the SoC | HSPCB p. 13; HDG p. 59 ([RK3566 layout rules](../research/2026-10-rk3566-layout-rules.md)) | NC, CHK |
+| PCB-I-02 | `USB3_90D` | HAT `USB3_SSTX±`, `USB3_SSRX±` | 90 Ω ±10 % differential | Intra-pair ≤ 0.30 mm; ≤ 152 mm; ≤ 2 vias; spacing ≥ 4 × W; 100 nF 0201 AC caps on SSTX | HSPCB p. 13; HDG p. 59 | NC, CHK |
+| PCB-I-03 | `PCIE_85D`, `PCIE_REFCLK_100D` | HAT `PCIE_TX±`, `PCIE_RX±`; `PCIE_REFCLK±` | 85 Ω ±10 % data; 100 Ω ±10 % reference clock | Intra-pair ≤ 0.30 mm; ≤ 152 mm; ≤ 2 vias; spacing ≥ 4 × W (≥ 5 × W to other signals recommended); 100 nF 0201 AC caps on TX | HSPCB p. 15; HDG p. 89 | NC, CHK |
+| PCB-I-04 | `MIPI_100D` | Faceplate DSI, HAT CSI-2 | 100 Ω ±10 % differential | Intra-pair ≤ 0.1 mm (T1; Rockchip 0.30 mm); data to clock ≤ 0.91 mm; ≤ 152 mm; ≤ 4 vias; spacing ≥ 3 × W | HSPCB pp. 18–19 | NC, CHK |
+| PCB-I-05 | `DDR_DQ`, `DDR_CA`, `DDR_CK` | LPDDR4X | 50 Ω ±10 % single-ended, 100 Ω ±10 % differential (CK, DQS) | DQ/DM to DQS within a byte ≤ 15.2 mm; CA to CK ≤ 12.7 mm; DQS and CK pair halves ≤ 0.30 mm; DQS to CK ≤ 30.5 mm; spacing ≥ 2 × W (≥ 3 × W around DQS and CK); no DQ or CA swapping; a layout that departs from Rockchip's template is simulated | HSPCB pp. 44–45, Table 34 | NC, CHK, SIM |
+| PCB-I-06 | `EMMC_SD_50` | eMMC (HS200), microSD (SDR104, BRD-051), SDIO to the radio | 50 Ω ±10 % single-ended | Data and CMD to CLK ≤ 2 mm (T1; Rockchip 3.05 mm); ≤ 102 mm; ≤ 4 vias; 22 Ω series on CLK; SD ESD < 1 pF | HSPCB pp. 19–20; HDG pp. 26, 52, 54 | NC, CHK |
 | PCB-I-07 | `RF_50` | Module RF pins to U.FL | 50 Ω coplanar with ground | Shortest; π network at the pin | U.FL-R-SMT-1 50 Ω; Murata layout guide **UNVERIFIED** | NC, REV |
 | PCB-I-08 | `I2S_DSD` | SoC → CS43198 ASP (SCLK, LRCK, SDIN) | 50 Ω single-ended, series-terminated at the source | Matched within the bus ≤ 5 mm **UNVERIFIED**; slave SCLK ≤ 24.58 MHz | CS43198 Table 3-18; test pads BRD-040 | NC, CHK |
 | PCB-I-09 | `MCLK` | 22.5792 / 24.576 MHz oscillators → attenuator → CS43198 XTI | 50 Ω, ground-guarded, no via changes of reference | Shortest; ≥ 3 × trace width from any other signal; away from FILT± | ADR 0010; CS43198 §8 (keep clocks away from FILT±) | NC, REV |
@@ -102,7 +102,7 @@ Outer layers are taken at 35 µm finished (18 µm base plus plating, **UNVERIFIE
 | PCB-P-07 | Switching loops (BQ25798, TPS62136, TPS62903 ×2, LMR33630C, TPS65131, RK809, RK860, TPS62840) | — | Input capacitor, switch node and inductor on one side, loop area per each datasheet layout example | — | Each part's datasheet layout section (parts-lib) | REV |
 | PCB-P-08 | Switch-node copper | — | Smallest area that carries the current; no other net under it on the adjacent layer except ground | — | Standard practice, datasheets | REV |
 | PCB-P-09 | Vias per amp of plane change | — | ≥ 1 via (0.25 mm) per 0.5 A **UNVERIFIED**; for laser microvias per the PCBWay copper fill | — | Rule of thumb, to replace with an IPC-2152 via calculation (E4.5) | CHK |
-| PCB-P-10 | Decoupling | — | Smallest capacitor closest to its pin, same side, via-in-pad or ≤ 0.5 mm to the via | — | CS43198 §8; RK3566 guide **UNVERIFIED** | REV |
+| PCB-P-10 | Decoupling | — | Smallest capacitor closest to its pin with the shortest via path; for the RK3566 and LPDDR4X, Rockchip's placement under the package on the opposite side (with ADR 0016 the SoC is on the back, so its decoupling goes on the front, under the ball field, within PCB-Z-03); values per supply from the HDG | — | CS43198 §8; HDG ([RK3566 layout rules](../research/2026-10-rk3566-layout-rules.md) §4) | REV |
 
 ## 7. Audio partition and grounding
 
@@ -140,7 +140,7 @@ Outer layers are taken at 35 µm finished (18 µm base plus plating, **UNVERIFIE
 ## 9. Open items
 
 1. **Front-side height (PCB-Z-03):** decided by [ADR 0016](../adr/0016-front-side-height-under-the-display.md). Still open from its study: package heights of the RK3566, LPDDR4X and eMMC; the back bands at 104–123 % of their area with today's tall parts (4020 inductors, haptic motor, microSD socket); the microSD socket fits neither the top band nor the zone under the battery. Both go to placement (E7.1).
-2. **Rockchip RK3566 hardware design guide** (LPDDR4X, eMMC, SD, USB 3, PCIe, DSI rules; land pattern; decoupling): retrieve before routing. Every PCB-I value marked **UNVERIFIED** is replaced from it.
+2. **Rockchip documents** retrieved (E1.11 part 1). Still missing: the RK3566 edition of the high-speed guide, RK3566 DDR templates, package pin lengths, a land pattern (Rockchip publishes none: the footprint is drawn from the package drawing and checked by a second reading) and IBIS models. LPDDR4X needs 1.10 V (VDD2) besides 0.60 V (VDDQ) at the SoC: check against the power tree.
 3. **Murata Type 2EL hardware design guide** (footprint, keep-out, RF pins): before placement (PCB-R-01).
 4. **Standards' tolerance windows** (USB 2.0, USB 3.x, PCIe, MIPI D-PHY): add the texts or a secondary source to the docs.
 5. **Case inputs**: walls, bosses, clearances (PCB-M-02, PCB-M-08) through the t1 interface files (E4.6).

@@ -1,13 +1,13 @@
 # Main board PCB design constraints
 
-- **Status:** Draft v0.1 (2026-10-24). Task E2.1 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Nothing here is laid out or measured yet.
+- **Status:** Draft v0.2 (2026-10-24; v0.2 applies ADR 0016). Task E2.1 of the [electronics plan](https://github.com/opendap-project/t1/blob/main/docs/plans/2026-10-electronics-plan.md). Nothing here is laid out or measured yet.
 - **Purpose:** every limit the main-board layout must respect, derived from the product requirements, the parts and the fab, in one place. Each constraint has an ID, a minimum, a target and a maximum where they apply, its source, and the mechanism that enforces it.
 - **Enforced by:** `DRC` = the T1 product rules ([`hardware/rules/`](../../hardware/rules/)), composed on top of the PCBWay HDI fab rule set (E3.4); a rule whose value is still **UNVERIFIED** is a DRC warning, the others are errors; `NC` = net class in [`hardware/rules/netclasses.toml`](../../hardware/rules/netclasses.toml) (E2.4); `CHK` = a script check on the layout (E4.5); `SIM` = a simulation in `sim/` (E4.4); `REV` = a review item with its checklist line, because no tool can check it.
 - **Values:** a value with no source is not used. **UNVERIFIED** marks values taken from a sibling part, an assumption, or a source not yet retrieved; each one names what closes it. Arithmetic is shown as such.
 
 ## 0. Summary
 
-1. **The z budget does not fit a double-sided board under the display yet.** The thickness stack ([battery selection](../research/2026-10-battery-selection.md) §2.2) gives 0.3 mm between the display module and the board, while the FH35C faceplate connector alone is 0.9 mm high and BRD-054 allows both sides populated. PCB-Z-03 sets the front-side zones and §9 item 1 lists the options; the choice needs the maintainers (it moves the battery layer).
+1. **Front side under the display: parts up to 1.0 mm; the body grows to 25 mm** ([ADR 0016](../adr/0016-front-side-height-under-the-display.md)). The thickness stack gave 0.3 mm between the display and the board, while about 2,100–3,700 mm² of parts must sit under the display. The extra 1.0 mm comes from body thickness (T1-031 maximum), not from the battery, whose energy is the limit of T1-039. No thickness margin is left within 25 mm.
 2. **High-speed layout values wait for Rockchip's RK3566 hardware design guide.** LPDDR4X impedance, length and skew limits are not in any retrieved document. They are marked **UNVERIFIED** with the usual values as placeholders, and retrieving the guide is a blocker before routing (§9 item 2).
 3. **The main board is an HDI build.** The 0.4 mm part of the RK3566 ball field needs laser microvias in the pads ([PCBWay capabilities](https://github.com/opendap-project/kicad-lib/blob/main/docs/research/2026-10-pcbway-capabilities.md) §2.1); the build order follows the ball map.
 4. **Copper for power is sized for the protection rating, not the typical draw** (BRD-049): the battery path carries the 5 A fuse rating continuously with ≤ 10 °C rise.
@@ -19,7 +19,7 @@ The case owns its walls, bosses and keep-outs; these values are the board's inpu
 
 | ID | Constraint | Min | Target | Max | Source | Enforced by |
 |---|---|---|---|---|---|---|
-| PCB-M-01 | Body the board lives in | — | 59.5 × 94.3 × 24 mm | 62.5 × 95 × 25 mm (T1-031) | [t1 ADR 0003](https://github.com/opendap-project/t1/blob/main/docs/adr/0003-tentative-body-size.md), T1-031 | REV |
+| PCB-M-01 | Body the board lives in | — | 59.5 × 94.3 × 25.0 mm | 62.5 × 95 × 25 mm (T1-031) | [t1 ADR 0003](https://github.com/opendap-project/t1/blob/main/docs/adr/0003-tentative-body-size.md), [ADR 0016](../adr/0016-front-side-height-under-the-display.md), T1-031 | REV |
 | PCB-M-02 | Board outline inside the cavity | — | cavity minus 0.5 mm per side | cavity = body − 2 × wall: 56.3 × 91.1 mm with 1.6 mm walls (arithmetic) | Walls 1.6 mm per side: assumption of the battery selection §2.3, **UNVERIFIED** until the case sets them; clearance 0.5 mm per side **UNVERIFIED** (ISO 2768-m ±0.3 mm on the case plus PCBWay outline ±0.1 mm advanced [P2]) | DRC (board edge), REV |
 | PCB-M-03 | Board outline tolerance | — | ±0.1 mm | ±0.2 mm | PCBWay advanced / standard [P1, P2] | fab notes |
 | PCB-M-04 | Coordinate system | — | origin at the device centre, x across, y along, +z towards the faceplate | — | T1-021 (Draft) | KiCad grid origin, export (E4.9) |
@@ -35,10 +35,10 @@ Heights are above the board surface. "Front" is +z (towards the display), "back"
 
 | ID | Zone | Max part height | Source | Enforced by |
 |---|---|---|---|---|
-| PCB-Z-01 | Back, under the battery pocket footprint | 1.5 mm | Battery selection §2.2 (components under the pocket capped at 1.5 mm; pocket floor 0.4 mm) | CHK (3D height per zone) |
-| PCB-Z-02 | Back, bottom band (jacks, USB-C, speaker) and top band (microSD, antenna feed) | Battery layer + 1.9 mm: 14.2 mm at 24 mm thickness (arithmetic: 24 − 11.7 + 1.5 + 0.4) | Battery selection §2.2, §2.3 | CHK |
-| PCB-Z-03 | Front, under the display module | 0.3 mm today: **conflict**, see §9 item 1 | Battery selection §2.2 (module-to-board gap 0.3 mm, assumption) | CHK |
-| PCB-Z-04 | Front, outside the display footprint (side strips, display 54.46 × 82.94 mm) | Gap + display module thickness: 5.8 mm where the faceplate frame leaves room, **UNVERIFIED** until the faceplate mechanics exist | [faceplate-touch ADR 0001](https://github.com/opendap-project/faceplate-touch/blob/main/docs/adr/0001-focus-lcds-e35gh-display.md) | CHK |
+| PCB-Z-01 | Back, under the battery pocket footprint (RK3566, LPDDR4X, eMMC here) | 1.5 mm, shield can and thermal pad included | Battery selection §2.2; ADR 0016 | CHK (3D height per zone) |
+| PCB-Z-02 | Back, bottom band (jacks, USB-C, speaker) and top band (microSD, antenna feed) | 14.2 mm (arithmetic: battery layer 12.3 + 1.5 + 0.4) | Battery selection §2.2, §2.3; ADR 0016 (fixed stack 12.7 mm at 25 mm) | CHK |
+| PCB-Z-03 | Front, under the display module | 1.0 mm (FH35C 0.9 ± 0.1 mm included); no shield cans; display-to-board gap 1.3 mm | ADR 0016 | CHK |
+| PCB-Z-04 | Front, outside the display footprint | 6.8 mm where the faceplate frame leaves room, **UNVERIFIED** until the faceplate mechanics exist | ADR 0016 | CHK |
 | PCB-Z-05 | Tallest known parts and their zone | G-Switch 4.4 mm jack 6.5 mm (bottom band), USB4105 3.31 mm (bottom band), DM3AT microSD 1.68 mm (top band), XAL4020 inductor 2.1 mm (bands only), DF40 header 1.14 mm, FH35C 0.9 mm | parts-lib sheets | CHK |
 
 ## 3. Stackup and build
@@ -139,7 +139,7 @@ Outer layers are taken at 35 µm finished (18 µm base plus plating, **UNVERIFIE
 
 ## 9. Open items
 
-1. **Front-side height (PCB-Z-03).** The FH35C (0.9 mm) and every front-side part need more than the 0.3 mm gap. Options: (a) grow the gap to about 1.0 mm and take 0.7 mm from the battery layer (about −6 % of the 10.9 mm pocket thickness, arithmetic); (b) a single-sided board under the display, with front-side parts only in the side strips (PCB-Z-04); (c) a recess in the display support for the FH35C only. Needs the maintainers, with the case.
+1. **Front-side height (PCB-Z-03):** decided by [ADR 0016](../adr/0016-front-side-height-under-the-display.md). Still open from its study: package heights of the RK3566, LPDDR4X and eMMC; the back bands at 104–123 % of their area with today's tall parts (4020 inductors, haptic motor, microSD socket); the microSD socket fits neither the top band nor the zone under the battery. Both go to placement (E7.1).
 2. **Rockchip RK3566 hardware design guide** (LPDDR4X, eMMC, SD, USB 3, PCIe, DSI rules; land pattern; decoupling): retrieve before routing. Every PCB-I value marked **UNVERIFIED** is replaced from it.
 3. **Murata Type 2EL hardware design guide** (footprint, keep-out, RF pins): before placement (PCB-R-01).
 4. **Standards' tolerance windows** (USB 2.0, USB 3.x, PCIe, MIPI D-PHY): add the texts or a secondary source to the docs.

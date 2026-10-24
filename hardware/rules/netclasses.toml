@@ -3,8 +3,14 @@
 # The contract between the schematic and the product rules
 # (t1-main-board.kicad_dru): a net in one of these classes gets the
 # constraints listed with it. IDs refer to docs/specs/pcb-design-constraints.md.
-# Impedance-controlled classes get their widths and gaps from the stackup
-# (E3.6); until then they carry only their target and the constraint IDs.
+# Impedance-controlled classes get their widths and gaps from
+# hardware/stackup/stackup-v1.toml (stackup v1, docs/specs/stackup-v1.md §5),
+# to be confirmed by PCBWay's DFM review. Keys: `stackup` names the stack;
+# `width_outer_um` / `gap_outer_um` hold for L1 and L10, `width_inner_um` /
+# `gap_inner_um` for L3 and L8 (drawn width; gap edge to edge within a pair);
+# `layers` are the only layers the class may route on (stackup v1 rule 4.1.2,
+# PCB-S-14). KiCad layer names on the 10-layer board: L1 = F.Cu, L2..L9 =
+# In1.Cu..In8.Cu, L10 = B.Cu.
 # The KiCad project's net classes are generated from this file (E4.1).
 # Rules also rely on footprint references, fields, pad properties and rule
 # areas; those conventions are in README.md ("Conventions the rules rely on").
@@ -81,70 +87,131 @@ constraints = ["PCB-A-03", "PCB-A-07"]
 name = "MCLK_50SE"
 signals = "22.5792 MHz and 24.576 MHz oscillator outputs, the attenuator, CS43198 XTI; each branch at most 20 mm (sim/mclk-attenuator)"
 impedance_ohm = 50
-constraints = ["PCB-I-09"]
+stackup = "stackup-v1"
+width_inner_um = 78.5
+layers = ["L3", "L8"]
+constraints = ["PCB-I-09", "PCB-S-14"]
 
 [[class]]
 name = "I2S_50SE"
 signals = "SoC to CS43198 ASP: SCLK, LRCK, SDIN"
 impedance_ohm = 50
-constraints = ["PCB-I-08", "PCB-A-12"]
+stackup = "stackup-v1"
+width_outer_um = 134.5
+width_inner_um = 78.5
+layers = ["L1", "L3", "L8", "L10"]
+constraints = ["PCB-I-08", "PCB-A-12", "PCB-S-14"]
 
 [[class]]
 name = "USB2_90D"
 signals = "Main USB-C D+/D- (OTG0), HAT USB3_D+/D-"
 differential_ohm = 90
-constraints = ["PCB-I-01", "PCB-I-10"]
+stackup = "stackup-v1"
+width_outer_um = 101.5
+gap_outer_um = 100.0
+width_inner_um = 86.0
+gap_inner_um = 150.0
+layers = ["L1", "L3", "L8", "L10"]
+constraints = ["PCB-I-01", "PCB-I-10", "PCB-S-14"]
 
 [[class]]
 name = "USB3_90D"
 signals = "HAT USB3_SSTX+/-, USB3_SSRX+/-"
 differential_ohm = 90
-constraints = ["PCB-I-02", "PCB-I-10"]
+stackup = "stackup-v1"
+width_outer_um = 101.5
+gap_outer_um = 100.0
+width_inner_um = 86.0
+gap_inner_um = 150.0
+layers = ["L1", "L3", "L8", "L10"]
+constraints = ["PCB-I-02", "PCB-I-10", "PCB-S-14"]
 
 [[class]]
 name = "PCIE_85D"
 signals = "HAT PCIE_TX+/-, PCIE_RX+/- from the SoC to port A of the extension switch (TX AC caps on this segment)"
 differential_ohm = 85
-constraints = ["PCB-I-03", "PCB-I-10"]
+stackup = "stackup-v1"
+width_outer_um = 118.0
+gap_outer_um = 100.0
+width_inner_um = 98.5
+gap_inner_um = 150.0
+layers = ["L1", "L3", "L8", "L10"]
+constraints = ["PCB-I-03", "PCB-I-10", "PCB-S-14"]
 
 [[class]]
 name = "PCIE_REFCLK_100D"
 signals = "HAT PCIE_REFCLK+/- from the SoC to port A of the extension switch"
 differential_ohm = 100
-constraints = ["PCB-I-03", "PCB-I-10"]
+stackup = "stackup-v1"
+width_outer_um = 104.5
+gap_outer_um = 175.0
+width_inner_um = 75.0
+gap_inner_um = 250.0
+layers = ["L1", "L3", "L8", "L10"]
+constraints = ["PCB-I-03", "PCB-I-10", "PCB-S-14"]
 
 [[class]]
 name = "MIPI_100D"
 signals = "Faceplate DSI lanes; HAT CSI-2 lanes from the SoC to port B of the extension switch"
 differential_ohm = 100
-constraints = ["PCB-I-04", "PCB-I-10"]
+stackup = "stackup-v1"
+width_outer_um = 104.5
+gap_outer_um = 175.0
+width_inner_um = 75.0
+gap_inner_um = 250.0
+layers = ["L1", "L3", "L8", "L10"]
+constraints = ["PCB-I-04", "PCB-I-10", "PCB-S-14"]
 
 [[class]]
 name = "HAT_EXT_100D"
 signals = "HAT extension EXT0+/- to EXT4+/-: extension switch common port to the DF40 (PCIe or CSI-2, hat-standard interface v1.1)"
 differential_ohm = 100
-constraints = ["PCB-I-12", "PCB-I-13", "PCB-I-10", "PCB-W-03"]
+stackup = "stackup-v1"
+width_outer_um = 104.5
+gap_outer_um = 175.0
+width_inner_um = 75.0
+gap_inner_um = 250.0
+layers = ["L1", "L3", "L8", "L10"]
+constraints = ["PCB-I-12", "PCB-I-13", "PCB-I-10", "PCB-W-03", "PCB-S-14"]
 
 [[class]]
 name = "DDR_50SE"
 signals = "LPDDR4X DQ, DM and CA (command and address)"
 impedance_ohm = 50
-constraints = ["PCB-I-05"]
+stackup = "stackup-v1"
+width_outer_um = 134.5
+width_inner_um = 78.5
+layers = ["L1", "L3", "L8", "L10"]
+constraints = ["PCB-I-05", "PCB-S-14"]
 
 [[class]]
 name = "DDR_100D"
 signals = "LPDDR4X DQS and CK pairs"
 differential_ohm = 100
-constraints = ["PCB-I-05"]
+stackup = "stackup-v1"
+width_outer_um = 104.5
+gap_outer_um = 175.0
+width_inner_um = 75.0
+gap_inner_um = 250.0
+layers = ["L1", "L3", "L8", "L10"]
+constraints = ["PCB-I-05", "PCB-S-14"]
 
 [[class]]
 name = "EMMC_SD_50SE"
 signals = "eMMC HS200, microSD SDR104 and the SDIO bus to the radio: clock, command and data"
 impedance_ohm = 50
-constraints = ["PCB-I-06"]
+stackup = "stackup-v1"
+width_outer_um = 134.5
+width_inner_um = 78.5
+layers = ["L1", "L3", "L8", "L10"]
+constraints = ["PCB-I-06", "PCB-S-14"]
 
 [[class]]
 name = "RF_50SE"
 signals = "Radio module RF pins to the U.FL connectors"
 impedance_ohm = 50
-constraints = ["PCB-I-07", "PCB-R-01", "PCB-R-03"]
+stackup = "stackup-v1"
+width_outer_um = 391.0
+layers = ["L1", "L10"]
+reference = "L3 under an L1 line, L8 under an L10 line; L2 (L9) cut out 1.6 mm wide (rule area RF_CUTOUT), same-layer ground >= 0.6 mm from the line"
+constraints = ["PCB-I-07", "PCB-R-01", "PCB-R-03", "PCB-S-14"]

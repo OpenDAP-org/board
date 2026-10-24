@@ -320,15 +320,15 @@
 )
 
 # Source: hardware/rules/t1-main-board.kicad_dru
-# sha256: 5c34871d0420425bb0a490a77ddfeeb109496cfb330749382fcb9a76e704401a
+# sha256: 49d376a7bafca3b636efb44e0e32a3a2ecd83f8e2326cd88a98a3b4d2bad6b8b
 
 # OpenDAP T1 main board: product rules
 #
 # The T1's own limits, composed on top of the PCBWay HDI fab rule set
 # (kicad-lib design-rules/pcbway-hdi) and the OpenDAP craft rule set
 # (kicad-lib design-rules/opendap-craft) into the project's
-# <project>.kicad_dru. Rules PCB-G, -P, -A and -I enforce constraints of
-# docs/specs/pcb-design-constraints.md (Draft v0.9); rules PCB-V, -H, -B, -D,
+# <project>.kicad_dru. Rules PCB-G, -P, -A, -I, -S and -R enforce constraints of
+# docs/specs/pcb-design-constraints.md (Draft v0.11); rules PCB-V, -H, -B, -D,
 # -W and -L enforce the constraints of the same families there, and
 # docs/research/2026-10-pcb-dfm-reliability-rules.md lists every value with
 # its source, primary or secondary. The net
@@ -528,13 +528,209 @@
 
 # PCB-I-09: the master clock runs on an inner layer between two ground
 # planes, with spacing to every other signal; no guard traces (Hubing,
-# LearnEMC). Spacing 3 x W: 0.3 mm (three times a 0.1 mm track) is
-# UNVERIFIED until the stackup sets the clock trace width. The branch length
-# limit (20 mm per branch, sim/mclk-attenuator) is a CHK item.
+# LearnEMC). Spacing 3 x W: stackup v1 sets W = 78.5 um, so 3 x W = 0.236 mm
+# (arithmetic); the rule keeps 0.3 mm, which meets it. UNVERIFIED until
+# PCBWay's DFM review confirms the stackup. The branch length limit (20 mm
+# per branch, sim/mclk-attenuator) is a CHK item.
 (rule "T1 PCB-I-09 [Q1]: Master clock to other nets"
 	(severity warning)
 	(condition "(A.hasNetclass('MCLK_50SE') && !B.hasNetclass('MCLK_50SE') && B.NetName != 'GND') || (B.hasNetclass('MCLK_50SE') && !A.hasNetclass('MCLK_50SE') && A.NetName != 'GND')")
 	(constraint clearance (min 0.3mm))
+)
+
+
+# --- Stackup layers and impedance classes (PCB-S-14, PCB-I, PCB-R-03) ---
+# Stackup v1 (docs/specs/stackup-v1.md, hardware/stackup/stackup-v1.toml):
+# ten copper layers. KiCad names: L1 = F.Cu, L2 = In1.Cu, L3 = In2.Cu,
+# L4 = In3.Cu, L5 = In4.Cu, L6 = In5.Cu, L7 = In6.Cu, L8 = In7.Cu,
+# L9 = In8.Cu, L10 = B.Cu. Routing layers L1, L3, L8, L10; ground planes L2,
+# L4, L7, L9; power planes L5, L6.
+#
+# Impedance classes are the net classes named <name>_<ohms>D or
+# <name>_<ohms>SE (README.md), matched here with the same wildcards the craft
+# rules use for their exemption.
+
+# PCB-S-14: impedance classes route only on L1, L3, L8 and L10, never on a
+# plane layer (L5/L6 power, L2/L4/L7/L9 ground; stackup v1 rule 4.1.2). A
+# layer partition with no numeric value: an error.
+(rule "T1 PCB-S-14 [Q1]: Impedance class on a plane layer"
+	(condition "(A.NetClass == '*_??D' || A.NetClass == '*_???D' || A.NetClass == '*_??SE' || A.NetClass == '*_???SE') && A.Layer != 'F.Cu' && A.Layer != 'In2.Cu' && A.Layer != 'In7.Cu' && A.Layer != 'B.Cu'")
+	(constraint disallow track)
+)
+
+# PCB-S-14 with PCB-I-09: the master clock is a stripline, L3 or L8 only.
+(rule "T1 PCB-S-14 [Q1]: Master clock on an outer layer"
+	(condition "A.hasNetclass('MCLK_50SE') && (A.Layer == 'F.Cu' || A.Layer == 'B.Cu')")
+	(constraint disallow track)
+)
+
+# PCB-S-14 with PCB-I-07: the RF line is a microstrip, L1 or L10 only.
+(rule "T1 PCB-S-14 [Q1]: RF line on an inner layer"
+	(condition "A.hasNetclass('RF_50SE') && A.Layer != 'F.Cu' && A.Layer != 'B.Cu'")
+	(constraint disallow track)
+)
+
+# Track widths per class and layer (PCB-I-01 to I-09, I-12; stackup v1 §5).
+# KiCad holds one width per net class, so the widths are per-layer rules on
+# the class names: outer = L1/L10, inner = L3/L8 (PCB-S-14 keeps the classes
+# off the other inner layers). Each rule is min / opt / max = the computed
+# width -5 % / exact / +5 %. Why 5 %: the drawn width is the class width, so
+# any departure is a mistake (another class's or layer's width, a default
+# track); a 5 % width error moves Z by 2-3 % (stackup v1 §5.1: about 0.4-0.6 %
+# of Z per % of width), a third of PCBWay's +-10 % window, which the fab's
+# own corners need. The minimum never goes below 0.075 mm, PCBWay's published
+# HDI 3/3 mil order option (kicad-lib PCBWay research §4.1): these rules come
+# after the fab's 3 mil (0.0762 mm) track rule and replace it for these
+# classes (PCB-G-01 exception, constraints v0.11). Inside BGA_ESCAPE the
+# escape floor PCB-G-02 applies instead. Widths rest on stackup v1, whose
+# thicknesses, Dk and etch are assumptions until PCBWay's DFM review (HW1.4):
+# every rule here is UNVERIFIED, a warning, until then.
+
+# UNVERIFIED (stackup v1, DFM review): SE50 outer 134.5 um.
+(rule "T1 PCB-I-05/06/08 [Q1]: 50 ohm single-ended width (outer)"
+	(severity warning)
+	(layer outer)
+	(condition "(A.hasNetclass('DDR_50SE') || A.hasNetclass('EMMC_SD_50SE') || A.hasNetclass('I2S_50SE')) && !A.intersectsArea('BGA_ESCAPE')")
+	(constraint track_width (min 0.1278mm) (opt 0.1345mm) (max 0.1412mm))
+)
+
+# UNVERIFIED (stackup v1, DFM review): SE50 inner 78.5 um, MCLK included.
+(rule "T1 PCB-I-05/06/08/09 [Q1]: 50 ohm single-ended width (inner)"
+	(severity warning)
+	(layer inner)
+	(condition "(A.hasNetclass('DDR_50SE') || A.hasNetclass('EMMC_SD_50SE') || A.hasNetclass('I2S_50SE') || A.hasNetclass('MCLK_50SE')) && !A.intersectsArea('BGA_ESCAPE')")
+	(constraint track_width (min 0.075mm) (opt 0.0785mm) (max 0.0824mm))
+)
+
+# UNVERIFIED (stackup v1, DFM review): D90 outer 101.5 um.
+(rule "T1 PCB-I-01/02 [Q1]: 90 ohm pair width (outer)"
+	(severity warning)
+	(layer outer)
+	(condition "(A.hasNetclass('USB2_90D') || A.hasNetclass('USB3_90D')) && !A.intersectsArea('BGA_ESCAPE')")
+	(constraint track_width (min 0.0965mm) (opt 0.1015mm) (max 0.1065mm))
+)
+
+# UNVERIFIED (stackup v1, DFM review): D90 inner 86.0 um.
+(rule "T1 PCB-I-01/02 [Q1]: 90 ohm pair width (inner)"
+	(severity warning)
+	(layer inner)
+	(condition "(A.hasNetclass('USB2_90D') || A.hasNetclass('USB3_90D')) && !A.intersectsArea('BGA_ESCAPE')")
+	(constraint track_width (min 0.0817mm) (opt 0.086mm) (max 0.0903mm))
+)
+
+# UNVERIFIED (stackup v1, DFM review): D85 outer 118.0 um.
+(rule "T1 PCB-I-03 [Q1]: 85 ohm pair width (outer)"
+	(severity warning)
+	(layer outer)
+	(condition "A.hasNetclass('PCIE_85D') && !A.intersectsArea('BGA_ESCAPE')")
+	(constraint track_width (min 0.1121mm) (opt 0.118mm) (max 0.1239mm))
+)
+
+# UNVERIFIED (stackup v1, DFM review): D85 inner 98.5 um.
+(rule "T1 PCB-I-03 [Q1]: 85 ohm pair width (inner)"
+	(severity warning)
+	(layer inner)
+	(condition "A.hasNetclass('PCIE_85D') && !A.intersectsArea('BGA_ESCAPE')")
+	(constraint track_width (min 0.0936mm) (opt 0.0985mm) (max 0.1034mm))
+)
+
+# UNVERIFIED (stackup v1, DFM review): D100 outer 104.5 um.
+(rule "T1 PCB-I-03/04/05/12 [Q1]: 100 ohm pair width (outer)"
+	(severity warning)
+	(layer outer)
+	(condition "(A.hasNetclass('PCIE_REFCLK_100D') || A.hasNetclass('MIPI_100D') || A.hasNetclass('DDR_100D') || A.hasNetclass('HAT_EXT_100D')) && !A.intersectsArea('BGA_ESCAPE')")
+	(constraint track_width (min 0.0993mm) (opt 0.1045mm) (max 0.1097mm))
+)
+
+# UNVERIFIED (stackup v1, DFM review): D100 inner 75.0 um, at the 0.075 mm
+# floor, so the band is 0 / +5 %.
+(rule "T1 PCB-I-03/04/05/12 [Q1]: 100 ohm pair width (inner)"
+	(severity warning)
+	(layer inner)
+	(condition "(A.hasNetclass('PCIE_REFCLK_100D') || A.hasNetclass('MIPI_100D') || A.hasNetclass('DDR_100D') || A.hasNetclass('HAT_EXT_100D')) && !A.intersectsArea('BGA_ESCAPE')")
+	(constraint track_width (min 0.075mm) (opt 0.075mm) (max 0.0787mm))
+)
+
+# UNVERIFIED (stackup v1, DFM review): RF50 391 um over L3 (L8) with L2 (L9)
+# cut out (PCB-I-07, PCB-R-03). Murata's own rule gives 423 um, within the
+# +-0.25 mm Murata allows.
+(rule "T1 PCB-I-07 [Q1]: RF line width"
+	(severity warning)
+	(layer outer)
+	(condition "A.hasNetclass('RF_50SE')")
+	(constraint track_width (min 0.3715mm) (opt 0.391mm) (max 0.4105mm))
+)
+
+# Gap within a differential pair, edge to edge, per layer (stackup v1 §5),
+# as a clearance between the two nets of a pair (isCoupledDiffPair): the
+# minimum of a 5 % band like the widths, never below PCB-G-01's 0.1 mm
+# general space. KiCad's own diff_pair_gap constraint would also check the
+# maximum and give the router its gap, but KiCad 10.0.7 reports it without
+# the rule's name ("(<name> maximum gap ...)"), so check_drc.py cannot
+# attribute it; it waits with diff_pair_uncoupled (README.md). Until then the
+# maximum gap is a CHK item and the router takes the gap from the KiCad net
+# class (E4.1).
+
+# UNVERIFIED (stackup v1, DFM review): 85 and 90 ohm outer gap 100 um, at the
+# 0.1 mm floor (the general clearance; kept so the class carries its gap).
+(rule "T1 PCB-I-01/02/03 [Q1]: 85 and 90 ohm pair gap (outer)"
+	(severity warning)
+	(layer outer)
+	(condition "A.isCoupledDiffPair() && (A.hasNetclass('USB2_90D') || A.hasNetclass('USB3_90D') || A.hasNetclass('PCIE_85D')) && !A.intersectsArea('BGA_ESCAPE')")
+	(constraint clearance (min 0.1mm))
+)
+
+# UNVERIFIED (stackup v1, DFM review): 85 and 90 ohm inner gap 150 um, -5 %.
+(rule "T1 PCB-I-01/02/03 [Q1]: 85 and 90 ohm pair gap (inner)"
+	(severity warning)
+	(layer inner)
+	(condition "A.isCoupledDiffPair() && (A.hasNetclass('USB2_90D') || A.hasNetclass('USB3_90D') || A.hasNetclass('PCIE_85D')) && !A.intersectsArea('BGA_ESCAPE')")
+	(constraint clearance (min 0.1425mm))
+)
+
+# UNVERIFIED (stackup v1, DFM review): 100 ohm outer gap 175 um, -5 %.
+(rule "T1 PCB-I-03/04/05/12 [Q1]: 100 ohm pair gap (outer)"
+	(severity warning)
+	(layer outer)
+	(condition "A.isCoupledDiffPair() && (A.hasNetclass('PCIE_REFCLK_100D') || A.hasNetclass('MIPI_100D') || A.hasNetclass('DDR_100D') || A.hasNetclass('HAT_EXT_100D')) && !A.intersectsArea('BGA_ESCAPE')")
+	(constraint clearance (min 0.1663mm))
+)
+
+# UNVERIFIED (stackup v1, DFM review): 100 ohm inner gap 250 um, -5 %.
+(rule "T1 PCB-I-03/04/05/12 [Q1]: 100 ohm pair gap (inner)"
+	(severity warning)
+	(layer inner)
+	(condition "A.isCoupledDiffPair() && (A.hasNetclass('PCIE_REFCLK_100D') || A.hasNetclass('MIPI_100D') || A.hasNetclass('DDR_100D') || A.hasNetclass('HAT_EXT_100D')) && !A.intersectsArea('BGA_ESCAPE')")
+	(constraint clearance (min 0.2375mm))
+)
+
+# PCB-I-07: same-layer ground keeps 0.6 mm from the RF line (stackup v1
+# §4.4: at 0.6 mm the pour lowers Z by 0.16 ohm). Pads are left out (the
+# module's and the U.FL's own ground pads follow Murata's copied layout,
+# PCB-R-03). Zone fills follow the rule, so the pour pulls back by itself.
+# UNVERIFIED (solver on the assumed stack, DFM review).
+(rule "T1 PCB-I-07 [Q1]: RF line to same-layer ground"
+	(severity warning)
+	(layer outer)
+	(condition "(A.hasNetclass('RF_50SE') && A.Type != 'Pad' && B.NetName == 'GND' && B.Type != 'Pad') || (B.hasNetclass('RF_50SE') && B.Type != 'Pad' && A.NetName == 'GND' && A.Type != 'Pad')")
+	(constraint clearance (min 0.6mm))
+)
+
+# PCB-R-03: rule area RF_CUTOUT = the L2 (L9) cut-out under the RF line,
+# 1.6 mm wide centred on it and 0.6 mm past each end (stackup v1 §4.4),
+# drawn on the cut layer and the pour layer of the line's side only: In1.Cu
+# and In2.Cu for an L1 line, In8.Cu and In7.Cu for an L10 line. The area
+# keeps out zone fills on the cut layer (its own keepout setting); these
+# rules catch tracks and vias there, and any copper of another net on the
+# L3 (L8) ground pour under the line. Partition rules: errors.
+(rule "T1 PCB-R-03 [Q1]: Copper in the RF ground cut-out"
+	(condition "A.intersectsArea('RF_CUTOUT') && (A.Layer == 'In1.Cu' || A.Layer == 'In8.Cu')")
+	(constraint disallow track via zone)
+)
+
+(rule "T1 PCB-R-03 [Q1]: Foreign copper on the RF ground pour"
+	(condition "A.intersectsArea('RF_CUTOUT') && (A.Layer == 'In2.Cu' || A.Layer == 'In7.Cu') && A.NetName != 'GND'")
+	(constraint disallow track via zone)
 )
 
 
@@ -731,6 +927,16 @@
 (rule "T1 PCB-W-01 [Q1]: Copper neck"
 	(severity error)
 	(constraint connection_width (min 0.1mm))
+)
+
+# PCB-W-01 for impedance classes: their narrowest track is 0.075 mm (the
+# inner 100 ohm and 50 ohm widths, PCB-G-01 exception), so a neck is measured
+# against that. Placed before the escape rule, which still decides inside
+# BGA_ESCAPE.
+(rule "T1 PCB-W-01 [Q1]: Copper neck on impedance classes"
+	(severity error)
+	(condition "A.NetClass == '*_??D' || A.NetClass == '*_???D' || A.NetClass == '*_??SE' || A.NetClass == '*_???SE'")
+	(constraint connection_width (min 0.075mm))
 )
 
 (rule "T1 PCB-W-01 [Q1]: Copper neck in the BGA escape"

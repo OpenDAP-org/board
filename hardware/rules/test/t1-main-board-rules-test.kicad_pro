@@ -266,6 +266,84 @@
         "track_width": 0.0,
         "via_diameter": 0.4,
         "via_drill": 0.2
+      },
+      {
+        "clearance": 0.0,
+        "diff_pair_gap": 0.1,
+        "diff_pair_via_gap": 0.1,
+        "diff_pair_width": 0.1,
+        "microvia_diameter": 0.2,
+        "microvia_drill": 0.1,
+        "name": "PCIE_REFCLK_100D",
+        "priority": 17,
+        "track_width": 0.0,
+        "via_diameter": 0.4,
+        "via_drill": 0.2
+      },
+      {
+        "clearance": 0.0,
+        "diff_pair_gap": 0.1,
+        "diff_pair_via_gap": 0.1,
+        "diff_pair_width": 0.1,
+        "microvia_diameter": 0.2,
+        "microvia_drill": 0.1,
+        "name": "DDR_50SE",
+        "priority": 18,
+        "track_width": 0.0,
+        "via_diameter": 0.4,
+        "via_drill": 0.2
+      },
+      {
+        "clearance": 0.0,
+        "diff_pair_gap": 0.1,
+        "diff_pair_via_gap": 0.1,
+        "diff_pair_width": 0.1,
+        "microvia_diameter": 0.2,
+        "microvia_drill": 0.1,
+        "name": "DDR_100D",
+        "priority": 19,
+        "track_width": 0.0,
+        "via_diameter": 0.4,
+        "via_drill": 0.2
+      },
+      {
+        "clearance": 0.0,
+        "diff_pair_gap": 0.1,
+        "diff_pair_via_gap": 0.1,
+        "diff_pair_width": 0.1,
+        "microvia_diameter": 0.2,
+        "microvia_drill": 0.1,
+        "name": "EMMC_SD_50SE",
+        "priority": 20,
+        "track_width": 0.0,
+        "via_diameter": 0.4,
+        "via_drill": 0.2
+      },
+      {
+        "clearance": 0.0,
+        "diff_pair_gap": 0.1,
+        "diff_pair_via_gap": 0.1,
+        "diff_pair_width": 0.1,
+        "microvia_diameter": 0.2,
+        "microvia_drill": 0.1,
+        "name": "I2S_50SE",
+        "priority": 21,
+        "track_width": 0.0,
+        "via_diameter": 0.4,
+        "via_drill": 0.2
+      },
+      {
+        "clearance": 0.0,
+        "diff_pair_gap": 0.1,
+        "diff_pair_via_gap": 0.1,
+        "diff_pair_width": 0.1,
+        "microvia_diameter": 0.2,
+        "microvia_drill": 0.1,
+        "name": "RF_50SE",
+        "priority": 22,
+        "track_width": 0.0,
+        "via_diameter": 0.4,
+        "via_drill": 0.2
       }
     ],
     "meta": {
@@ -339,6 +417,30 @@
       {
         "netclass": "HAT_EXT_100D",
         "pattern": "HAT_EXT_100D_*"
+      },
+      {
+        "netclass": "PCIE_REFCLK_100D",
+        "pattern": "PCIE_REFCLK_100D_*"
+      },
+      {
+        "netclass": "DDR_50SE",
+        "pattern": "DDR_50SE_*"
+      },
+      {
+        "netclass": "DDR_100D",
+        "pattern": "DDR_100D_*"
+      },
+      {
+        "netclass": "EMMC_SD_50SE",
+        "pattern": "EMMC_SD_50SE_*"
+      },
+      {
+        "netclass": "I2S_50SE",
+        "pattern": "I2S_50SE_*"
+      },
+      {
+        "netclass": "RF_50SE",
+        "pattern": "RF_50SE_*"
       }
     ]
   }

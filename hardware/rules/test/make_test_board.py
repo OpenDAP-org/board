@@ -52,7 +52,15 @@ tbm.to_mm = _to_value
 CLASSES = ("PWR_BAT", "PWR_VSYS", "PWR_VBUS", "PWR_5V1", "PWR_HAT3V3",
            "PWR_AMP", "SW_NODE", "AUDIO_ANALOG", "AUDIO_REF", "MCLK_50SE",
            "USB2_90D", "USB3_90D", "PCIE_85D", "MIPI_100D", "BAT_SENSE",
-           "PWR_HAT5V", "HAT_EXT_100D")
+           "PWR_HAT5V", "HAT_EXT_100D", "PCIE_REFCLK_100D", "DDR_50SE",
+           "DDR_100D", "EMMC_SD_50SE", "I2S_50SE", "RF_50SE")
+
+# Stackup v1: ten copper layers. L1 = F.Cu, L3 = In2.Cu (stripline), L5 =
+# In4.Cu (power plane), L8 = In7.Cu, L9 = In8.Cu, L10 = B.Cu.
+L3 = pcbnew.In2_Cu
+L5 = pcbnew.In4_Cu
+L8 = pcbnew.In7_Cu
+L2, L9 = pcbnew.In1_Cu, pcbnew.In8_Cu
 
 CRT = 0.6      # courtyard square of a generic small part
 EDGE_W = 0.05  # Edge.Cuts line width (testboard): physical rules measure
@@ -84,6 +92,7 @@ class ProductTestBoard(TestBoard):
         self.board_w = tbm.BOARD_W
         self._class_nets = {}
         self._prefix = {}
+        self._gnd_taps = []
         with open(args[1], encoding="utf-8") as fh:
             self.text = fh.read()
 
@@ -94,6 +103,20 @@ class ProductTestBoard(TestBoard):
         self.board.Add(net)
         return net
 
+    def gnd_bus_x(self, x):
+        """The GND bus beside the column of X (layer L7, In6.Cu, which no rule
+        constrains): every GND object is joined to it, so the board has no
+        unconnected GND items."""
+        return (tbm.FAIL_X if x < tbm.PASS_EDGE else tbm.PASS_X) - 2.5
+
+    def gnd_track(self, x2, y, width, layer):
+        """A GND track on LAYER from the column's GND bus to X2, with the
+        via that joins it to the bus."""
+        bx = self.gnd_bus_x(x2)
+        self._via(bx, y, 0.2, 0.45, net=self.gnd())
+        self._gnd_taps.append((bx, y))
+        return self._track(bx, y, x2, y, width, layer, self.gnd())
+
     def gnd(self):
         net = self.board.FindNet("GND")
         if net is None:
@@ -101,16 +124,22 @@ class ProductTestBoard(TestBoard):
             self.board.Add(net)
         return net
 
-    def area(self, name, x1, y1, x2, y2):
+    def area(self, name, x1, y1, x2, y2, layers=None, no_fill=False):
         zone = pcbnew.ZONE(self.board)
         zone.SetIsRuleArea(True)
         zone.SetZoneName(name)
         zone.SetDoNotAllowTracks(False)
         zone.SetDoNotAllowVias(False)
         zone.SetDoNotAllowPads(False)
-        zone.SetDoNotAllowZoneFills(False)
+        zone.SetDoNotAllowZoneFills(no_fill)
         zone.SetDoNotAllowFootprints(False)
-        zone.SetLayerSet(pcbnew.LSET.AllCuMask())
+        if layers:
+            ls = pcbnew.LSET()
+            for layer in layers:
+                ls.AddLayer(layer)
+            zone.SetLayerSet(ls)
+        else:
+            zone.SetLayerSet(pcbnew.LSET.AllCuMask())
         outline = zone.Outline()
         outline.NewOutline()
         for x, y in ((x1, y1), (x2, y1), (x2, y2), (x1, y2)):
@@ -192,9 +221,9 @@ class ProductTestBoard(TestBoard):
         s.SetWidth(mm(width))
         self.board.Add(s)
 
-    def zone(self, net, points, min_width=0.05):
+    def zone(self, net, points, min_width=0.05, layer=pcbnew.F_Cu):
         z = pcbnew.ZONE(self.board)
-        z.SetLayer(pcbnew.F_Cu)
+        z.SetLayer(layer)
         z.SetNet(net)
         z.SetMinThickness(mm(min_width))
         z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)
@@ -223,18 +252,26 @@ class ProductTestBoard(TestBoard):
             self.widen(xs + 1 + w / 2)
         self.add_row(name, height, build)
 
-    def clearance_row(self, name, width, net_a=None, net_b=None, area=None):
+    def clearance_row(self, name, width, net_a=None, net_b=None, area=None,
+                      layer=pcbnew.F_Cu, width_b=None, gnd_b=False):
+        """Two tracks; WIDTH for the first, WIDTH_B (default WIDTH) for the
+        second; centre lines apart by the gap plus the two half widths."""
         gap = self.rule(name).value("clearance")
-        height = max(tbm.ROW_H, gap + 2 * width + 2.5)
+        wb = width if width_b is None else width_b
+        height = max(tbm.ROW_H, gap + width + wb + 2.5)
 
         def build(x, y, fail):
             if area:
-                self.area(area, x - 0.5, y - 0.5, x + 3.5, y + 2 * width + gap + 0.5)
+                self.area(area, x - 0.5, y - 0.5, x + 3.5, y + width + wb + gap + 0.5)
             g = self._v(gap, fail)
             a = self.class_net(net_a) if net_a else None
-            b = self.class_net(net_b) if net_b else None
-            self._track(x, y, x + 3, y, width, pcbnew.F_Cu, a)
-            self._track(x, y + width + g, x + 3, y + width + g, width, pcbnew.F_Cu, b)
+            self._track(x, y, x + 3, y, width, layer, a)
+            yb = y + width / 2 + g + wb / 2
+            if gnd_b:
+                self.gnd_track(x + 3, yb, wb, layer)
+            else:
+                b = self.class_net(net_b) if net_b else None
+                self._track(x, yb, x + 3, yb, wb, layer, b)
         self.add_row(name, height, build)
 
     def via_diameter_row(self, name, drill, vtype=None, layers=None):
@@ -303,7 +340,12 @@ class ProductTestBoard(TestBoard):
     def plated_hole_net_row(self, name, drill):
         def build(x, y, fail):
             net = self._net() if fail else self.gnd()
-            self.hole(x + drill / 2 + 0.3, y, drill, plated=True, net=net)
+            hx = x + drill / 2 + 0.3
+            self.hole(hx, y, drill, plated=True, net=net)
+            if not fail:  # join the GND bus on L7
+                bx = self.gnd_bus_x(hx)
+                self._gnd_taps.append((bx, y))
+                self._track(bx, y, hx, y, 0.2, pcbnew.In6_Cu, net)
         self.add_row(name, max(tbm.ROW_H, drill + 2.0), build)
 
     def hole_to_edge_row(self, name, drill):
@@ -445,13 +487,13 @@ class ProductTestBoard(TestBoard):
         # KiCad reports each acute pair once per order of the two segments.
         self.add_row(name, max(tbm.ROW_H, length + 2.0), build, fires=2)
 
-    def neck_row(self, name, area=None):
+    def neck_row(self, name, area=None, netclass=None):
         neck = self.rule(name).value("connection_width")
 
         def build(x, y, fail):
             if area:
                 self.area(area, x - 0.5, y - 0.5, x + 7.5, y + 3.5)
-            net = self._net()
+            net = self.class_net(netclass) if netclass else self._net()
             # KiCad only reports a neck more than about 0.01 mm under the limit.
             w = self._vd(neck, fail, 0.02)
             yc = y + 1.5
@@ -470,7 +512,9 @@ class ProductTestBoard(TestBoard):
             v.SetTeardropsEnabled(not fail)
         self.add_row(name, tbm.ROW_H, build)
 
-    def via_count_row(self, name, netclass):
+    def via_count_row(self, name, netclass, width):
+        """Vias on one net of the class, joined by a track on L3 at the
+        class's inner width (PCB-S-14 keeps impedance classes on L3/L8)."""
         limit = int(round(self.rule(name).value("via_count", "max")))
 
         def build(x, y, fail):
@@ -479,9 +523,92 @@ class ProductTestBoard(TestBoard):
             pitch = 0.8
             for i in range(n):
                 self._via(x + i * pitch, y, 0.2, 0.45, net=net)
-            self._track(x, y, x + (n - 1) * pitch, y, 0.1, pcbnew.In3_Cu, net)
+            self._track(x, y, x + (n - 1) * pitch, y, width, L3, net)
             self.widen(x + n * pitch)
         self.add_row(name, tbm.ROW_H, build)
+
+    # impedance classes (PCB-S-14, PCB-I, PCB-R-03)
+
+    def pair_nets(self, netclass):
+        """Two nets KiCad reads as a differential pair (suffix _P / _N)."""
+        n = self._class_nets.get(netclass, 0) + 1
+        self._class_nets[netclass] = n
+        nets = []
+        for sfx in ("P", "N"):
+            net = pcbnew.NETINFO_ITEM(self.board, f"{netclass}_{n}_{sfx}")
+            self.board.Add(net)
+            nets.append(net)
+        return nets
+
+    def layer_row(self, name, netclass, width, fail_layer, pass_layer, fail_width=None):
+        """A class track on a layer the class may not use (FAIL), and on one
+        it may use (PASS). FAIL_WIDTH keeps the failing track clear of the
+        width rules of its layer."""
+        def build(x, y, fail):
+            w = (fail_width or width) if fail else width
+            cy = y + w / 2
+            self._track(x + w / 2, cy, x + 3 - w / 2, cy, w,
+                        fail_layer if fail else pass_layer, self.class_net(netclass))
+        self.add_row(name, max(tbm.ROW_H, width + 2.5), build)
+
+    def band_width_row(self, name, layer, netclass):
+        """FAIL: one track under the minimum and one over the maximum; PASS:
+        one track at the optimum (the computed width)."""
+        r = self.rule(name)
+        lo, opt, hi = (r.value("track_width", k) for k in ("min", "opt", "max"))
+
+        def build(x, y, fail):
+            widths = (self._v(lo, True), self._v(hi, True, "max")) if fail else (opt,)
+            for i, w in enumerate(widths):
+                ty = y + i * 1.0
+                self._track(x, ty, x + 3, ty, w, layer, self.class_net(netclass))
+        self.add_row(name, tbm.ROW_H + 1.0, build, fires=2)
+
+    def pair_gap_row(self, name, layer, netclass):
+        """A pair at the class width: FAIL just under the minimum gap, PASS at
+        the computed gap (the minimum plus 5 %)."""
+        lo = self.rule(name).value("clearance")
+        w = self._pair_width(layer, netclass)
+
+        def build(x, y, fail):
+            g = self._v(lo, True) if fail else lo / 0.95
+            p, n = self.pair_nets(netclass)
+            self._track(x, y, x + 3, y, w, layer, p)
+            self._track(x, y + w + g, x + 3, y + w + g, w, layer, n)
+        self.add_row(name, tbm.ROW_H, build)
+
+    def _pair_width(self, layer, netclass):
+        """The class's computed width on LAYER, read from its width rule."""
+        side = "outer" if layer in (pcbnew.F_Cu, pcbnew.B_Cu) else "inner"
+        for rule in self.rules.values():
+            if (rule.layer == side and "track_width" in rule.constraints
+                    and f"'{netclass}'" in (rule.condition or "")):
+                return rule.value("track_width", "opt")
+        raise KeyError(f"no {side} width rule for {netclass}")
+
+    def rf_cutout_row(self, name, fail_layer, pass_layer, pass_gnd, plane=False):
+        """Rule area RF_CUTOUT on L2 and L3 only (the side of an L1 line).
+        FAIL: a track of another net on FAIL_LAYER inside it. PASS: a track
+        on PASS_LAYER inside it, on GND if PASS_GND (joined to the bus).
+        With PLANE, both sides also get a GND plane on L2 over the area: on
+        the FAIL side its fill enters the area (a second report), on the
+        PASS side the area keeps the fill out, as the board draws it."""
+        def build(x, y, fail):
+            self.area("RF_CUTOUT", x - 0.5, y - 0.8, x + 3.5, y + 0.8,
+                      layers=(L2, L3), no_fill=plane and not fail)
+            if plane:
+                bx = self.gnd_bus_x(x)
+                self._via(bx, y - 1.0, 0.2, 0.45, net=self.gnd())
+                self._gnd_taps.append((bx, y - 1.0))
+                self.zone(self.gnd(), ((bx - 0.5, y - 1.5), (x + 4, y - 1.5), (x + 4, y + 1.5),
+                                       (bx - 0.5, y + 1.5)), layer=L2)
+            if fail:
+                self._track(x, y, x + 3, y, 0.2, fail_layer, self._net())
+            elif pass_gnd:
+                self.gnd_track(x + 3, y, 0.2, pass_layer)
+            else:
+                self._track(x, y, x + 3, y, 0.2, pass_layer, self._net())
+        self.add_row(name, tbm.ROW_H + 1.5, build, fires=2 if plane else 1)
 
     # thermal and safety placement (PCB-T)
 
@@ -518,7 +645,21 @@ class ProductTestBoard(TestBoard):
 
     # output --------------------------------------------------------------
 
+    def _gnd_bus(self):
+        """Join every GND tap: one track on L7 per column and one between
+        the two columns, below the last tap."""
+        if len(self._gnd_taps) < 2:
+            return
+        y_join = max(y for _, y in self._gnd_taps) + 1.2
+        buses = sorted({bx for bx, _ in self._gnd_taps})
+        for bx in buses:
+            y0 = min(y for b, y in self._gnd_taps if b == bx)
+            self._track(bx, y0, bx, y_join, 0.2, pcbnew.In6_Cu, self.gnd())
+        if len(buses) > 1:
+            self._track(buses[0], y_join, buses[-1], y_join, 0.2, pcbnew.In6_Cu, self.gnd())
+
     def save(self, out_dir, ignore_checks=()):
+        self._gnd_bus()
         # Fill the zones once testboard has drawn the outline, just before
         # it writes the board.
         save_board = pcbnew.SaveBoard
@@ -556,7 +697,7 @@ class ProductTestBoard(TestBoard):
 
 
 def main():
-    tb = ProductTestBoard(NAME, RULES, copper_layers=8)
+    tb = ProductTestBoard(NAME, RULES, copper_layers=10)
     micro = (pcbnew.VIATYPE_MICROVIA, (pcbnew.F_Cu, pcbnew.In1_Cu))
     fid = pcbnew.PAD_PROP_FIDUCIAL_GLBL
     tp = pcbnew.PAD_PROP_TESTPOINT
@@ -594,8 +735,10 @@ def main():
                      net_a="SW_NODE", net_b="AUDIO_ANALOG")
     tb.foreign_track_row(P + "PCB-A-07 [Q1]: Foreign track in the analog audio area",
                          "AUDIO_ANALOG", lambda: tb.class_net("AUDIO_ANALOG"))
-    tb.clearance_row(P + "PCB-I-09 [Q1]: Master clock to other nets", width=0.2,
-                     net_a="MCLK_50SE")
+    mclk_w = tb.rule(P + "PCB-I-05/06/08/09 [Q1]: 50 ohm single-ended width (inner)") \
+        .value("track_width", "opt")
+    tb.clearance_row(P + "PCB-I-09 [Q1]: Master clock to other nets", width=mclk_w,
+                     net_a="MCLK_50SE", layer=L3, width_b=0.1)
 
     # Mounting holes (PCB-H)
     tb.hole_to_part_row(P + "PCB-H-01 [Q1]: Part under the screw head", 2.2, "R")
@@ -627,12 +770,50 @@ def main():
 
     # Routing hygiene (PCB-W)
     tb.neck_row(P + "PCB-W-01 [Q1]: Copper neck")
+    tb.neck_row(P + "PCB-W-01 [Q1]: Copper neck on impedance classes", netclass="DDR_50SE")
     tb.neck_row(P + "PCB-W-01 [Q1]: Copper neck in the BGA escape", area="BGA_ESCAPE")
     tb.teardrop_row(P + "PCB-W-02 [Q2]: Teardrops on vias")
     for line, netclass in (("USB 2", "USB2_90D"), ("USB 3", "USB3_90D"),
                            ("PCIe", "PCIE_85D"), ("MIPI", "MIPI_100D"),
                            ("HAT extension", "HAT_EXT_100D")):
-        tb.via_count_row(P + f"PCB-W-03 [Q2]: Vias per {line} line", netclass)
+        tb.via_count_row(P + f"PCB-W-03 [Q2]: Vias per {line} line", netclass,
+                         tb._pair_width(L3, netclass))
+
+    # Stackup layers and impedance classes (PCB-S-14, PCB-I, PCB-R-03)
+    tb.layer_row(P + "PCB-S-14 [Q1]: Impedance class on a plane layer", "USB2_90D",
+                 tb._pair_width(L3, "USB2_90D"), L5, L3)
+    tb.layer_row(P + "PCB-S-14 [Q1]: Master clock on an outer layer", "MCLK_50SE",
+                 mclk_w, pcbnew.F_Cu, L8, fail_width=0.1)
+    rf_w = tb.rule(P + "PCB-I-07 [Q1]: RF line width").value("track_width", "opt")
+    tb.layer_row(P + "PCB-S-14 [Q1]: RF line on an inner layer", "RF_50SE", rf_w,
+                 L3, pcbnew.B_Cu)
+    for rule, layer, netclass in (
+            ("PCB-I-05/06/08 [Q1]: 50 ohm single-ended width (outer)", pcbnew.F_Cu,
+             "DDR_50SE"),
+            ("PCB-I-05/06/08/09 [Q1]: 50 ohm single-ended width (inner)", L3, "MCLK_50SE"),
+            ("PCB-I-01/02 [Q1]: 90 ohm pair width (outer)", pcbnew.B_Cu, "USB3_90D"),
+            ("PCB-I-01/02 [Q1]: 90 ohm pair width (inner)", L8, "USB2_90D"),
+            ("PCB-I-03 [Q1]: 85 ohm pair width (outer)", pcbnew.F_Cu, "PCIE_85D"),
+            ("PCB-I-03 [Q1]: 85 ohm pair width (inner)", L3, "PCIE_85D"),
+            ("PCB-I-03/04/05/12 [Q1]: 100 ohm pair width (outer)", pcbnew.F_Cu, "MIPI_100D"),
+            ("PCB-I-03/04/05/12 [Q1]: 100 ohm pair width (inner)", L8, "HAT_EXT_100D"),
+            ("PCB-I-07 [Q1]: RF line width", pcbnew.F_Cu, "RF_50SE")):
+        tb.band_width_row(P + rule, layer, netclass)
+    tb.pair_gap_row(P + "PCB-I-01/02/03 [Q1]: 85 and 90 ohm pair gap (outer)", pcbnew.F_Cu,
+                    "USB2_90D")
+    tb.pair_gap_row(P + "PCB-I-01/02/03 [Q1]: 85 and 90 ohm pair gap (inner)", L3,
+                    "PCIE_85D")
+    tb.pair_gap_row(P + "PCB-I-03/04/05/12 [Q1]: 100 ohm pair gap (outer)", pcbnew.B_Cu,
+                    "DDR_100D")
+    tb.pair_gap_row(P + "PCB-I-03/04/05/12 [Q1]: 100 ohm pair gap (inner)", L8,
+                    "PCIE_REFCLK_100D")
+    tb.clearance_row(P + "PCB-I-07 [Q1]: RF line to same-layer ground", width=rf_w,
+                     net_a="RF_50SE", width_b=0.2, gnd_b=True)
+    # The PASS track of the cut-out row is on L9, outside the area's layers:
+    # the area applies only on the side it is drawn for.
+    tb.rf_cutout_row(P + "PCB-R-03 [Q1]: Copper in the RF ground cut-out", L2, L9, False,
+                     plane=True)
+    tb.rf_cutout_row(P + "PCB-R-03 [Q1]: Foreign copper on the RF ground pour", L3, L3, True)
 
     # Battery interface and heat placement (PCB-L)
     tb.part_in_area_row(P + "PCB-L-01 [Q0]: Hot part at the battery pocket",
